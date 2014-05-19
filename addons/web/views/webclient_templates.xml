@@ -138,17 +138,8 @@
             <t t-call="web.layout">
                 <t t-set="head">
                     <t t-call-assets="web.assets_backend"/>
-                    <script type="text/javascript">
-                        $(function() {
-                            var s = new openerp.init();
-                            <t t-if="init">
-                                <t t-raw="init"/>
-                            </t>
-                            <t t-if="not init">
-                                var wc = new s.web.WebClient();
-                                wc.appendTo($(document.body));
-                            </t>
-                        });
+                    <script type="text/javascript" t-raw="init_script">
+                        openerp.startClient();
                     </script>
                 </t>
             </t>

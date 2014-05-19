@@ -13,8 +13,9 @@ class EDI(openerp.http.Controller):
         # `url` may contain a full URL with a valid query string, we basically want to watch out for XML brackets and double-quotes 
         safe_url = werkzeug.url_quote_plus(url,':/?&;=')
 
-        values = dict(init='s.edi.edi_import("%s");' % safe_url)
-        return req.render('web.webclient_bootstrap', values)
+        return req.render('web.webclient_bootstrap', {
+            'init_script': 'openerp.edi.edi_import("%s");' % safe_url
+        })
 
     @openerp.http.route('/edi/import_edi_url', type='json', auth='none')
     def import_edi_url(self, url):

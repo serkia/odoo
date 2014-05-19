@@ -27,6 +27,8 @@
         /**
          * OpenERP instance constructor
          *
+         * deprecated:: 8.0
+         *
          * @param {Array|String} modules list of modules to initialize
          */
         init: function(modules) {
@@ -49,6 +51,21 @@
             }
             openerp._modules = ['web'].concat(modules);
             return openerp;
+        },
+        startClient: function (options) {
+            openerp.init();
+            var def = $.Deferred();
+            $(function () {
+                options = _.extend({
+                    el: document.body,
+                    action: null,
+                    widget: openerp.web.WebClient,
+                }, options || {});
+
+                var wc = new options.widget();
+                wc.appendTo($(options.el)).then(def.resolve);
+            });
+            return def;
         }
     });
 })();
