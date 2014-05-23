@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <!-- Issue Survey Form -->
+        <record model="survey.survey" id="issue_survey">
+            <field name="title">Project Issue Survey</field>
+            <field name="stage_id" ref="survey.stage_in_progress" />
+            <field name="res_model">project_issue></field>
+            <field name="auth_required" eval="False" />
+            <field name="users_can_go_back" eval="True" />
+            <field name="description">&lt;p&gt;This survey should take less than five minutes.&lt;/p&gt;</field>
+            <field name="thank_you_message">&lt;p&gt;&lt;/p&gt;</field>
+        </record>
+        <!-- Page 1 -->
+        <record model="survey.page" id="issue_survey_1">
+            <field name="title">OpenERP Support Survey</field>
+            <field name="survey_id" ref="issue_survey" />
+            <field name="sequence">1</field>
+            <field name="description">&lt;p&gt;&lt;/p&gt;</field>
+        </record>
+        <record model="survey.question" id="issue_survey_1_1">
+            <field name="page_id" ref="issue_survey_1" />
+            <field name="sequence">1</field>
+            <field name="question">What's the name of your Company ?</field>
+            <field name="type">textbox</field>
+            <field name="display_mode">columns</field>
+            <field name="constr_mandatory" eval="True" />
+        </record>
+        <record model="survey.question" id="issue_survey_1_2">
+            <field name="page_id" ref="issue_survey_1" />
+            <field name="sequence">2</field>
+            <field name="question">What's the name of the Expert that worked on your support request ?</field>
+            <field name="type">textbox</field>
+            <field name="display_mode">columns</field>
+            <field name="constr_mandatory" eval="True" />
+        </record>
+        <record model="survey.question" id="issue_survey_1_3">
+            <field name="page_id" ref="issue_survey_1" />
+            <field name="sequence">3</field>
+            <field name="question">For which Ticket number are you filling up the Survey? (You might have received this with the emails of the discussions.)</field>
+            <field name="type">textbox</field>
+            <field name="display_mode">columns</field>
+            <field name="constr_mandatory" eval="True" />
+        </record>
+        <record model="survey.question" id="issue_survey_1_4">
+            <field name="page_id" ref="issue_survey_1" />
+            <field name="sequence">4</field>
+            <field name="question">What kind of question did you ask ?</field>
+            <field name="type">multiple_choice</field>
+            <field name="column_nb">4</field>
+            <field name="constr_mandatory" eval="True" />
+        </record>
+            <record model="survey.label" id="choice_1_4_1">
+                    <field name="question_id" ref="issue_survey_1_4"/>
+                    <field name="sequence">1</field>
+                    <field name="value">A Functional Question</field>
+                </record>
+                <record model="survey.label" id="choice_1_4_2">
+                    <field name="question_id" ref="issue_survey_1_4"/>
+                    <field name="sequence">2</field>
+                    <field name="value">A Technical Question</field>
+                </record>
+                <record model="survey.label" id="choice_1_4_3">
+                    <field name="question_id" ref="issue_survey_1_4"/>
+                    <field name="sequence">3</field>
+                    <field name="value">A Bug Report</field>
+                </record>
+                <record model="survey.label" id="choice_1_4_4">
+                    <field name="question_id" ref="issue_survey_1_4"/>
+                    <field name="sequence">4</field>
+                    <field name="value">A Feature Request</field>
+                </record>
+                <record model="survey.label" id="choice_1_4_5">
+                    <field name="question_id" ref="issue_survey_1_4"/>
+                    <field name="sequence">5</field>
+                    <field name="value">Other</field>
+                </record>
+            <record model="survey.question" id="issue_survey_1_5">
+            <field name="page_id" ref="issue_survey_1" />
+            <field name="sequence">5</field>
+            <field name="question"> Based upon your overall experience, please rate your satisfaction with Customer Service in the following areas:</field>
+            <field name="type">matrix</field>
+            <field name="matrix_subtype">simple</field>
+            <field name="constr_mandatory" eval="True" />
+            </record>
+                <record model="survey.label" id="fcol_1_5_1">
+                    <field name="question_id" ref="issue_survey_1_5"/>
+                    <field name="sequence">1</field>
+                    <field name="value">Very Dissatisfied</field>
+                </record>
+                <record model="survey.label" id="fcol_1_5_2">
+                    <field name="question_id" ref="issue_survey_1_5"/>
+                    <field name="sequence">2</field>
+                    <field name="value">Somewhat Dissatisfied</field>
+                </record>
+                <record model="survey.label" id="fcol_1_5_3">
+                    <field name="question_id" ref="issue_survey_1_5"/>
+                    <field name="sequence">3</field>
+                    <field name="value">Neither Satisfied Nor Dissatisfied</field>
+                </record>
+                <record model="survey.label" id="fcol_1_5_4">
+                    <field name="question_id" ref="issue_survey_1_5"/>
+                    <field name="sequence">4</field>
+                    <field name="value">Somewhat Satisfied</field>
+                </record>
+                <record model="survey.label" id="fcol_1_5_5">
+                    <field name="question_id" ref="issue_survey_1_5"/>
+                    <field name="sequence">4</field>
+                    <field name="value">Very Statisfied</field>
+                </record>
+                <record model="survey.label" id="frow_1_5_1">
+                    <field name="question_id_2" ref="issue_survey_1_5"/>
+                    <field name="sequence">1</field>
+                    <field name="value">Very Delay to Answer Your Request</field>
+                </record>
+                <record model="survey.label" id="frow_1_5_2">
+                    <field name="question_id_2" ref="issue_survey_1_5"/>
+                    <field name="sequence">2</field>
+                    <field name="value">Understanding of Your Request</field>
+                </record>
+                <record model="survey.label" id="frow_1_5_3">
+                    <field name="question_id_2" ref="issue_survey_1_5"/>
+                    <field name="sequence">3</field>
+                    <field name="value">Competency of the Expert who Answered</field>
+                </record>
+                <record model="survey.label" id="frow_1_5_4">
+                    <field name="question_id_2" ref="issue_survey_1_5"/>
+                    <field name="sequence">4</field>
+                    <field name="value">Quality/Accuracy of the Answer</field>
+                </record>
+            <record model="survey.question" id="issue_survey_1_6">
+            <field name="page_id" ref="issue_survey_1" />
+            <field name="sequence">6</field>
+            <field name="question">Do you have any additional comments or suggestions on how we can improve?</field>
+            <field name="type">free_text</field>
+            </record>
+    </data>
+</openerp>

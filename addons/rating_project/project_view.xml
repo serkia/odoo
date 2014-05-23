@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <!--      inherit the smily on Faces       -->
+        <record id="view_task_form2_rating_inherit" model="ir.ui.view">
+            <field name="name">task rating</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_form2" />
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='kanban_state']" position="after">
+                    <field name="rating_state" invisible='1'/>
+                    <img src="rating/static/src/img/great.png" class="oe_right" attrs="{'invisible': [('rating_state', '!=', 'great')]}"/>
+                    <img src="rating/static/src/img/okay.png" class="oe_right" attrs="{'invisible': [('rating_state', '!=', 'okay')]}"/>
+                    <img src="rating/static/src/img/bad.png" class="oe_right" attrs="{'invisible': [('rating_state', '!=', 'bad')]}"/>
+                </xpath>
+                <xpath expr="//div[@class='oe_right']/field" position="before">
+                    <field name="is_rating_published" invisible="1"/>
+                    <field name="is_rated" invisible="1"/>
+                    <button name="send_request" class="oe_stat_button" icon="fa-envelope" string="Rating Request" type="object" attrs="{'invisible': [('is_rated','=',True)]}" context="{'template': 'task_rating_request', 'module':'rating_project'}"/>
+                    <button name="published" class="oe_stat_button" icon="fa-check-circle-o" type="object" string="Publish" attrs="{'invisible': [('is_rating_published', '=', True)]}"/>
+                    <button name="unpublished" class="oe_stat_button" icon="fa-times-circle-o" type="object" string="UnPublish" attrs="{'invisible': [('is_rating_published', '=', False)]}"/>
+                </xpath>
+            </field>
+        </record>
+
+        <!--      inherit get state button on project       -->
+        <record id="project_view_rating" model="ir.ui.view">
+            <field name="name">project.view.rating</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="priority" eval="20"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@name='buttons']" position="inside">
+                     <button name="action_rating" type="object" string="Tasks Rating" icon="fa-star" class="oe_stat_button"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</openerp>
