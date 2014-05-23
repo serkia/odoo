@@ -43,7 +43,8 @@ class base_config_settings(osv.osv_memory):
                                               help="""This installs the module google_calendar."""),
         'font': fields.many2one('res.font', string="Report Font", domain=[('mode', 'in', ('Normal', 'Regular', 'all', 'Book'))],
             help="Set the font into the report header, it will be used as default font in the RML reports of the user company"),
-
+        'module_rating': fields.boolean('Allow your customer to rate the services and products provided',
+            help="This allows customers to give rating on Product/Services")
     }
     
     _defaults= {

@@ -73,6 +73,15 @@
                         </div>
                     </group>
                     <group>
+                       <label for="id" string="Rating"/>
+                        <div>
+                            <div>
+                                <field name="module_rating" class="oe_inline"/>
+                                <label for="module_rating"/>
+                            </div>
+                        </div>
+                    </group>
+                    <group>
                         <label for="id" string="Google Drive"/>
                         <div name="google_drive">
                             <div name="module_google_drive">
