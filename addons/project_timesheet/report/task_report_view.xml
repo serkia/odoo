@@ -30,9 +30,9 @@
             <field name="model">report.timesheet.task.user</field>
             <field name="arch" type="xml">
                 <graph string="Task Hours Per Month" type="bar">
-                     <field name="user_id"/>
-                     <field name="task_hrs" operator="+"/>
-                     <field name="timesheet_hrs" operator="+"/>
+                     <field name="user_id" type="row"/>
+                     <field name="task_hrs" operator="+" type="measure"/>
+                   <!--  <field name="timesheet_hrs" operator="+"/>-->
                  </graph>
             </field>
         </record>
@@ -41,7 +41,8 @@
             <field name="name">Task Hours Per Month</field>
             <field name="res_model">report.timesheet.task.user</field>
             <field name="view_type">form</field>
-            <field name="view_mode">graph</field>
+            <field name="view_mode">graph,tree</field>
+
             <field name="context">{'search_default_year':1,'search_default_month':1, 'search_default_group_user_id':1}</field>
         </record>
         <menuitem id="menu_timesheet_task_user" parent="hr.menu_hr_reporting_timesheet"

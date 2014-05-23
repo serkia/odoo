@@ -8,7 +8,7 @@
             <field name="name">crm.claim.report.graph</field>
             <field name="model">crm.claim.report</field>
             <field name="arch" type="xml">
-                <graph string="Claims" type="pivot" stacked="True">
+                <graph string="Claims" type="bar" stacked="True">
                     <field name="stage_id" type="row"/>
                     <field name="user_id" type="col"/>
                     <field name="nbr" type="measure"/>

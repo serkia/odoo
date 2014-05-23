@@ -38,11 +38,13 @@
          <field name="name">account.entries.report.graph</field>
          <field name="model">account.entries.report</field>
          <field name="arch" type="xml">
-             <graph string="Entries Analysis" type="pivot">
-                <field name="partner_id" type="row"/>
-                <field name="debit" operator="+"/>
+             <graph string="Entries Analysis" type="bar">
+                <field name="date" interval="year" type="row"/>
+                <field name="user_type" type="col"/>
+               <!-- <field name="debit" operator="+"/>
                 <field name="credit" operator="+"/>
-                <field name="balance" operator="+"/>
+                <field name="balance" operator="+"/>-->
+                <field name="nbr" type="measure"/>
              </graph>
          </field>
     </record>
@@ -50,7 +52,7 @@
          <field name="name">account.company.analysis.tree</field>
          <field name="model">account.entries.report</field>
          <field name="arch" type="xml">
-             <tree string="Company Analysis" >
+             <tree string="Company Analysis">
                 <field name="user_type"/>
                 <field name="debit" />
                 <field name="credit" />
@@ -106,7 +108,7 @@
         <field name="view_mode">graph</field>
         <field name="search_view_id" ref="view_account_entries_report_search"/>
         <field name="view_id" ref="view_account_entries_report_graph"/>
-        <field name="context">{'group_by':[], 'search_default_usertype':1, 'search_default_thisyear':1, 'group_by_no_leaf':1}</field>
+        <field name="context">{'group_by':[],  'search_default_thisyear':1, 'group_by_no_leaf':1}</field>
         <field name="help">From this view, have an analysis of your different financial accounts. The document shows your debit and credit taking in consideration some criteria you can choose by using the search tool.</field>
     </record>
     <menuitem action="action_account_entries_report_all" id="menu_action_account_entries_report_all"

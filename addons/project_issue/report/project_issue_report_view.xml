@@ -5,10 +5,10 @@
             <field name="name">project.issue.report.graph</field>
             <field name="model">project.issue.report</field>
             <field name="arch" type="xml">
-                <graph orientation="horizontal" string="Project Issue" type="pivot" stacked="True">
+                <graph orientation="horizontal" string="Project Issue" type="bar" stacked="True">
                     <field name="nbr" type="measure"/>
-                    <field name="user_id" type="row"/>
-                    <field name="stage_id" type="row"/>
+                    <field name="project_id" type="row"/>
+                   <!-- <field name="stage_id" type="row"/>-->
                 </graph>
             </field>
         </record>

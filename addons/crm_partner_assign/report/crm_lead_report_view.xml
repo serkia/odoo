@@ -49,10 +49,10 @@
             <field name="name">crm.lead.assign.graph</field>
             <field name="model">crm.lead.report.assign</field>
             <field name="arch" type="xml">
-                <graph string="Lead Assign" type="pivot" stacked="True">
-                    <field name="grade_id" type="row"/>
+                <graph string="Lead Assign" type="bar" stacked="True">
+                    <field name="partner_assigned_id" type="col"/>
                     <field name="date_assign" interval="month" type="row"/>
-                    <field name="nbr" type="measure"/>
+                    <!--<field name="nbr" type="measure"/>-->
                     <field name="probable_revenue" type="measure"/>
                 </graph>
             </field>

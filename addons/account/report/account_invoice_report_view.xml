@@ -5,11 +5,11 @@
          <field name="name">account.invoice.report.graph</field>
          <field name="model">account.invoice.report</field>
          <field name="arch" type="xml">
-             <graph string="Invoices Analysis" type="pivot">
-                 <field name="period_id" type="row"/>
-                 <field name="categ_id" type="row"/>
-                 <field name="nbr" type="measure"/>
-                 <field name="product_qty" type="measure"/>
+             <graph string="Invoices Analysis" type="bar">
+                 <field name="partner_id" type="col"/>
+                 <field name="date" interval="month" type="row"/>
+                <!-- <field name="nbr" type="measure"/>
+                 <field name="product_qty" type="measure"/>-->
                  <field name="price_total" type="measure"/>
              </graph>
          </field>

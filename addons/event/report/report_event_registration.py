@@ -31,7 +31,7 @@ class report_event_registration(osv.osv):
         'event_id': fields.many2one('event.event', 'Event', required=True),
         'draft_state': fields.integer(' # No of Draft Registrations', size=20),
         'confirm_state': fields.integer(' # No of Confirmed Registrations', size=20),
-        'seats_max': fields.integer('Max Seats'),
+        #'seats_max': fields.integer('Max Seats'),
         'nbevent': fields.integer('Number Of Events'),
         'event_type': fields.many2one('event.type', 'Event Type'),
         'registration_state': fields.selection([('draft', 'Draft'), ('confirm', 'Confirmed'), ('done', 'Attended'), ('cancel', 'Cancelled')], 'Registration State', readonly=True, required=True),
@@ -63,7 +63,7 @@ class report_event_registration(osv.osv):
                 CASE WHEN r.state IN ('draft') THEN r.nb_register ELSE 0 END AS draft_state,
                 CASE WHEN r.state IN ('open','done') THEN r.nb_register ELSE 0 END AS confirm_state,
                 e.type AS event_type,
-                e.seats_max AS seats_max,
+                
                 e.state AS event_state,
                 r.state AS registration_state
             FROM
@@ -82,7 +82,7 @@ class report_event_registration(osv.osv):
                 e.user_id,
                 event_state,
                 e.company_id,
-                e.seats_max,
+                
                 name_registration
         )
         """)

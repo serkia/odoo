@@ -22,10 +22,10 @@
          <field name="name">account.treasury.report.graph</field>
          <field name="model">account.treasury.report</field>
          <field name="arch" type="xml">
-             <graph string="Treasury Analysis" type="pivot">
+             <graph string="Treasury Analysis" type="bar">
                 <field name="period_id" type="row"/>
-                <field name="debit" type="measure"/>
-                <field name="credit" type="measure"/>
+               <!-- <field name="debit" type="measure"/>
+                <field name="credit" type="measure"/>-->
                 <field name="balance" type="measure"/>
              </graph>
          </field>
@@ -38,6 +38,10 @@
                 <field name="fiscalyear_id"/>
                 <field name="period_id"/>
                 <field name="company_id" groups="base.group_multi_company"/>
+                <filter string="Current Date (day)" name="day" icon="terp-go-today" context="{'group_by':'date:day'}" help="Group by Invoice Date"/>
+                <filter string="Current Date (month)" name="month" icon="terp-go-month" context="{'group_by':'date:month'}" help="Group by month of Invoice Date"/>
+                <filter string="Current Date (year)" name="group_year" icon="terp-go-year" context="{'group_by':'date:year'}" help="Group by year of Invoice Date"/>
+                <filter string="Fiscal Year" context="{'group_by':'fiscalyear_id'}"/>
             </search>
         </field>
     </record>

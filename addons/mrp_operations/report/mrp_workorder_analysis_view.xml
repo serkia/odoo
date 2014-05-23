@@ -8,12 +8,13 @@
             <field name="name">mrp.workorder.graph</field>
             <field name="model">mrp.workorder</field>
             <field name="arch" type="xml">
-                <graph string="Work Orders" type="pivot">
-                    <field name="state" type="row"/>
-                    <field name="product_qty" type="measure"/>
+                <graph string="Work Orders" type="bar">
+                    <field name="date" interval="month" type="row"/>
+                   <field name="workcenter_id" type="col"/>
                     <field name="nbr" type="measure"/>
+                    <!--<field name="product_qty" type="measure"/>
                     <field name="total_hours" type="measure"/>
-                    <field name="total_cycles" type="measure"/>
+                    <field name="total_cycles" type="measure"/>-->
                 </graph>
             </field>
         </record>
@@ -48,7 +49,7 @@
             <field name="view_mode">graph</field>
             <field name="view_id" ref="view_report_mrp_workorder_graph"/>
             <field name="search_view_id" ref="view_report_mrp_workorder_filter"/>
-            <field name="context">{'search_default_Workcenter': 1,'group_by_no_leaf':1,'group_by':[]}</field>
+            <field name="context">{'group_by_no_leaf':1,'group_by':[]}</field>
         </record>
 
         <record model="ir.actions.act_window.view" id="action_report_mrp_workorder_graph">

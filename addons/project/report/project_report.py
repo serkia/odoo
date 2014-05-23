@@ -64,9 +64,10 @@ class report_project_task_user(osv.osv):
               SELECT
                     (select 1 ) AS nbr,
                     t.id as id,
-                    date_trunc('day',t.date_start) as date_start,
-                    date_trunc('day',t.date_end) as date_end,
-                    date_trunc('day',t.date_last_stage_update) as date_last_stage_update,
+                    to_date(to_char(t.date_start, 'dd-MM-YYYY'),'dd-MM-YYYY')  as date_start,
+                    
+                    to_date(to_char(t.date_end, 'dd-MM-YYYY'),'dd-MM-YYYY') as date_end,
+                    to_date(to_char(t.date_last_stage_update, 'dd-MM-YYYY'),'dd-MM-YYYY') as date_last_stage_update,
                     to_date(to_char(t.date_deadline, 'dd-MM-YYYY'),'dd-MM-YYYY') as date_deadline,
 --                    sum(cast(to_char(date_trunc('day',t.date_end) - date_trunc('day',t.date_start),'DD') as int)) as no_of_days,
                     abs((extract('epoch' from (t.write_date-t.date_start)))/(3600*24))  as no_of_days,

@@ -6,12 +6,12 @@
          <field name="name">hr.expense.report.graph</field>
          <field name="model">hr.expense.report</field>
          <field name="arch" type="xml">
-             <graph string="Expenses Analysis" type="pivot" stacked="True">
+             <graph string="Expenses Analysis" type="bar" stacked="True">
                  <field name="employee_id" type="row"/>
-                 <field name="state" type="row"/>
+                 <!--<field name="state" type="row"/>
                  <field name="nbr" type="measure"/>
                  <field name="no_of_products" type="measure"/>
-                 <field name="price_average" type="measure"/>
+                 <field name="price_average" type="measure"/>-->
                  <field name="price_total" type="measure"/>
              </graph>
          </field>

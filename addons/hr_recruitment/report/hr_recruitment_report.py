@@ -40,6 +40,7 @@ class hr_recruitment_report(osv.Model):
         'date_closed': fields.date('Closed', readonly=True),
         'job_id': fields.many2one('hr.job', 'Applied Job',readonly=True),
         'stage_id': fields.many2one ('hr.recruitment.stage', 'Stage'),
+        'sequence': fields.integer ('hr.recruitment.stage', 'Sequence'),
         'type_id': fields.many2one('hr.recruitment.degree', 'Degree'),
         'department_id': fields.many2one('hr.department','Department',readonly=True),
         'priority': fields.selection(hr_recruitment.AVAILABLE_PRIORITIES, 'Appreciation'),
@@ -75,6 +76,7 @@ class hr_recruitment_report(osv.Model):
                      s.department_id,
                      s.priority,
                      s.stage_id,
+                     i.sequence,
                      s.last_stage_id,
                      sum(salary_proposed) as salary_prop,
                      (sum(salary_proposed)/count(*)) as salary_prop_avg,
@@ -83,6 +85,8 @@ class hr_recruitment_report(osv.Model):
                      extract('epoch' from (s.write_date-s.create_date))/(3600*24) as delay_close,
                      count(*) as nbr
                  from hr_applicant s
+                      left join hr_recruitment_stage i
++                               on (s.stage_id=i.id)
                  group by
                      date_trunc('day',s.create_date),
                      date_trunc('day',s.date_closed),
@@ -100,6 +104,7 @@ class hr_recruitment_report(osv.Model):
                      s.priority,
                      s.job_id,
                      s.department_id
+                     i.sequence
             )
         """)
 

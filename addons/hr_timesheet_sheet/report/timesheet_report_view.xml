@@ -5,14 +5,15 @@
             <field name="name">timesheet.report.graph</field>
             <field name="model">timesheet.report</field>
             <field name="arch" type="xml">
-                <graph string="Timesheet" type="pivot" stacked="True">
-                    <field name="user_id" type="row"/>
-                    <field name="state" type="row"/>
+                <graph string="Timesheet" type="bar" stacked="True">
+                    <field name="user_id" type="col"/>
+                   
+                    <field name="date" interval="month" type="row"/>
                     <field name="quantity" type="measure"/>
-                    <field name="cost" type="measure"/>
+                  <!--<field name="cost" type="measure"/>
                     <field name="total_diff" type="measure"/>
+                    <field name="total_attendance" type="measure"/>-->
                     <field name="total_timesheet" type="measure"/>
-                    <field name="total_attendance" type="measure"/>
                 </graph>
             </field>
         </record>
@@ -57,7 +58,7 @@
             <field name="res_model">timesheet.report</field>
             <field name="view_type">form</field>
             <field name="view_mode">graph</field>
-            <field name="context">{'search_default_year':1,'search_default_month':1,'search_default_User_id':1,'group_by_no_leaf':1,'group_by':[]}</field>
+            <field name="context">{'search_default_month':1,'group_by_no_leaf':1,'group_by':[]}</field>
             <field name="search_view_id" ref="view_timesheet_report_search"/>
         </record>
         <menuitem action="action_timesheet_report_stat_all" id="menu_timesheet_report_all"

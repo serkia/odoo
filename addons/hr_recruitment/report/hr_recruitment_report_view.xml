@@ -5,9 +5,9 @@
          <field name="name">hr.recruitment.report.graph</field>
          <field name="model">hr.recruitment.report</field>
          <field name="arch" type="xml">
-             <graph string="Recruitment Analysis" type="pivot">
-                 <field name="stage_id" type="row"/>
-                 <field name="date_create" interval="week" type="col"/>
+             <graph string="Recruitment Analysis" type="bar">
+                 <field name="date_create" interval="month" type="row"/>
+                 <field name="stage_id"  type="col"/>
              </graph>
          </field>
     </record>
@@ -20,6 +20,7 @@
                 <field name="job_id"/>
                 <field name="department_id"/>
                 <field name="user_id"/>
+                
                 <filter string="New" domain="[('sequence', '=', 1)]"/>
                 <separator/>
                 <filter string="Unassigned" domain="[('user_id', '=', False)]"/>

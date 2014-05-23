@@ -8,11 +8,11 @@
             <field name="name">crm.phonecall.report.graph</field>
             <field name="model">crm.phonecall.report</field>
             <field name="arch" type="xml">
-                <graph orientation="horizontal" string="Phone calls" type="pivot" stacked="True">
-                    <field name="user_id" type="row"/>
-                    <!-- <field name="state" type="col"/> -->
+                <graph orientation="horizontal" string="Phone calls" type="bar" stacked="True">
+                    <field name="create_date" interval="week" type="col"/>
+                    <field name="partner_id"  type="row"/> 
                     <field name="nbr" type="measure"/>
-                    <field name="duration" type="measure"/>
+                    <!--<field name="duration" type="measure"/>-->
                 </graph>
             </field>
         </record>

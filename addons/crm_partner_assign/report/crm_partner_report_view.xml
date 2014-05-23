@@ -39,10 +39,11 @@
             <field name="name">crm.partner.assign.report.graph</field>
             <field name="model">crm.partner.report.assign</field>
             <field name="arch" type="xml">
-                <graph string="Opportunities Assignment Analysis" type="pivot" stacked="True">
-                    <field name="grade_id" type="row"/>
+                <graph string="Opportunities Assignment Analysis" type="bar" stacked="True">
+                    <field name="date_partnership" interval="year" type="row"/>
+                    <field name="partner_id" type="col"/>
                     <field name="opp" type="measure"/>
-                    <field name="turnover" type="measure"/>
+                   <!-- <field name="turnover" type="measure"/>-->
                 </graph>
             </field>
        </record>

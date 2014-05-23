@@ -31,10 +31,11 @@
          <field name="name">account.analytic.entries.graph</field>
          <field name="model">analytic.entries.report</field>
          <field name="arch" type="xml">
-             <graph string="Analytic Entries Analysis" type="pivot">
-                <field name="user_id" type="row"/>
-                <field name="nbr" type="measure"/>
-                <field name="unit_amount" type="measure"/>
+             <graph string="Analytic Entries Analysis" type="bar">
+                <field name="date" interval="year" type="row"/>
+                <field name="account_id" type="col"/>
+                <!--<field name="nbr" type="measure"/>
+                <field name="unit_amount" type="measure"/>-->
                 <field name="amount" type="measure"/>
              </graph>
          </field>
@@ -44,7 +45,7 @@
         <field name="res_model">analytic.entries.report</field>
         <field name="view_type">form</field>
         <field name="view_mode">graph</field>
-        <field name="context">{'search_default_year':1,'search_default_month':1, 'group_by_no_leaf':1, 'search_default_Account':1, 'search_default_Month':1, 'group_by':[]}</field>
+        <field name="context">{'search_default_year':1,'search_default_month':1, 'group_by_no_leaf':1,  'group_by':[]}</field>
         <field name="search_view_id" ref="view_analytic_entries_report_search"/>
         <field name="help">From this view, have an analysis of your different analytic entries following the analytic account you defined matching your business need. Use the tool search to analyse information about analytic entries generated in the system.</field>
     </record>

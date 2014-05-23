@@ -5,11 +5,11 @@
             <field name="name">hr.timesheet.report.graph</field>
             <field name="model">hr.timesheet.report</field>
             <field name="arch" type="xml">
-                <graph string="Timesheet" type="pivot">
-                    <field name="user_id" type="row"/>
-                    <field name="date" interval="day" type="col"/>
+                <graph string="Timesheet" type="bar">
+                    <field name="user_id" type="col"/>
+                    <field name="date" interval="month" type="row"/>
                     <field name="quantity" type="measure"/>
-                    <field name="cost" type="measure"/>
+                    <!--<field name="cost" type="measure"/>-->
                 </graph>
             </field>
         </record>
@@ -47,7 +47,7 @@
             <field name="res_model">hr.timesheet.report</field>
             <field name="view_type">form</field>
             <field name="view_mode">graph</field>
-            <field name="context">{'search_default_month':1,'search_default_group_user_id':1,'group_by_no_leaf':1,'group_by':[]}</field>
+            <field name="context">{'search_default_month':1,'group_by_no_leaf':1,'group_by':[]}</field>
             <field name="help" type="html">
               <p>
                 This report performs analysis on timesheets created by your

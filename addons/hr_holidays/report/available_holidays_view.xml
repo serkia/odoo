@@ -7,9 +7,9 @@
             <field name="model">hr.holidays</field>
             <field name="priority">20</field>
             <field name="arch" type="xml">
-                <graph string="Leaves Summary" type="pivot">
-                    <field name="employee_id" type="row"/>
-                    <field name="type" type="row"/>
+                <graph string="Leaves Summary" type="bar">
+                    <field name="date_from" interval="month" type="row"/>
+                    <field name="department_id" type="col"/>
                     <field name="date_from" type="col"/>
                     <field name="number_of_days" type="measure"/>
                 </graph>
