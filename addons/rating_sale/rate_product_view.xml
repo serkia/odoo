@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <template id="rating_template" inherit_id="website_sale.product" name="Exptended Template for the Rating">
+            <xpath expr="//form[@action='/shop/cart/update']" position="after">
+                <div id="product_rating" t-if="product.website_published == True and product.allow_rating == True">
+                    <div class="panel panel-default">
+                        <div class="panel-heading ">
+                            <a class="btn btn-primary btn-block fa fa-star" data-toggle="modal" data-target="#modelrating">Rate the Product</a>
+                            <center>Last customer ratings</center>
+                        </div>
+                            <div class="panel-body">
+                                <t t-foreach="product.average_rate()" t-as="rec">
+                                    <t t-if="rec_first">
+                                        <div class="row">
+                                            <div class="col-xs-6 col-sm-2">
+                                                <img alt="rating" class="mt4" width="55px" height="55px" t-attf-src="/rating/static/src/img/#{rec[0]}.png"/>
+                                            </div>
+                                            <div class="col-md-6 mb16">
+                                                <h3><p t-attf-class="label #{rec[2]}">
+                                                <span t-esc="rec[1]" />% <span t-esc="rec[0]"/>!</p></h3>
+                                            </div>
+                                        </div>
+                                    </t>
+                                    <t t-if="not rec_first" >
+                                        <img alt="rating" style="margin-left: 10px;" width="35px" height="35px" t-attf-src="/rating/static/src/img/#{rec[0]}.png"/>
+                                        <div t-attf-class="mt32 label #{rec[2]}">
+                                            <span t-esc="rec[1]"/> % <span t-esc="rec[0]"/>
+                                        </div>
+                                    </t>
+                                </t>
+                            </div>
+                        </div>
+                    <div class="modal fade" id="modelrating" role="dialog" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div id="rating" class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&amp;times;</button>
+                                    <h4 class="modal-title">Please take second to rate Product</h4>
+                                </div>
+                                <div class="modal-body" id="rating-dialog">
+                                    <div class="row">
+                                        <div class="col-xs-6 col-md-4 text-center">
+                                            <a t-attf-href="/rating/product.template/#{product.id}/great?url=shop/product/#{product.id}">
+                                                <img src="/rating/static/src/img/great.png"/>
+                                                <div class="text-success">It was Great</div>
+                                            </a>
+                                        </div>
+                                        <div class="col-xs-6 col-md-4 text-center">
+                                            <a t-attf-href="/rating/product.template/#{product.id}/okay?url=shop/product/#{product.id}">
+                                                <img src="/rating/static/src/img/okay.png"/>
+                                                <div class="text-warning">It was Okay</div>
+                                            </a>
+                                        </div>
+                                        <div class="col-xs-6 col-md-4 text-center">
+                                            <a t-attf-href="/rating/product.template/#{product.id}/bad?url=shop/product/#{product.id}">
+                                                <img src="/rating/static/src/img/bad.png"/>
+                                                <div class="text-danger">It wasn't Good</div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </template>
+
+        <record id="product_service_rate_form_view" model="ir.ui.view">
+            <field name="name">product.service.rate.form</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_normal_form_view"/> 
+            <field name="arch" type="xml">
+                <xpath expr="//div[@name='options']" position="after">
+                    <div attrs="{'invisible': [('website_published', '=', False) ] }">
+                        <field name="allow_rating"/>
+                        <label for="allow_rating"/>
+                    </div>
+                </xpath>
+                <xpath expr="//div[@name='buttons']" position="inside">
+                    <field name="product_average_rating" attrs="{'invisible': [('website_published', '=', False) ] }"/>
+                    <button name="action_rating" type="object" string="Ratings" icon="fa-star" class="oe_stat_button" attrs="{'invisible': [('website_published', '=', False) ] }">
+                    </button>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</openerp>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="view_rating_kanban_faces">
+            <field name="name">rating.rating.kanban</field>
+            <field name="model">rating.rating</field>
+            <field name="arch" type="xml">
+                <kanban version="7.0" create="false" class="oe_background_grey">
+                    <field name="state"/>
+                    <templates>
+                        <t t-name="kanban-box" t-if="record.state.raw_value != ''">
+                            <div class="oe_kanban_vignette oe_semantic_html_override">
+                                <img t-attf-src="rating/static/src/img/#{record.state.raw_value}.png" class="oe_kanban_image"/>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+        <record model="ir.ui.view" id="view_rating_graph_faces">
+           <field name="name">rating.rating.graph</field>
+           <field name="model">rating.rating</field>
+           <field name="arch" type="xml">
+                <graph string="Rating Average" type="pie">
+                    <field name="state"/>
+                </graph>
+            </field>
+        </record>
+        <record id="action_view_rating" model="ir.actions.act_window">
+            <field name="name">Product Rate</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">rating.rating</field>
+            <field name="view_mode">kanban,graph</field>
+        </record>
+    </data>
+</openerp>
