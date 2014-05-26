@@ -13,4 +13,10 @@ class TestUi(openerp.tests.HttpCase):
     def test_04_js_admin(self):
         self.phantom_js('/web',"console.log('ok')","openerp.client.action_manager.inner_widget.views.form", login='admin')
 
+@openerp.tests.common.at_install(False)
+@openerp.tests.common.post_install(True)
+class TestMenuItems(openerp.tests.HttpCase):
+    def test_01_menuitems(self):
+        self.phantom_js('/web?debug',"openerp.client.menu.click_all_menu_items()","openerp.client.action_manager.inner_widget", login='admin')
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
