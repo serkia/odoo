@@ -3777,7 +3777,8 @@ class BaseModel(object):
         upd_todo = []
         updend = []
         direct = []
-        totranslate = context.get('lang', False) and (context['lang'] != 'en_US')
+        lang_count = self.pool['res.lang'].search(cr, user, [('active','=',True)], count=True, context=context)
+        totranslate = context.get('lang', False)
         for field in vals:
             field_column = self._all_columns.get(field) and self._all_columns.get(field).column
             if field_column and field_column.deprecated:
@@ -3812,16 +3813,22 @@ class BaseModel(object):
 
             if totranslate:
                 # TODO: optimize
+                ir_translation = self.pool['ir.translation']
+                model_name = self.pool[self._name]
+                context_wo_lang = dict(context, lang=None)
                 for f in direct:
+                    src_trans = model_name.read(cr, user, ids, [f])[0][f]
                     if self._columns[f].translate:
-                        src_trans = self.pool[self._name].read(cr, user, ids, [f])[0][f]
-                        if not src_trans:
-                            src_trans = vals[f]
-                            # Inserting value to DB
-                            context_wo_lang = dict(context, lang=None)
-                            self.write(cr, user, ids, {f: vals[f]}, context=context_wo_lang)
-                        self.pool.get('ir.translation')._set_ids(cr, user, self._name+','+f, 'model', context['lang'], ids, vals[f], src_trans)
-
+                        if self.pool['res.lang'].check_single_lang_enable(cr, user, context=None):
+                            if self.write(cr, user, ids, {f: vals[f]}, context_wo_lang):
+                                ids_to_unlink = ir_translation.search(cr, user, [('src', '=', src_trans or vals[f]), ('type', '=', 'model'),('name', '=', self._name+','+f),('res_id', 'in', ids)])
+                                ir_translation.unlink(cr, user, ids_to_unlink, context)
+                        else:
+                            if not src_trans:
+                                src_trans = vals[f]
+                                # Inserting value to DB
+                                self.write(cr, user, ids, {f: vals[f]}, context=context_wo_lang)
+                            ir_translation._set_ids(cr, user, self._name+','+f, 'model', context['lang'], ids, vals[f], src_trans)
         # call the 'set' method of fields which are not classic_write
         upd_todo.sort(lambda x, y: self._columns[x].priority-self._columns[y].priority)
 

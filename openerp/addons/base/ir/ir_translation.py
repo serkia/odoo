@@ -356,6 +356,8 @@ class ir_translation(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if context is None:
             context = {}
+        if not vals.get('res_id'):
+            vals.update({'res_id':context.get('res_id',None)})
         ids = super(ir_translation, self).create(cr, uid, vals, context=context)
         self._get_source.clear_cache(self)
         self._get_ids.clear_cache(self)
@@ -432,7 +434,8 @@ class ir_translation(osv.osv):
         if field:
             info = trans_model._all_columns[field]
             action['context'] = {
-                'search_default_name': "%s,%s" % (info.parent_model or model, field)
+                'search_default_name': "%s,%s" % (info.parent_model or model, field),
+                'res_id': id
             }
         return action
 
@@ -481,6 +484,13 @@ class ir_translation(osv.osv):
                     _logger.info('module %s: loading extra translation file (%s) for language %s', module_name, lang_code, lang)
                     tools.trans_load(cr, trans_extra_file, lang, verbose=False, module_name=module_name, context=context)
         return True
+
+    def fields_get(self, cr, uid, fields=None, context=None):
+        res = super(ir_translation, self).fields_get(cr, uid, fields, context)
+        lang = self.pool['res.lang'].search(cr,uid,[('code','=','en_US'), ('active','=',True)])
+        if lang:
+            res['source'].update(string=_('Source (US English)'))
+        return res
 
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
