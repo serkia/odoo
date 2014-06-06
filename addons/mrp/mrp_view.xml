@@ -392,6 +392,7 @@
                         <page string="Properties" groups="product.group_mrp_properties">
                             <group>
                                 <group>
+                                    <field name="routing_id"/>
                                     <field name="position"/>
                                     <field name="sequence"/>
                                     <field name="active"/>
