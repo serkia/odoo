@@ -949,7 +949,7 @@ instance.web.Menu =  instance.web.Widget.extend({
         var self = this;
         var id = $(ev.currentTarget).data('menu');
         var menu_ids = [id];
-        var menu = _.filter(this.data.children, function (menu) {return menu.id == id;})[0];
+        var menu = _.find(this.data.children, function (menu) {return menu.id == id;});
         function add_menu_ids (menu) {
             if (menu.children) {
                 _.each(menu.children, function (menu) {
