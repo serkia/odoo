@@ -25,7 +25,6 @@ import select
 import time
 
 import openerp
-import openerp.tools.config
 import openerp.modules.registry
 from openerp import http
 from openerp.http import request

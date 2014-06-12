@@ -26,6 +26,9 @@ from openerp.osv import fields
 from openerp import SUPERUSER_ID
 
 
+import traceback
+print '!!! mail group'
+traceback.print_stack()
 class mail_group(osv.Model):
     """ A mail_group is a collection of users sharing messages in a discussion
         group. The group mechanics are based on the followers. """

@@ -1,6 +1,5 @@
 
 import openerp
-import openerp.tools.config
 import openerp.modules.registry
 from openerp.tools.misc import DEFAULT_SERVER_DATETIME_FORMAT
 import datetime
