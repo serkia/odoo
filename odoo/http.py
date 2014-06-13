@@ -8,6 +8,7 @@ import contextlib
 import errno
 import functools
 import getpass
+import importlib
 import inspect
 import logging
 import mimetypes
@@ -636,7 +637,7 @@ class ControllerType(type):
         # store the controller in the controllers list
         name_class = ("%s.%s" % (cls.__module__, cls.__name__), cls)
         class_path = name_class[0].split(".")
-        if not class_path[:2] == ["openerp", "addons"]:
+        if not class_path[:2] == ["odoo", "addons"]:
             module = ""
         else:
             # we want to know all modules that have controllers
@@ -669,7 +670,7 @@ def routing_map(modules, nodb_only, converters=None):
 
     def get_subclasses(klass):
         def valid(c):
-            return c.__module__.startswith('openerp.addons.') and c.__module__.split(".")[2] in modules
+            return c.__module__.startswith('odoo.addons.') and c.__module__.split(".")[2] in modules
         subclasses = klass.__subclasses__()
         result = []
         for subclass in subclasses:
@@ -1145,7 +1146,7 @@ class Root(object):
                         manifest['addons_path'] = addons_path
                         _logger.debug("Loading %s", module)
                         if 'odoo.addons' in sys.modules:
-                            m = __import__('odoo.addons.' + module)
+                            m = importlib.import_module('odoo.addons.' + module)
                         else:
                             m = None
                         addons_module[module] = m

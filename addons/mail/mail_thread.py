@@ -51,9 +51,6 @@ _logger = logging.getLogger(__name__)
 def decode_header(message, header, separator=' '):
     return separator.join(map(decode, filter(None, message.get_all(header, []))))
 
-import traceback
-print '!!! mail thread'
-traceback.print_stack()
 class mail_thread(osv.AbstractModel):
     ''' mail_thread model is meant to be inherited by any model that needs to
         act as a discussion topic on which messages can be attached. Public
