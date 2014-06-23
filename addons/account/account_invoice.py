@@ -1408,11 +1408,11 @@ class account_invoice_line(models.Model):
                         res[-1]['tax_code_id'] = tax['code_id']
                         res[-1]['tax_amount'] = tax['code_id'] and (tax['tax_amount'] >= 0 and tax['price_unit'] * line.quantity or -tax['price_unit'] * line.quantity) or 0.0
                     elif tax_code_found and tax['code_id']:
-                        res.append(dict(mres))
+                        res.append(self.move_line_get_item(cr, uid, line, context))
                         res[-1]['price'] = 0.0
                         res[-1]['account_analytic_id'] = False
                         res[-1]['tax_code_id'] = tax['code_id']
-                        res[-1]['tax_amount'] = tax['tax_amount']
+                        res[-1]['tax_amount'] = tax['tax_amount'] >= 0 and tax['price_unit'] * line.quantity or -tax['price_unit'] * line.quantity
                     tax_code_found = True
         return res
 
@@ -1515,27 +1515,26 @@ class account_invoice_tax(models.Model):
         tax_grouped = {}
         currency = invoice.currency_id.with_context(date=invoice.date_invoice or fields.Date.today())
         apply_on = 'refund'
-        if invoice.type in ['out_invoice', 'in_invoice']:
+        if invoice.type in ['out_invoice','in_invoice']:
             apply_on = 'invoice'
-        for line in invoice.invoice_line:
+        for line in inv.invoice_line:
             taxes = line.invoice_line_tax_id.compute_all(
                 (line.price_unit * (1 - (line.discount or 0.0) / 100.0)),
                 line.quantity, line.product_id, invoice.partner_id, date=invoice.date_invoice, apply_on=apply_on)['taxes']
             for tax in taxes:
-                val = {
-                    'invoice_id': invoice.id,
+                val={'invoice_id': invoice.id,
                     'name': tax['name'],
                     'sequence': tax['sequence'],
                     'amount': tax['amount'],
                     'tax_amount': tax['tax_amount'],
                     'manual': False,
                     'base': tax['price_unit'] * line['quantity'],
-                    'base_amount': tax['price_unit'] * line['quantity'],
                     'base_code_id': tax['code_type'] and tax['code_type'] == 'base' and tax['code_id'] or False,
                     'tax_code_id': tax['code_type'] and tax['code_type'] == 'tax' and tax['code_id'] or False,
+                    'base_amount': 0,
+                    'tax_amount': 0,
                     'account_id': tax['account_id'] or line.account_id.id,
-                    'account_analytic_id': tax['analytic_account_id'],
-                    'tax_id': tax['tax_id']}
+                    'account_analytic_id': tax['analytic_account_id']}
 
                 # If the taxes generate moves on the same financial account as the invoice line
                 # and no default analytic account is defined at the tax level, propagate the
@@ -1549,7 +1548,8 @@ class account_invoice_tax(models.Model):
                 val['tax_amount'] = tax['tax_amount'] >= 0 and val['amount'] or -val['amount']
                 if tax['code_type'] == 'base':
                     continue
-                key = (tax['tax_id'], tax['code_id'], val['account_id'], val['account_analytic_id'])
+
+                key = (val['tax_code_id'], val['base_code_id'], val['account_id'], val['account_analytic_id'])
                 if not key in tax_grouped:
                     tax_grouped[key] = val
                 else:
