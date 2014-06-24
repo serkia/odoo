@@ -186,6 +186,9 @@
                 <a id="clear_cover" class="btn btn-danger">
                     <span class="fa fa-times"/>
                 </a>
+                <button id="cover" contenteditable="false" class="btn btn-primary" data-event="showImageDialog" tabindex="-1">
+                    Change
+                </button>
             </div>
             <div class="cover-storage oe_hidden"></div>
             <t t-call="website.publish_management">
