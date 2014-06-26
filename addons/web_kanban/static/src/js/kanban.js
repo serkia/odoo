@@ -792,6 +792,7 @@ instance.web_kanban.KanbanGroup = instance.web.Widget.extend({
             views: [[false, 'form']],
             type: 'ir.actions.act_window',
             target: "new",
+            context: self.dataset.get_context(),
             flags: {
                 action_buttons: true,
             }
