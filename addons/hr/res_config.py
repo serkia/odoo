@@ -48,6 +48,9 @@ class hr_config_settings(osv.osv_memory):
             help ="""This installs the module account_analytic_analysis, which will install sales management too."""),
         'module_hr_payroll': fields.boolean('Manage payroll',
             help ="""This installs the module hr_payroll."""),
+        'group_hr_attendance': fields.boolean('Track attendances for all employees',
+            implied_group='base.group_hr_attendance',
+            help="Allocates attendance group to all users."),
     }
 
     def onchange_hr_timesheet(self, cr, uid, ids, timesheet, context=None):
@@ -59,7 +62,12 @@ class hr_config_settings(osv.osv_memory):
     def onchange_hr_attendance(self, cr, uid, ids, attendance, context=None):
         """ module_hr_timesheet implies module_hr_attendance """
         if not attendance:
-            return {'value': {'module_hr_timesheet': False}}
+            return {'value': {'module_hr_timesheet': False,'group_hr_attendance': False}}
+        return {}
+        
+    def onchange_group_hr_attendance(self, cr, uid, ids, hr_attendance, context=None):
+        if hr_attendance:
+            return {'value': {'module_hr_attendance': True}}
         return {}
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
