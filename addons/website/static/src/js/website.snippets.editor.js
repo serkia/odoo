@@ -1565,6 +1565,17 @@
         */
         _readXMLData: function() {
             var self = this;
+            console.log("************************");
+            console.log(this);
+            console.log(this.$target);
+            console.log(this.$target[0].outerHTML);
+            console.log(this.$target.data('snippet-id'));
+            console.log(this.$target.data('overlay'));
+            console.log(this.$target.data('overlay')[0].outerHTML);
+            console.log(this.BuildingBlock);
+            console.log(this.BuildingBlock.$snippets);
+            console.log(this.BuildingBlock.$snippets[0].outerHTML);
+            console.log("#########################");
             this.$el = this.BuildingBlock.$snippets.filter(function () { return $(this).data("snippet-id") == self.snippet_id; }).clone();
             var $options = this.$overlay.find(".oe_overlay_options");
             if ($options.find(".oe_options ul li").length) {
