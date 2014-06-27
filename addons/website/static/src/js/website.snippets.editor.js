@@ -1566,6 +1566,7 @@
         _readXMLData: function() {
             var self = this;
             console.log("************************");
+            console.log(window.localStorage);
             console.log(this);
             console.log(this.$target);
             console.log(this.$target[0].outerHTML);
