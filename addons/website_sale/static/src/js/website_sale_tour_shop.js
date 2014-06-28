@@ -45,13 +45,20 @@
                 title:     _t("New product created"),
                 content:   _t("This page contains all the information related to the new product."),
                 popover:   { next: _t("Continue") },
+                onload: function() {
+                    console.log('New product created onload');
+                },
             },
             {
+                waitFor:   '.product_price span.oe_currency_value[contenteditable="true"]',
                 element:   '.product_price .oe_currency_value:visible',
                 sampleText: '20.50',
                 placement: 'left',
                 title:     _t("Change the price"),
                 content:   _t("Edit the price of this product by clicking on the amount."),
+                onload: function() {
+                    console.log('Change the price onload');
+                },
             },
             {
                 waitNot:   '.product_price .oe_currency_value:visible:containsExact(1.00)',
