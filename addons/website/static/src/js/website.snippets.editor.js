@@ -1565,7 +1565,15 @@
         */
         _readXMLData: function() {
             var self = this;
-            this.$el = this.BuildingBlock.$snippets.filter(function () { return $(this).data("snippet-id") == self.snippet_id; }).clone();
+
+            console.log("hello1",this);
+            console.log("hello2",this.BuildingBlock);
+            console.log("hello3",this.BuildingBlock.$snippets);
+            console.log("hello4",this.BuildingBlock.$snippets.filter);
+            console.log("hello5",this.snippet_id);
+            if(this && this.BuildingBlock && this.BuildingBlock.$snippets && this.BuildingBlock.$snippets.filter) {
+                this.$el = this.BuildingBlock.$snippets.filter(function () { return $(this).data("snippet-id") == self.snippet_id; }).clone();
+            }
             var $options = this.$overlay.find(".oe_overlay_options");
             if ($options.find(".oe_options ul li").length) {
                 $options.find(".oe_options").removeClass("hidden");
