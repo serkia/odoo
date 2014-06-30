@@ -10,10 +10,7 @@ import werkzeug.routing
 import openerp
 from openerp.addons.base import ir
 from openerp.addons.base.ir import ir_qweb
-<<<<<<< HEAD
-from openerp.addons.website.models.website import slug
-=======
-from openerp.addons.website.models.website import slug, url_for, _UNSLUG_RE
+from openerp.addons.website.models.website import slug, _UNSLUG_RE
 >>>>>>> 5112421... [FIX] website: correct slug parsing
 from openerp.http import request
 from openerp.osv import orm
