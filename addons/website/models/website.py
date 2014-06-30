@@ -104,7 +104,7 @@ def slug(value):
     return "%s-%d" % (slugname, id)
 
 
-_UNSLUG_RE = re.compile(r'(?:(\w{1,2}|\w[a-z0-9-_]+?\w)-)?(-?\d+)(?=$|/)', re.I)
+_UNSLUG_RE = re.compile(r'(?:(\w{1,2}|\w[a-zA-Z0-9-_]+?\w)-)?(-?\d+)(?=$|/)')
 
 def unslug(s):
     """Extract slug and id from a string.
