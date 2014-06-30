@@ -1135,14 +1135,14 @@
 <t t-name="web.datepicker">
     <span>
         <t t-set="placeholder" t-value="widget.getParent().node and widget.getParent().node.attrs.placeholder"/>
-        <input type="text" class="oe_datepicker_container" disabled="disabled" style="display: none;"/>
-        <input type="text"
-            t-att-name="widget.name"
-            t-att-placeholder="placeholder"
-            class="oe_datepicker_master"
-        /><img class="oe_input_icon oe_datepicker_trigger" draggable="false"
-               t-att-src='_s + "/web/static/src/img/ui/field_calendar.png"'
-               title="Select date" width="16" height="16" border="0"/>
+        <div class="input-group date oe_datepicker_main">
+            <input type="text"
+                t-att-name="widget.name"
+                t-att-placeholder="placeholder"
+                class="oe_datepicker_master form-control"
+            />
+            <span class="input-group-addon oe_datepicker_trigger"><i class="fa fa-calendar"></i></span>
+        </div>
     </span>
 </t>
 <t t-name="FieldDate">
