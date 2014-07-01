@@ -205,6 +205,9 @@ def load_module_graph(cr, graph, status=None, perform_checks=True, skip_modules=
             if has_demo:
                 # launch tests only in demo mode, allowing tests to use demo data.
                 if tools.config.options['test_enable']:
+                    # Optimization: pretend the registry is ready
+                    registry_init = registry._init
+                    registry._init = False
                     # Yamel test
                     report.record_result(load_test(module_name, idref, mode))
                     # Python tests
@@ -213,6 +216,8 @@ def load_module_graph(cr, graph, status=None, perform_checks=True, skip_modules=
                         # Force routing map to be rebuilt between each module test suite
                         del(ir_http._routing_map)
                     report.record_result(openerp.modules.module.run_unit_tests(module_name, cr.dbname))
+                    # cleanup
+                    registry._init = registry_init
 
             processed_modules.append(package.name)
 
