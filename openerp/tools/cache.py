@@ -22,6 +22,7 @@
 # decorator makes wrappers that have the same API as their wrapped function;
 # this is important for the openerp.api.guess() that relies on signatures
 from decorator import decorator
+from inspect import getargspec
 
 import lru
 import logging
@@ -89,14 +90,26 @@ class ormcache_context(ormcache):
         super(ormcache_context,self).__init__(skiparg,size)
         self.accepted_keys = accepted_keys
 
+    def __call__(self, method):
+        # remember which argument is context
+        args = getargspec(method)[0]
+        self.context_pos = args.index('context')
+        return super(ormcache_context, self).__call__(method)
+
     def lookup(self, method, *args, **kwargs):
         d = self.lru(args[0])
 
-        context = kwargs.get('context') or {}
-        ckey = [(key, val) for key, val in context.iteritems() if key in self.accepted_keys]
-        ckey.sort()
+        # Note. The decorator() wrapper (used in __call__ above) will resolve
+        # arguments, and pass them positionally to lookup(). This is why context
+        # is not passed through kwargs!
+        if self.context_pos < len(args):
+            context = args[self.context_pos]
+        else:
+            context = kwargs.get('context') or {}
+        ckey = [(k, context[k]) for k in self.accepted_keys if k in context]
 
-        key = args[self.skiparg:] + tuple(ckey)
+        # Beware: do not take the context from args!
+        key = args[self.skiparg:self.context_pos] + tuple(ckey)
         try:
             r = d[key]
             self.stat_hit += 1
