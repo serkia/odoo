@@ -5022,19 +5022,13 @@ class BaseModel(object):
         """ Return an instance corresponding to `arg` and attached to
             `self.env`; `arg` is either a record id, or a collection of record ids.
         """
-        if isinstance(arg, Iterable) and not isinstance(arg, basestring):
-            ids = tuple(arg)
-        else:
-            ids = (arg,) if arg else ()
+        ids = _normalize_ids(arg)
         #assert all(isinstance(id, IdType) for id in ids), "Browsing invalid ids: %s" % ids
         return self._browse(self.env, ids)
 
     @api.v7
     def browse(self, cr, uid, arg=None, context=None):
-        if isinstance(arg, Iterable) and not isinstance(arg, basestring):
-            ids = tuple(arg)
-        else:
-            ids = (arg,) if arg else ()
+        ids = _normalize_ids(arg)
         #assert all(isinstance(id, IdType) for id in ids), "Browsing invalid ids: %s" % ids
         return self._browse(Environment(cr, uid, context or {}), ids)
 
@@ -5763,6 +5757,32 @@ PGERROR_TO_OE = defaultdict(
     '23505': convert_pgerror_23505,
 })
 
+def _normalize_ids(arg, atoms={int, long, str, unicode, NewId}):
+    """ Normalizes the ids argument for ``browse`` (v7 and v8) to a tuple.
+
+    Various implementations were tested on the corpus of all browse() calls
+    performed during a full crawler run (after having installed all website_*
+    modules) and this one was the most efficient overall.
+
+    A possible bit of correctness was sacrificed by not doing any test on
+    Iterable and just assuming that any non-atomic type was an iterable of
+    some kind.
+
+    :rtype: tuple
+    """
+    # much of the corpus is falsy objects (empty list, tuple or set, None)
+    if not arg:
+        return ()
+
+    # `type in set` is significantly faster (because more restrictive) than
+    # isinstance(arg, set) or issubclass(type, set); and for new-style classes
+    # obj.__class__ is equivalent to but faster than type(obj). Not relevant
+    # (and looks much worse) in most cases, but over millions of calls it
+    # does have a very minor effect.
+    if arg.__class__ in atoms:
+        return arg,
+
+    return tuple(arg)
 
 # keep those imports here to avoid dependency cycle errors
 from .osv import expression
