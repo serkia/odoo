@@ -862,7 +862,6 @@ instance.web.FormView = instance.web.View.extend(instance.web.form.FieldManagerM
                 }
             }
             if (form_invalid) {
-                debugger;
                 self.set({'display_invalid_fields': true});
                 first_invalid_field.focus();
                 self.on_invalid();
@@ -2631,7 +2630,8 @@ instance.web.DateTimeWidget = instance.web.Widget.extend({
     template: "web.datepicker",
     type_of_date: "datetime",
     events: {
-        'change.dp .oe_datepicker_master': 'change_datetime',
+        'dp.change .oe_datepicker_main': 'change_datetime',
+        'dp.show .oe_datepicker_main': 'change_datetime',
         'keypress .oe_datepicker_master': 'change_datetime',
     },
     init: function(parent) {
@@ -2646,6 +2646,7 @@ instance.web.DateTimeWidget = instance.web.Widget.extend({
             useSeconds: true,
             startDate: new moment({ y: 1900 }),
             endDate: new moment().add(200, "y"),
+            defaultDate: new moment().seconds(0),
             calendarWeeks: true,
             icons : {
                 time: 'fa fa-clock-o',
@@ -2663,12 +2664,12 @@ instance.web.DateTimeWidget = instance.web.Widget.extend({
             options['useSeconds'] = false;
             options['format'] = instance.web.convert_to_moment_format(l10n.date_format);
         }
+
         this.$el.find('.oe_datepicker_trigger').click(function() {
-            self.$input.focus();
-            self.$el.find('.oe_datepicker_main').data('DateTimePicker').setDate(self.get('value') ? instance.web.auto_str_to_date(self.get('value')) : new Date());
+            self.$el.find('.oe_datepicker_main').data('DateTimePicker').setValue(self.get('value') ? self.get('value') : new moment().seconds(0));
         });
 
-        this.$el.find('.oe_datepicker_main').datetimepicker(options);
+        this.picker = this.$el.find('.oe_datepicker_main').datetimepicker(options);
         this.set_readonly(false);
         this.set({'value': false});
     },
@@ -2707,7 +2708,6 @@ instance.web.DateTimeWidget = instance.web.Widget.extend({
         return instance.web.format_value(v, {"widget": this.type_of_date});
     },
     change_datetime: function(e) {
-        debugger;
         if ((e.type !== "keypress" || e.which === 13) && this.is_valid_()) {
             this.set_value_from_ui_();
             this.trigger("datetime_changed");
