@@ -594,8 +594,7 @@ class account_analytic_account(osv.osv):
         return value
 
     def cron_account_analytic_account(self, cr, uid, context=None):
-        if context is None:
-            context = {}
+        context = dict(context or {})
         remind = {}
 
         def fill_remind(key, domain, write_pending=False):

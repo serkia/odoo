@@ -1377,8 +1377,7 @@ class account_move(osv.osv):
         return result
 
     def unlink(self, cr, uid, ids, context=None, check=True):
-        if context is None:
-            context = {}
+        context = dict(context or {})
         if isinstance(ids, (int, long)):
             ids = [ids]
         toremove = []

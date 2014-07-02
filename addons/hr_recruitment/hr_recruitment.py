@@ -397,8 +397,7 @@ class hr_applicant(osv.Model):
         return super(hr_applicant, self).message_new(cr, uid, msg, custom_values=defaults, context=context)
 
     def create(self, cr, uid, vals, context=None):
-        if context is None:
-            context = {}
+        context = dict(context or {})
         context['mail_create_nolog'] = True
         if vals.get('department_id') and not context.get('default_department_id'):
             context['default_department_id'] = vals.get('department_id')
@@ -507,6 +506,7 @@ class hr_applicant(osv.Model):
         return dict_act_window
 
     def get_empty_list_help(self, cr, uid, help, context=None):
+        context = dict(context or {})
         context['empty_list_help_model'] = 'hr.job'
         context['empty_list_help_id'] = context.get('default_job_id', None)
         context['empty_list_help_document_name'] = _("job applicants")

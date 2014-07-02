@@ -24,8 +24,8 @@ class pos_session_opening(osv.osv_memory):
     }
 
     def open_ui(self, cr, uid, ids, context=None):
-        context = context or {}
         data = self.browse(cr, uid, ids[0], context=context)
+        context = dict(context or {})
         context['active_id'] = data.pos_session_id.id
         return {
             'type' : 'ir.actions.act_url',

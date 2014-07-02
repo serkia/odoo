@@ -347,10 +347,9 @@ class project(osv.osv):
         return True
 
     def copy(self, cr, uid, id, default=None, context=None):
-        if context is None:
-            context = {}
         if default is None:
             default = {}
+        context = dict(context or {})
         context['active_test'] = False
         proj = self.browse(cr, uid, id, context=context)
         if not default.get('name'):
@@ -869,6 +868,7 @@ class task(osv.osv):
         return res
 
     def get_empty_list_help(self, cr, uid, help, context=None):
+        context = dict(context or {})
         context['empty_list_help_id'] = context.get('default_project_id')
         context['empty_list_help_model'] = 'project.project'
         context['empty_list_help_document_name'] = _("tasks")
@@ -992,8 +992,7 @@ class task(osv.osv):
     # ------------------------------------------------
 
     def create(self, cr, uid, vals, context=None):
-        if context is None:
-            context = {}
+        context = dict(context or {})
 
         # for default stage
         if vals.get('project_id') and not context.get('default_project_id'):

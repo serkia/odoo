@@ -315,8 +315,7 @@ class project_issue(osv.Model):
                 context=context)
 
     def create(self, cr, uid, vals, context=None):
-        if context is None:
-            context = {}
+        context = dict(context or {})
         if vals.get('project_id') and not context.get('default_project_id'):
             context['default_project_id'] = vals.get('project_id')
 
@@ -353,6 +352,7 @@ class project_issue(osv.Model):
         return {'value': result}
 
     def get_empty_list_help(self, cr, uid, help, context=None):
+        context = dict(context or {})
         context['empty_list_help_model'] = 'project.project'
         context['empty_list_help_id'] = context.get('default_project_id')
         context['empty_list_help_document_name'] = _("issues")
@@ -437,9 +437,7 @@ class project_issue(osv.Model):
         """
         if custom_values is None:
             custom_values = {}
-        if context is None:
-            context = {}
-        context['state_to'] = 'draft'
+        context = dict(context or {}, state_to='draft')
         defaults = {
             'name':  msg.get('subject') or _("No Subject"),
             'email_from': msg.get('from'),

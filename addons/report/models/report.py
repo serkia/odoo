@@ -268,7 +268,7 @@ class Report(osv.Model):
         if ids:
             if not isinstance(ids, list):
                 ids = [ids]
-            context['active_ids'] = ids
+            context = dict(context or {}, active_ids=ids)
 
         report_obj = self.pool['ir.actions.report.xml']
         idreport = report_obj.search(cr, uid, [('report_name', '=', report_name)], context=context)

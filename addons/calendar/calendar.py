@@ -708,6 +708,7 @@ class calendar_event(osv.Model):
         return (format_date, format_time)
 
     def get_display_time_tz(self, cr, uid, ids, tz=False, context=None):
+        context = dict(context or {})
         if tz:
             context["tz"] = tz
         ev = self.browse(cr, uid, ids, context=context)[0]

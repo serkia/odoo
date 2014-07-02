@@ -81,6 +81,7 @@ class crm_lead(format_address, osv.osv):
     _mail_mass_mailing = _('Leads / Opportunities')
 
     def get_empty_list_help(self, cr, uid, help, context=None):
+        context = dict(context or {})
         if context.get('default_type') == 'lead':
             context['empty_list_help_model'] = 'crm.case.section'
             context['empty_list_help_id'] = context.get('default_section_id')
@@ -882,8 +883,7 @@ class crm_lead(format_address, osv.osv):
         return res
 
     def create(self, cr, uid, vals, context=None):
-        if context is None:
-            context = {}
+        context = dict(context or {})
         if vals.get('type') and not context.get('default_type'):
             context['default_type'] = vals.get('type')
         if vals.get('section_id') and not context.get('default_section_id'):
@@ -919,6 +919,7 @@ class crm_lead(format_address, osv.osv):
         return super(crm_lead, self).copy(cr, uid, id, default, context=local_context)
 
     def get_empty_list_help(self, cr, uid, help, context=None):
+        context = dict(context or {})
         context['empty_list_help_model'] = 'crm.case.section'
         context['empty_list_help_id'] = context.get('default_section_id', None)
         context['empty_list_help_document_name'] = _("opportunity")

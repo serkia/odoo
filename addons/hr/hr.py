@@ -277,8 +277,7 @@ class hr_employee(osv.osv):
         return True
 
     def create(self, cr, uid, data, context=None):
-        if context is None:
-            context = {}
+        context = dict(context or {})
         if context.get("mail_broadcast"):
             context['mail_create_nolog'] = True
 

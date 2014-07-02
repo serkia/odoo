@@ -227,8 +227,7 @@ class mail_mail(osv.Model):
                 email sending process has failed
             :return: True
         """
-        if context is None:
-            context = {}
+        context = dict(context or {})
         ir_mail_server = self.pool.get('ir.mail_server')
         ir_attachment = self.pool['ir.attachment']
         for mail in self.browse(cr, SUPERUSER_ID, ids, context=context):

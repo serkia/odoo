@@ -630,8 +630,7 @@ class google_calendar(osv.AbstractModel):
         return new_ids
 
     def update_events(self, cr, uid, lastSync=False, context=None):
-        if context is None:
-            context = {}
+        context = dict(context or {})
 
         calendar_event = self.pool['calendar.event']
         user_obj = self.pool['res.users']

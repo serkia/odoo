@@ -31,8 +31,7 @@ class stock_picking_wave(osv.osv):
         '''
         This function print the report for all picking_ids associated to the picking wave
         '''
-        if context is None:
-            context = {}
+        context = dict(context or {})
         picking_ids = []
         for wave in self.browse(cr, uid, ids, context=context):
             picking_ids += [picking.id for picking in wave.picking_ids]

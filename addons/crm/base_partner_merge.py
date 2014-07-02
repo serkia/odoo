@@ -327,8 +327,7 @@ class MergePartnerAutomatic(osv.TransientModel):
         information of the previous one and will copy the new cleaned email into
         the email field.
         """
-        if context is None:
-            context = {}
+        context = dict(context or {})
 
         proxy_model = self.pool['ir.model.fields']
         field_ids = proxy_model.search(cr, uid, [('model', '=', 'res.partner'),

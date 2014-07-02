@@ -1055,11 +1055,12 @@ class mail_thread(osv.AbstractModel):
 
     def message_route_process(self, cr, uid, message, message_dict, routes, context=None):
         # postpone setting message_dict.partner_ids after message_post, to avoid double notifications
+        context = dict(context or {})
         partner_ids = message_dict.pop('partner_ids', [])
         thread_id = False
         for model, thread_id, custom_values, user_id, alias in routes:
             if self._name == 'mail.thread':
-                context = dict(context or {}, thread_model=model)
+                context['thread_model'] = model
             if model:
                 model_pool = self.pool[model]
                 if not (thread_id and hasattr(model_pool, 'message_update') or hasattr(model_pool, 'message_new')):

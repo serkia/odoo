@@ -38,8 +38,7 @@ class account_move_line(osv.osv):
         fiscalperiod_obj = self.pool.get('account.period')
         account_obj = self.pool.get('account.account')
         fiscalyear_ids = []
-        if context is None:
-            context = {}
+        context = dict(context or {})
         initial_bal = context.get('initial_bal', False)
         company_clause = " "
         if context.get('company_id', False):
@@ -220,8 +219,7 @@ class account_move_line(osv.osv):
         #default_get should only do the following:
         #   -propose the next amount in debit/credit in order to balance the move
         #   -propose the next account from the journal (default debit/credit account) accordingly
-        if context is None:
-            context = {}
+        context = dict(context or {})
         account_obj = self.pool.get('account.account')
         period_obj = self.pool.get('account.period')
         journal_obj = self.pool.get('account.journal')
@@ -1147,8 +1145,7 @@ class account_move_line(osv.osv):
         move_obj = self.pool.get('account.move')
         cur_obj = self.pool.get('res.currency')
         journal_obj = self.pool.get('account.journal')
-        if context is None:
-            context = {}
+        context = dict(context or {})
         if vals.get('move_id', False):
             move = self.pool.get('account.move').browse(cr, uid, vals['move_id'], context=context)
             if move.company_id:
