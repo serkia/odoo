@@ -1270,7 +1270,8 @@ class BaseModel(object):
         # use a new record to determine default values
         record = self.new(cr, uid, {}, context=context)
         for name in fields_list:
-            record[name]                # force evaluation of defaults
+            if name in self._fields:
+                record[name]            # force evaluation of defaults
 
         # retrieve defaults from record's cache
         return self._convert_to_write(record._cache)
