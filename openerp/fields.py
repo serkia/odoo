@@ -29,6 +29,8 @@ import logging
 import pytz
 import xmlrpclib
 
+from types import NoneType
+
 from openerp.tools import float_round, ustr, html_sanitize
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT as DATE_FORMAT
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as DATETIME_FORMAT
@@ -1257,6 +1259,8 @@ class Many2one(_Relational):
         records._cache[self] = value
 
     def convert_to_cache(self, value, env):
+        if isinstance(value, (NoneType, int)):
+            return env[self.comodel_name].browse(value)
         if isinstance(value, BaseModel):
             if value._name == self.comodel_name and len(value) <= 1:
                 return value.with_env(env)

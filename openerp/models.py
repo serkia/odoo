@@ -5080,11 +5080,12 @@ class BaseModel(object):
 
     def _convert_to_cache(self, values):
         """ Convert the `values` dictionary into cached values. """
-        return dict(
-            (name, self._fields[name].convert_to_cache(value, self.env))
+        fields = self._fields
+        return {
+            name: fields[name].convert_to_cache(value, self.env)
             for name, value in values.iteritems()
-            if name in self._fields
-        )
+            if name in fields
+        }
 
     def _convert_to_write(self, values):
         """ Convert the `values` dictionary into the format of :meth:`write`. """
