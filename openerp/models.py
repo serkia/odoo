@@ -5517,10 +5517,13 @@ class BaseModel(object):
                     def __getattr__(self, name):
                         field = self._record._fields[name]
                         value = self._record[name]
-                        return field.convert_to_write(value)
+                        return field.convert_to_onchange(value)
                 record = self[self._context['field_parent']]
                 global_vars['parent'] = RawRecord(record)
-            field_vars = self._convert_to_write(self._cache)
+            field_vars = {
+                key: self._fields[key].convert_to_onchange(val)
+                for key, val in self._cache.iteritems()
+            }
             params = eval("[%s]" % params, global_vars, field_vars)
 
             # call onchange method

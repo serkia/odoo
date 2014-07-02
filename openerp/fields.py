@@ -614,6 +614,12 @@ class Field(object):
         """
         return self.convert_to_read(value)
 
+    def convert_to_onchange(self, value):
+        """ convert `value` from the cache to a valid value for an onchange
+            method v7.
+        """
+        return self.convert_to_write(value)
+
     def convert_to_export(self, value, env):
         """ convert `value` from the cache to a valid value for export. The
             parameter `env` is given for managing translations.
@@ -1290,6 +1296,9 @@ class Many2one(_Relational):
 
     def convert_to_write(self, value, target=None, fnames=None):
         return bool(value) and (value.id or value._convert_to_write(value._cache))
+
+    def convert_to_onchange(self, value):
+        return value.id
 
     def convert_to_export(self, value, env):
         return bool(value) and value.name_get()[0][1]
