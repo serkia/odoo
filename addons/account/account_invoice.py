@@ -369,7 +369,7 @@ class account_invoice(models.Model):
         """
         assert len(self) == 1, 'This option should only be used for a single id at a time.'
         self.sent = True
-        return self.pool['report'].get_action(self, 'account.report_invoice')
+        return self.env['report'].get_action(self, 'account.report_invoice')
 
     @api.multi
     def action_invoice_sent(self):
