@@ -1413,8 +1413,7 @@ class account_move(osv.osv):
         assert mode in ('debit', 'credit'), 'Invalid Mode' #to prevent sql injection
         currency_obj = self.pool.get('res.currency')
         account_move_line_obj = self.pool.get('account.move.line')
-        if context is None:
-            context = {}
+        context = dict(context or {})
 
         if mode=='credit':
             account_id = move.journal_id.default_debit_account_id.id
@@ -2260,6 +2259,7 @@ class account_model(osv.osv):
             context = {}
 
         if data.get('date', False):
+            context = dict(context)
             context.update({'date': data['date']})
 
         move_date = context.get('date', time.strftime('%Y-%m-%d'))

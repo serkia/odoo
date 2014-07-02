@@ -893,7 +893,7 @@ class survey_user_input(osv.Model):
     def action_survey_resent(self, cr, uid, ids, context=None):
         ''' Sent again the invitation '''
         record = self.browse(cr, uid, ids[0], context=context)
-        context = context or {}
+        context = dict(context or {})
         context.update({
             'survey_resent_token': True,
             'default_partner_ids': record.partner_id and [record.partner_id.id] or [],

@@ -263,6 +263,7 @@ class stock_quant(osv.osv):
         return res
 
     def _calc_inventory_value(self, cr, uid, ids, name, attr, context=None):
+        context = dict(context or {})
         res = {}
         uid_company_id = self.pool.get('res.users').browse(cr, uid, uid, context=context).company_id.id
         for quant in self.browse(cr, uid, ids, context=context):
@@ -1325,7 +1326,7 @@ class stock_picking(osv.osv):
                 if todo_move_ids and not context.get('do_only_split'):
                     self.pool.get('stock.move').action_done(cr, uid, todo_move_ids, context=context)
                 elif context.get('do_only_split'):
-                    context.update({'split': todo_move_ids})
+                    context = dict(context, split=todo_move_ids)
             picking.refresh()
             self._create_backorder(cr, uid, picking, context=context)
             if toassign_move_ids:

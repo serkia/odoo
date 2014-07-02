@@ -213,9 +213,7 @@ class account_move_line(osv.osv):
             period_id = context.get('period_id')
             if type(period_id) == str:
                 ids = period_obj.search(cr, uid, [('name', 'ilike', period_id)])
-                context.update({
-                    'period_id': ids and ids[0] or False
-                })
+                context = dict(context, period_id=ids and ids[0] or False)
         return context
 
     def _default_get(self, cr, uid, fields, context=None):
@@ -660,6 +658,7 @@ class account_move_line(osv.osv):
         if (amount>0) and journal:
             x = journal_obj.browse(cr, uid, journal).default_credit_account_id
             if x: acc = x
+        context = dict(context)
         context.update({
                 'date': date,
                 'res.currency.compute.account': acc,
@@ -1000,12 +999,8 @@ class account_move_line(osv.osv):
         period_pool = self.pool.get('account.period')
         pids = period_pool.find(cr, user, date, context=context)
         if pids:
-            res.update({
-                'period_id':pids[0]
-            })
-            context.update({
-                'period_id':pids[0]
-            })
+            res.update({'period_id':pids[0]})
+            context = dict(context, period_id=pids[0])
         return {
             'value':res,
             'context':context,

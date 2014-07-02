@@ -354,7 +354,7 @@ class hr_evaluation_interview(osv.Model):
 
     def action_print_survey(self, cr, uid, ids, context=None):
         """ If response is available then print this response otherwise print survey form (print template of the survey) """
-        context = context if context else {}
+        context = dict(context or {})
         interview = self.browse(cr, uid, ids, context=context)[0]
         survey_obj = self.pool.get('survey.survey')
         response_obj = self.pool.get('survey.user_input')
@@ -363,7 +363,7 @@ class hr_evaluation_interview(osv.Model):
         return survey_obj.action_print_survey(cr, uid, [interview.survey_id.id], context=context)
 
     def action_start_survey(self, cr, uid, ids, context=None):
-        context = context if context else {}
+        context = dict(context or {})
         interview = self.browse(cr, uid, ids, context=context)[0]
         survey_obj = self.pool.get('survey.survey')
         response_obj = self.pool.get('survey.user_input')

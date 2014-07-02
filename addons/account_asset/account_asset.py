@@ -335,9 +335,7 @@ class account_asset_asset(osv.osv):
         depreciation_obj = self.pool.get('account.asset.depreciation.line')
         period = period_obj.browse(cr, uid, period_id, context=context)
         depreciation_ids = depreciation_obj.search(cr, uid, [('asset_id', 'in', ids), ('depreciation_date', '<=', period.date_stop), ('depreciation_date', '>=', period.date_start), ('move_check', '=', False)], context=context)
-        if context is None:
-            context = {}
-        context.update({'depreciation_date':period.date_stop})
+        context = dict(context or {}, depreciation_date=period.date_stop)
         return depreciation_obj.create_move(cr, uid, depreciation_ids, context=context)
 
     def create(self, cr, uid, vals, context=None):
@@ -346,9 +344,7 @@ class account_asset_asset(osv.osv):
         return asset_id
     
     def open_entries(self, cr, uid, ids, context=None):
-        if context is None:
-            context = {}
-        context.update({'search_default_asset_id': ids, 'default_asset_id': ids})
+        context = dict(context or {}, search_default_asset_id=ids, default_asset_id=ids)
         return {
             'name': _('Journal Items'),
             'view_type': 'form',
@@ -384,9 +380,8 @@ class account_asset_depreciation_line(osv.osv):
     }
 
     def create_move(self, cr, uid, ids, context=None):
+        context = dict(context or {})
         can_close = False
-        if context is None:
-            context = {}
         asset_obj = self.pool.get('account.asset.asset')
         period_obj = self.pool.get('account.period')
         move_obj = self.pool.get('account.move')

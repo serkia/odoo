@@ -283,7 +283,7 @@ class gamification_challenge(osv.Model):
 
         # in cron mode, will do intermediate commits
         # TODO in trunk: replace by parameter
-        context.update({'commit_gamification': True})
+        context = dict(context, commit_gamification=True)
         return self._update_all(cr, uid, ids, context=context)
 
     def _update_all(self, cr, uid, ids, context=None):

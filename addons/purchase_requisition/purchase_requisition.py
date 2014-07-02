@@ -170,8 +170,7 @@ class purchase_requisition(osv.osv):
         """
         Create New RFQ for Supplier
         """
-        if context is None:
-            context = {}
+        context = dict(context or {})
         assert partner_id, 'Supplier should be specified'
         purchase_order = self.pool.get('purchase.order')
         purchase_order_line = self.pool.get('purchase.order.line')

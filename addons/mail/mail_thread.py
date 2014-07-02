@@ -1059,7 +1059,7 @@ class mail_thread(osv.AbstractModel):
         thread_id = False
         for model, thread_id, custom_values, user_id, alias in routes:
             if self._name == 'mail.thread':
-                context.update({'thread_model': model})
+                context = dict(context or {}, thread_model=model)
             if model:
                 model_pool = self.pool[model]
                 if not (thread_id and hasattr(model_pool, 'message_update') or hasattr(model_pool, 'message_new')):

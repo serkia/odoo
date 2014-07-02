@@ -323,7 +323,7 @@ class pos_session(osv.osv):
     ]
 
     def create(self, cr, uid, values, context=None):
-        context = context or {}
+        context = dict(context or {})
         config_id = values.get('config_id', False) or context.get('default_config_id', False)
         if not config_id:
             raise osv.except_osv( _('Error!'),
@@ -780,8 +780,7 @@ class pos_order(osv.osv):
 
     def add_payment(self, cr, uid, order_id, data, context=None):
         """Create a new payment for the order"""
-        if not context:
-            context = {}
+        context = dict(context or {})
         statement_line_obj = self.pool.get('account.bank.statement.line')
         property_obj = self.pool.get('ir.property')
         order = self.browse(cr, uid, order_id, context=context)

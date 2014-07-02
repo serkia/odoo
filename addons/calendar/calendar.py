@@ -1539,8 +1539,7 @@ class calendar_event(osv.Model):
         return res
 
     def read_group(self, cr, uid, domain, fields, groupby, offset=0, limit=None, context=None, orderby=False, lazy=True):
-        if not context:
-            context = {}
+        context = dict(context or {})
 
         if 'date' in groupby:
             raise osv.except_osv(_('Warning!'), _('Group by date is not supported, use the calendar view instead.'))

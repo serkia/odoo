@@ -538,6 +538,7 @@ class email_template(osv.osv):
                 'res_model': 'mail.message',
                 'res_id': mail.mail_message_id.id,
             }
+            context = dict(context)
             context.pop('default_type', None)
             attachment_ids.append(ir_attachment.create(cr, uid, attachment_data, context=context))
         if attachment_ids:

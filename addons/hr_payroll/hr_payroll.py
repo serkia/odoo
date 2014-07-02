@@ -693,14 +693,12 @@ class hr_payslip(osv.osv):
 
     def onchange_contract_id(self, cr, uid, ids, date_from, date_to, employee_id=False, contract_id=False, context=None):
 #TODO it seems to be the mess in the onchanges, we should have onchange_employee => onchange_contract => doing all the things
-        if context is None:
-            context = {}
         res = {'value':{
                  'line_ids': [],
                  'name': '',
                  }
               }
-        context.update({'contract': True})
+        context = dict(context or {}, contract=True)
         if not contract_id:
             res['value'].update({'struct_id': False})
         return self.onchange_employee_id(cr, uid, ids, date_from=date_from, date_to=date_to, employee_id=employee_id, contract_id=contract_id, context=context)

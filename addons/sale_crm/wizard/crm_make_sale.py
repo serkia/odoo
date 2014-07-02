@@ -62,9 +62,8 @@ class crm_make_sale(osv.osv_memory):
         @param context: A standard dictionary for contextual values
         @return: Dictionary value of created sales order.
         """
-        if context is None:
-            context = {}
         # update context: if come from phonecall, default state values can make the quote crash lp:1017353
+        context = dict(context or {})
         context.pop('default_state', False)        
         
         case_obj = self.pool.get('crm.lead')

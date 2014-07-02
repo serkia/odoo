@@ -52,8 +52,7 @@ class product_margin(osv.osv_memory):
 
             @return:
         """
-        if context is None:
-            context = {}
+        context = dict(context or {})
 
         def ref(module, xml_id):
             proxy = self.pool.get('ir.model.data')

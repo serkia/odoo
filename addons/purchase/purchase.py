@@ -313,9 +313,7 @@ class purchase_order(osv.osv):
     def create(self, cr, uid, vals, context=None):
         if vals.get('name','/')=='/':
             vals['name'] = self.pool.get('ir.sequence').get(cr, uid, 'purchase.order') or '/'
-        if context is None:
-            context = {}
-        context.update({'mail_create_nolog': True})
+        context = dict(context or {}, mail_create_nolog=True)
         order =  super(purchase_order, self).create(cr, uid, vals, context=context)
         self.message_post(cr, uid, [order], body=_("RFQ created"), context=context)
         return order
@@ -417,6 +415,7 @@ class purchase_order(osv.osv):
         '''
         This function returns an action that display existing invoices of given sales order ids. It can either be a in a list or in a form view, if there is only one invoice to show.
         '''
+        context = dict(context or {})
         mod_obj = self.pool.get('ir.model.data')
         wizard_obj = self.pool.get('purchase.order.line_invoice')
         #compute the number of invoices to display
@@ -873,8 +872,7 @@ class purchase_order(osv.osv):
             list_key.sort()
             return tuple(list_key)
 
-        if context is None:
-            context = {}
+        context = dict(context or {})
 
         # Compute what the new orders should contain
         new_orders = {}

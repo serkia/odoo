@@ -90,8 +90,7 @@ class sale_order_line(osv.osv):
         '''
         create registration with sales order
         '''
-        if context is None:
-            context = {}
+        context = dict(context or {})
         registration_obj = self.pool.get('event.registration')
         for order_line in self.browse(cr, uid, ids, context=context):
             if order_line.event_id:

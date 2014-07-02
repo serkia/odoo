@@ -191,7 +191,7 @@ class account_bank_statement(osv.osv):
         pids = period_pool.find(cr, uid, dt=date, context=ctx)
         if pids:
             res.update({'period_id': pids[0]})
-            context.update({'period_id': pids[0]})
+            context = dict(context, period_id=pids[0])
 
         return {
             'value':res,

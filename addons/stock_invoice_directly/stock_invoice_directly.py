@@ -37,7 +37,7 @@ class stock_picking(osv.osv):
         res = super(stock_picking, self).do_transfer(cr, uid, picking_ids, context=context)
         pick_ids = [p.id for p in self.browse(cr, uid, picking_ids, context) if p.invoice_state == '2binvoiced']
         if pick_ids:
-            context.update(active_model='stock.picking', active_ids=pick_ids)
+            context = dict(context, active_model='stock.picking', active_ids=pick_ids)
             return {
                 'name': _('Create Invoice'),
                 'view_type': 'form',

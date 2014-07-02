@@ -294,7 +294,7 @@ class res_users(osv.Model):
         user_id = super(res_users, self).create(cr, uid, values, context=context)
         user = self.browse(cr, uid, user_id, context=context)
         if user.email and not context.get('no_reset_password'):
-            context.update({'create_user': True})
+            context = dict(context, create_user=True)
             try:
                 self.action_reset_password(cr, uid, [user.id], context=context)
             except MailDeliveryException:

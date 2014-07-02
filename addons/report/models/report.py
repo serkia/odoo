@@ -117,7 +117,7 @@ class Report(osv.Model):
         if request and hasattr(request, 'website'):
             if request.website is not None:
                 website = request.website
-                context.update(translatable=context.get('lang') != request.website.default_lang_code)
+                context = dict(context, translatable=context.get('lang') != request.website.default_lang_code)
         values.update(
             time=time,
             translate_doc=translate_doc,
