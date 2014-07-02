@@ -2631,7 +2631,6 @@ instance.web.DateTimeWidget = instance.web.Widget.extend({
             useSeconds: true,
             startDate: new moment({ y: 1900 }),
             endDate: new moment().add(200, "y"),
-            defaultDate: new moment().seconds(0),
             calendarWeeks: true,
             icons : {
                 time: 'fa fa-clock-o',
@@ -2650,8 +2649,14 @@ instance.web.DateTimeWidget = instance.web.Widget.extend({
             options['format'] = instance.web.convert_to_moment_format(l10n.date_format);
         }
 
+        //used to show the correct date and time when opening datetimepicker view
+        //if no correct date, show current day
         this.$el.find('.oe_datepicker_trigger').click(function() {
-            self.$el.find('.oe_datepicker_main').data('DateTimePicker').setValue(self.get('value') ? self.get('value') : new moment().seconds(0));
+            value = new moment().second(0);
+            if (self.$input.val().length !== 0 && self.is_valid_()){
+                var value = self.$input.val();
+            }
+            self.$el.find('.oe_datepicker_main').data('DateTimePicker').setValue(value);
         });
 
         this.picker = this.$el.find('.oe_datepicker_main').datetimepicker(options);
