@@ -5604,6 +5604,11 @@ class BaseModel(object):
                         )
                         todo.add(name)
 
+        # At the moment, the client does not support updates on a *2many field
+        # while this one is modified by the user.
+        if field_name and self._fields[field_name].type in ('one2many', 'many2many'):
+            result['value'].pop(field_name, None)
+
         return result
 
 
