@@ -39,7 +39,6 @@
 
 """
 
-import calendar
 import copy
 import datetime
 import functools
@@ -50,8 +49,7 @@ import pickle
 import pytz
 import re
 import time
-import traceback
-from collections import defaultdict, Iterable, MutableMapping
+from collections import defaultdict, MutableMapping
 from inspect import getmembers
 
 import babel.dates
@@ -67,7 +65,7 @@ from .api import Environment
 from .exceptions import except_orm, AccessError, MissingError
 from .osv import fields
 from .osv.query import Query
-from .tools import DEFAULT_SERVER_DATETIME_FORMAT, SKIPPED_ELEMENT_TYPES
+from .tools import lazy_property
 from .tools.config import config
 from .tools.misc import CountingStream, DEFAULT_SERVER_DATETIME_FORMAT, DEFAULT_SERVER_DATE_FORMAT
 from .tools.safe_eval import safe_eval as eval
@@ -5335,7 +5333,7 @@ class BaseModel(object):
     # Cache and recomputation management
     #
 
-    @property
+    @lazy_property
     def _cache(self):
         """ Return the cache of `self`, mapping field names to values. """
         return RecordCache(self)
