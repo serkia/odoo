@@ -5528,6 +5528,8 @@ class BaseModel(object):
             # call onchange method
             args = (self._cr, self._uid, self._origin.ids) + tuple(params)
             method_res = getattr(self._model, method)(*args)
+            if not isinstance(method_res, dict):
+                return
             if 'value' in method_res:
                 self.update(self._convert_to_cache(method_res['value']))
             if 'domain' in method_res:
