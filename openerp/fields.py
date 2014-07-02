@@ -695,7 +695,7 @@ class Field(object):
     # Computation of field values
     #
 
-    def compute_value(self, records):
+    def _compute_value(self, records):
         """ Invoke the compute method on `records`. """
         # mark the computed fields failed in cache, so that access before
         # computation raises an exception
@@ -706,6 +706,15 @@ class Field(object):
         self.compute(records)
         for field in self.computed_fields:
             records.env.computed[field].difference_update(records._ids)
+
+    def compute_value(self, records):
+        """ Invoke the compute method on `records`; the results are in cache. """
+        with records.env.do_in_draft():
+            try:
+                self._compute_value(records)
+            except MissingError:
+                # some record is missing, retry on existing records only
+                self._compute_value(records.exists())
 
     def determine_value(self, record):
         """ Determine the value of `self` for `record`. """
@@ -718,8 +727,7 @@ class Field(object):
                 recs = record._recompute_check(self)
                 if recs:
                     # recompute the value (only in cache)
-                    with env.do_in_draft():
-                        self.compute_value(recs.exists())
+                    self.compute_value(recs)
                     # HACK: if result is in the wrong cache, copy values
                     if recs.env != env:
                         for source, target in zip(recs, recs.with_env(env)):
@@ -739,12 +747,11 @@ class Field(object):
         elif self.compute:
             # this is either a non-stored computed field, or a stored computed
             # field in draft mode
-            with env.do_in_draft():
-                if self.recursive:
-                    self.compute_value(record)
-                else:
-                    recs = record._in_cache_without(self)
-                    self.compute_value(recs.exists())
+            if self.recursive:
+                self.compute_value(record)
+            else:
+                recs = record._in_cache_without(self)
+                self.compute_value(recs)
 
         else:
             # this is a non-stored non-computed field
@@ -753,7 +760,7 @@ class Field(object):
     def determine_default(self, record):
         """ determine the default value of field `self` on `record` """
         if self.compute:
-            self.compute_value(record)
+            self._compute_value(record)
         else:
             record._cache[self] = SpecialValue(self.null(record.env))
 
