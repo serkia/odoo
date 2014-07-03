@@ -117,6 +117,22 @@ class mail_message(osv.Model):
         """ Search for starred messages by the current user."""
         return ['&', ('notification_ids.partner_id.user_ids', 'in', [uid]), ('notification_ids.starred', '=', domain[0][2])]
 
+    def _set_model_id(self, cr, uid, ids, name, value, arg, context=None):
+        if value:
+            model_id = self.pool.get('ir.model').search(cr,uid,[('model','=',value)])
+            if model_id:
+                self.write(cr,uid,ids,{'model_id': model_id[0]})
+        else:
+            self.write(cr,uid,ids,{'model_id': 0})
+        return {}
+
+    def _get_model(self,cr, uid, ids, field_name, field_value, arg, context=None):
+        model_id = self.browse(cr, uid, ids, context=context).model_id.id
+        if model_id:
+            model_name = self.pool.get('ir.model').read(cr,uid,model_id,['model'])
+            return { ids[0] : model_name['model'] }
+        return {ids[0] : False}
+
     _columns = {
         'type': fields.selection([
                         ('email', 'Email'),
@@ -144,7 +160,8 @@ class mail_message(osv.Model):
         'parent_id': fields.many2one('mail.message', 'Parent Message', select=True,
             ondelete='set null', help="Initial thread message."),
         'child_ids': fields.one2many('mail.message', 'parent_id', 'Child Messages'),
-        'model': fields.char('Related Document Model', size=128, select=1),
+        'model_id':fields.many2one('ir.model','Application'),
+        'model': fields.function(_get_model, fnct_inv=_set_model_id, type='char', string='Search Related Document', store=True),
         'res_id': fields.integer('Related Document ID', select=1),
         'record_name': fields.char('Message Record Name', help="Name get of the related document."),
         'notification_ids': fields.one2many('mail.notification', 'message_id',

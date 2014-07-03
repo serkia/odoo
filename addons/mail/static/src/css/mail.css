@@ -232,6 +232,13 @@
     background: white;
     font-size: 14px;
     font-style: italic;
+    width: 95%;
+    float: left;
+}
+.openerp .oe_mail .mark_all_read {
+    display: inline-block;
+    margin-left: 5px;
+    margin-top: -10px;
 }
 
 /* d) I.E. tweaks for Message action icons */
