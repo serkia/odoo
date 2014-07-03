@@ -724,7 +724,6 @@
                 sLabel : '<i class="fa fa-font icon-font" style="color:black;background-color:yellow;"></i>',
                 className: 'note-recent-color',
                 title: lang.color.recent,
-                event: 'color',
                 value: '{"backColor":"yellow"}',
                 dropdown: dropdown
             };
@@ -918,35 +917,8 @@
             lang: 'en-US',                // language 'en-US', 'ko-KR', ...
             direction: null,              // text direction, ex) 'rtl'
 
-            // toolbar
-            toolbar: [
-            ['style', ['style']],
-            ['font', ['bold', 'italic', 'underline', 'superscript', 'subscript', 'strikethrough', 'clear']],
-            ['fontname', ['fontname']],
-            // ['fontsize', ['fontsize']], // Still buggy
-            ['color', ['color']],
-            ['para', ['ul', 'ol', 'paragraph']],
-            ['height', ['height']],
-            ['table', ['table']],
-            ['insert', ['link', 'picture', 'video', 'hr']],
-            ['view', ['fullscreen', 'codeview']],
-            ['help', ['help']]
-            ],
-
             // air mode: inline editor
             airMode: false,
-            // airPopover: [
-            //   ['style', ['style']],
-            //   ['font', ['bold', 'italic', 'underline', 'clear']],
-            //   ['fontname', ['fontname']],
-            //   ['fontsize', ['fontsize']], // Still buggy
-            //   ['color', ['color']],
-            //   ['para', ['ul', 'ol', 'paragraph']],
-            //   ['height', ['height']],
-            //   ['table', ['table']],
-            //   ['insert', ['link', 'picture', 'video']],
-            //   ['help', ['help']]
-            // ],
             airPopover: [
             ['color', ['color']],
             ['font', ['bold', 'underline', 'clear']],
@@ -2286,7 +2258,7 @@
      * https://dvcs.w3.org/hg/editing/raw-file/tip/editing.html#editing-host
      */
     function is_editing_host(element) {
-        return element.attr('contentEditable') === 'false';
+        return element.attr('contentEditable') === 'true';
     }
     /**
      * Checks that both the element's content *and the element itself* are
@@ -2295,7 +2267,7 @@
      */
     function is_editable_node(element) {
         return !(element.data('oe-model') === 'ir.ui.view'
-              || element.data('cke-realelement')
+              || element.data('oe-type') === 'html'
               || (is_editing_host(element) && element.getAttribute('attributeEditable') !== 'true'));
     }
 
@@ -2535,7 +2507,8 @@
                 // Back from edit button -> ignore
                 var element = $(this).closest('[data-oe-field]');
                 if (previous && previous === this) { return; }
-                if (is_editable_node(element)) { return; }
+                console.log('---thissss', this);
+                if (is_editable_node(element) || $(this).hasClass('editor-insert-media')) { return; }
                 previous = this;
                 var $selected = $(this);
                 var position = $selected.offset();
@@ -2750,7 +2723,7 @@
                     ['color', ['color']],
                     ['para', ['ul', 'ol', 'paragraph']],
                     ['table', ['table']],
-                    ['insert', ['link', 'picture']],
+                    ['insert', ['link']],
                 ],
                 oninit: function() {
                   self.setup_editables(root);
@@ -3433,7 +3406,7 @@
 
             var done = $.when();
             if ($e.hasClass('email-address') && $e.val().indexOf("@") !== -1) {
-                this.make_link(val, false, this.text || this.linkInfo.text);
+                this.make_link(val, false, this.text || this.linkInfo.text, classes);
             } else if ($e.val() && $e.val().length && $e.hasClass('page')) {
                 var data = $e.select2('data');
                 if (!data.create) {
@@ -3453,6 +3426,7 @@
         },
         make_link : function(url , new_window , label, classes){
             var self =  this;
+            var rng = this.linkInfo.rng;
             var href = url;
             if (url.indexOf('@') !== -1 && url.indexOf(':') === -1) {
                 href =  'mailto:' + url;
@@ -3462,7 +3436,6 @@
             if(this.is_custome) {
                 self.update_link(this.editable, href , new_window , label, classes)
             } else {
-                var rng = range.create();
                 this.editor.restoreRange(this.editable);
                 this.editor.recordUndo(this.editable); 
 
@@ -3541,7 +3514,8 @@
             return {
                 text: rng.toString(),
                 url: url,
-                new_window: new_window
+                new_window: new_window,
+                rng : rng,
             };
         },
         changed: function ($e) {
