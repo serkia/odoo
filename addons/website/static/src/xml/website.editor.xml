@@ -340,12 +340,9 @@
         </form>
     </t>
     <t t-name="website.editor.insert.inline.media">
-        <div class="mediumInsert" contenteditable="false">
-            <div class="mediumInsert-buttons">
-                <a class="mediumInsert-buttonsShow">+</a>
-            </div>
-            <div class="mediumInsert-placeholder"/>
-        </div>
+        <p class="inline-media-link" contenteditable="false">
+            <a class="editor-insert-media fa fa-plus-circle"></a>
+        </p>
     </t>
     <t t-name="website.editor.popover">
         <div class="note-popover">
