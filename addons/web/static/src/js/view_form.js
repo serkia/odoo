@@ -4652,6 +4652,7 @@ instance.web.form.FieldMany2ManyTags = instance.web.form.AbstractField.extend(in
                 }
             });
     },
+    // WARNING: duplicated in 4 other M2M widgets
     set_value: function(value_) {
         value_ = value_ || [];
         if (value_.length >= 1 && value_[0] instanceof Array) {
@@ -4796,10 +4797,21 @@ instance.web.form.FieldMany2Many = instance.web.form.AbstractField.extend(instan
         this.list_view.destroy();
         this.list_view = undefined;
     },
+    // WARNING: duplicated in 4 other M2M widgets
     set_value: function(value_) {
         value_ = value_ || [];
         if (value_.length >= 1 && value_[0] instanceof Array) {
-            value_ = value_[0][2];
+            // value_ is a list of m2m commands. We only process
+            // LINK_TO and REPLACE_WITH in this context
+            var val = [];
+            _.each(value_, function (command) {
+                if (command[0] === commands.LINK_TO) {
+                    val.push(command[1]);                   // (4, id[, _])
+                } else if (command[0] === commands.REPLACE_WITH) {
+                    val = command[2];                       // (6, _, ids)
+                }
+            });
+            value_ = val;
         }
         this._super(value_);
     },
@@ -4926,10 +4938,21 @@ instance.web.form.FieldMany2ManyKanban = instance.web.form.AbstractField.extend(
             });
         });
     },
+    // WARNING: duplicated in 4 other M2M widgets
     set_value: function(value_) {
         value_ = value_ || [];
         if (value_.length >= 1 && value_[0] instanceof Array) {
-            value_ = value_[0][2];
+            // value_ is a list of m2m commands. We only process
+            // LINK_TO and REPLACE_WITH in this context
+            var val = [];
+            _.each(value_, function (command) {
+                if (command[0] === commands.LINK_TO) {
+                    val.push(command[1]);                   // (4, id[, _])
+                } else if (command[0] === commands.REPLACE_WITH) {
+                    val = command[2];                       // (6, _, ids)
+                }
+            });
+            value_ = val;
         }
         this._super(value_);
     },
@@ -5708,10 +5731,21 @@ instance.web.form.FieldMany2ManyBinaryMultiFiles = instance.web.form.AbstractFie
         this._super(this);
         this.$el.on('change', 'input.oe_form_binary_file', this.on_file_change );
     },
+    // WARNING: duplicated in 4 other M2M widgets
     set_value: function(value_) {
         value_ = value_ || [];
         if (value_.length >= 1 && value_[0] instanceof Array) {
-            value_ = value_[0][2];
+            // value_ is a list of m2m commands. We only process
+            // LINK_TO and REPLACE_WITH in this context
+            var val = [];
+            _.each(value_, function (command) {
+                if (command[0] === commands.LINK_TO) {
+                    val.push(command[1]);                   // (4, id[, _])
+                } else if (command[0] === commands.REPLACE_WITH) {
+                    val = command[2];                       // (6, _, ids)
+                }
+            });
+            value_ = val;
         }
         this._super(value_);
     },
@@ -6072,10 +6106,21 @@ instance.web.form.FieldMany2ManyCheckBoxes = instance.web.form.AbstractField.ext
         if (! _.isEqual(new_value, this.get("value")))
             this.internal_set_value(new_value);
     },
+    // WARNING: (mostly) duplicated in 4 other M2M widgets
     set_value: function(value) {
-        value = value || [];
-        if (value.length >= 1 && value[0] instanceof Array) {
-            value = value[0][2];
+        value_ = value_ || [];
+        if (value_.length >= 1 && value_[0] instanceof Array) {
+            // value_ is a list of m2m commands. We only process
+            // LINK_TO and REPLACE_WITH in this context
+            var val = [];
+            _.each(value_, function (command) {
+                if (command[0] === commands.LINK_TO) {
+                    val.push(command[1]);                   // (4, id[, _])
+                } else if (command[0] === commands.REPLACE_WITH) {
+                    val = command[2];                       // (6, _, ids)
+                }
+            });
+            value_ = val;
         }
         var formatted = {};
         _.each(value, function(el) {
