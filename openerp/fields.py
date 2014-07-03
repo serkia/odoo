@@ -1542,7 +1542,7 @@ class Id(Field):
         return record.ensure_one()._ids[0]
 
     def __set__(self, record, value):
-        raise NotImplementedError()
+        raise TypeError("field 'id' cannot be assigned")
 
 
 # imported here to avoid dependency cycle issues
