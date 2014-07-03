@@ -429,3 +429,33 @@
 .note-wrapper-editable:hover {
     outline : 2px solid yellow;
 }
+
+.editor-insert-media {
+    opacity: 0;
+    -moz-transform: scale(0);
+    -ms-transform: scale(0);
+    -o-transform: scale(0);
+    -webkit-transform: scale(0);
+    transform: scale(0);
+    -moz-transition: all 0.08s cubic-bezier(0.2, 0.3, 0.25, 0.9);
+    -o-transition: all 0.08s cubic-bezier(0.2, 0.3, 0.25, 0.9);
+    -webkit-transition: all 0.08s cubic-bezier(0.2, 0.3, 0.25, 0.9);
+    transition: all 0.08s cubic-bezier(0.2, 0.3, 0.25, 0.9);
+    text-decoration: none !important;
+}
+
+.inline-media-link {
+    position: relative;
+    margin: -10px 0 0 -40px;
+    max-width : 20px;
+    cursor : pointer;
+}
+
+.inline-media-link:hover .editor-insert-media {
+    -moz-transform: scale(1);
+    -ms-transform: scale(1);
+    -o-transform: scale(1);
+    -webkit-transform: scale(1);
+    transform: scale(1);
+    opacity: 1;
+}
