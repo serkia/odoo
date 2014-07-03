@@ -3292,11 +3292,14 @@ instance.web.form.CompletionFieldMixin = {
         var self = this;
 
         var dataset = new instance.web.DataSet(this, this.field.relation, self.build_context());
-        var blacklist = this.get_search_blacklist();
         this.last_query = search_val;
+        var exclusion_domain = [], ids_blacklist = this.get_search_blacklist();
+        if (!_(ids_blacklist).isEmpty()) {
+            exclusion_domain.push(['id', 'not in', ids_blacklist]);
+        }
 
         return this.orderer.add(dataset.name_search(
-                search_val, new instance.web.CompoundDomain(self.build_domain(), [["id", "not in", blacklist]]),
+                search_val, new instance.web.CompoundDomain(self.build_domain(), exclusion_domain),
                 'ilike', this.limit + 1, self.build_context())).then(function(data) {
             self.last_search = data;
             // possible selections for the m2o
