@@ -4652,7 +4652,17 @@ instance.web.form.FieldMany2ManyTags = instance.web.form.AbstractField.extend(in
     set_value: function(value_) {
         value_ = value_ || [];
         if (value_.length >= 1 && value_[0] instanceof Array) {
-            value_ = value_[0][2];
+            // value_ is a list of m2m commands. We only process
+            // LINK_TO and REPLACE_WITH in this context
+            var val = [];
+            _.each(value_, function (command) {
+                if (command[0] === commands.LINK_TO) {
+                    val.push(command[1]);                   // (4, id[, _])
+                } else if (command[0] === commands.REPLACE_WITH) {
+                    val = command[2];                       // (6, _, ids)
+                }
+            });
+            value_ = val;
         }
         this._super(value_);
     },
