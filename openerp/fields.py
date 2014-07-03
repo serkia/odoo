@@ -402,9 +402,6 @@ class Field(object):
             if not getattr(self, attr):
                 setattr(self, attr, getattr(field, prop))
 
-        # special case: related fields never have an inverse field!
-        self.inverse_field = None
-
     def _compute_related(self, records):
         """ Compute the related field `self` on `records`. """
         for record in records:
@@ -675,13 +672,13 @@ class Field(object):
         # adapt value to the cache level
         value = self.convert_to_cache(value, env)
 
-        if env.draft or not record.id:
+        if env.in_draft or not record.id:
             # determine dependent fields
             spec = self.modified_draft(record)
 
             # set value in cache, inverse field, and mark record as dirty
             record._cache[self] = value
-            if env.draft:
+            if env.in_onchange:
                 if self.inverse_field:
                     self.inverse_field._update(value, record)
                 record._dirty = True
@@ -726,7 +723,7 @@ class Field(object):
         """ Determine the value of `self` for `record`. """
         env = record.env
 
-        if self.store and not (self.depends and env.draft):
+        if self.store and not (self.depends and env.in_draft):
             # this is a stored field
             if self.depends:
                 # this is a stored computed field, check for recomputation
