@@ -2126,12 +2126,6 @@
                 var $anchor = $linkPopover.find('a');
                 $anchor.attr('href', oStyle.anchor.href).html(oStyle.anchor.href);
                 showPopover($linkPopover, oStyle.anchor);
-            }
-            else if (oStyle.anchor) {
-                $linkPopover = $popover.find('.note-link-popover');
-                var $anchor = $linkPopover.find('a');
-                $anchor.attr('href', oStyle.anchor.href).html(oStyle.anchor.href);
-                showPopover($linkPopover, oStyle.anchor);
             } else {
                 $linkPopover.hide();
             }
