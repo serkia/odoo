@@ -344,47 +344,6 @@
             <a class="editor-insert-media fa fa-plus-circle"></a>
         </p>
     </t>
-    <t t-name="website.editor.popover">
-        <div class="note-popover">
-            <t t-call="website.editor.popover.link"/>
-            <t t-call="website.editor.popover.linkimage"/>
-        </div>
-    </t>
-    <!-- link popover -->
-    <t t-name="website.editor.popover.link">
-        <div t-attf-class="popover bottom in note-link-popover" style="display: none;">
-            <div class="arrow"></div>
-            <div class="popover-content">
-                <a href="http://www.google.com" target="_blank">
-                    www.google.com
-                    <div class="note-insert btn-group">
-                        <button type="button" class="btn btn-default btn-sm btn-small" title="Edit" data-event="showLinkDialog" tabindex="-1">
-                            <i class="fa fa-edit icon-edit"></i>
-                        </button>
-                        <button type="button" class="btn btn-default btn-sm btn-small" title="Unlink" data-event="unlink" tabindex="-1">
-                            <i class="fa fa-unlink icon-unlink"></i>
-                        </button>
-                    </div>
-                </a>
-            </div>
-        </div>
-    </t>
-        <!-- link Image popover -->
-    <t t-name="website.editor.popover.linkimage">
-        <div class="popover bottom in note-link-image-popover" style="display: none;">
-            <div class="arrow"></div>
-            <div class="popover-content">
-                <a href="http://www.google.com" target="_blank">www.google.com
-                    <div class="note-insert btn-group">
-                        <button type="button" class="btn btn-default btn-sm btn-small" title="Picture" data-event="showImageDialog" tabindex="-1">
-                            <i class="fa fa-picture-o icon-picture"></i>
-                        </button>
-                    </div>
-                </a>
-            </div>
-        </div>
-    </t>
-
     <t t-name="website.editor.tplButton">
         <button type="button" t-att-class="'btn btn-default btn-sm btn-small ' +
                 (options.className ? options.className : '') +
