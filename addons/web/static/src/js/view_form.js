@@ -2649,16 +2649,6 @@ instance.web.DateTimeWidget = instance.web.Widget.extend({
             options['format'] = instance.web.convert_to_moment_format(l10n.date_format);
         }
 
-        //used to show the correct date and time when opening datetimepicker view
-        //if no correct date, show current day
-        this.$el.find('.oe_datepicker_trigger').click(function() {
-            value = new moment().second(0);
-            if (self.$input.val().length !== 0 && self.is_valid_()){
-                var value = self.$input.val();
-            }
-            self.$el.find('.oe_datepicker_main').data('DateTimePicker').setValue(value);
-        });
-
         this.picker = this.$el.find('.oe_datepicker_main').datetimepicker(options);
         this.set_readonly(false);
         this.set({'value': false});
@@ -2700,7 +2690,15 @@ instance.web.DateTimeWidget = instance.web.Widget.extend({
     change_datetime: function(e) {
         if ((e.type !== "keypress" || e.which === 13) && this.is_valid_()) {
             this.set_value_from_ui_();
+            this.set_value(this.get('value')); //reformat date and show it correctly
             this.trigger("datetime_changed");
+            //when opening datetimepicker the date and time by default should be the one from
+            //the input field if any or the current day otherwise
+            value = new moment().second(0);
+            if (this.$input.val().length !== 0 && this.is_valid_()){
+                var value = this.$input.val();
+            }
+            this.$el.find('.oe_datepicker_main').data('DateTimePicker').setValue(value);
         }
     },
     commit_value: function () {
