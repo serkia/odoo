@@ -31,6 +31,7 @@ import openerp.exceptions
 from openerp.osv import fields,osv, expression
 from openerp.osv.orm import browse_record
 from openerp.tools.translate import _
+from openerp.http import request
 
 _logger = logging.getLogger(__name__)
 
@@ -86,7 +87,7 @@ class res_groups(osv.osv):
         return where
 
     _columns = {
-        'name': fields.char('Name', size=64, required=True, translate=True),
+        'name': fields.char('Name', required=True, translate=True),
         'users': fields.many2many('res.users', 'res_groups_users_rel', 'gid', 'uid', 'Users'),
         'model_access': fields.one2many('ir.model.access', 'group_id', 'Access Controls'),
         'rule_groups': fields.many2many('ir.rule', 'rule_group_rel',
@@ -172,7 +173,7 @@ class res_users(osv.osv):
             help="Specify a value only when creating a user or if you're "\
                  "changing the user's password, otherwise leave empty. After "\
                  "a change of password, the user has to login again."),
-        'signature': fields.text('Signature'),
+        'signature': fields.html('Signature'),
         'active': fields.boolean('Active'),
         'action_id': fields.many2one('ir.actions.actions', 'Home Action', help="If specified, this action will be opened at log on for this user, in addition to the standard menu."),
         'groups_id': fields.many2many('res.groups', 'res_groups_users_rel', 'uid', 'gid', 'Groups'),
@@ -492,7 +493,7 @@ class res_users(osv.osv):
     def preference_save(self, cr, uid, ids, context=None):
         return {
             'type': 'ir.actions.client',
-            'tag': 'reload',
+            'tag': 'reload_context',
         }
 
     def preference_change_password(self, cr, uid, ids, context=None):
