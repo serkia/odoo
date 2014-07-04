@@ -2880,7 +2880,7 @@ class BaseModel(object):
         cls._all_columns = cls._get_column_infos()
 
         # interface columns with new-style fields
-        for attr, column in cls._columns.iteritems():
+        for attr, column in cls._columns.items():
             if attr not in cls._fields:
                 cls._add_field(attr, column.to_field())
 
