@@ -6107,7 +6107,7 @@ instance.web.form.FieldMany2ManyCheckBoxes = instance.web.form.AbstractField.ext
             this.internal_set_value(new_value);
     },
     // WARNING: (mostly) duplicated in 4 other M2M widgets
-    set_value: function(value) {
+    set_value: function(value_) {
         value_ = value_ || [];
         if (value_.length >= 1 && value_[0] instanceof Array) {
             // value_ is a list of m2m commands. We only process
@@ -6123,7 +6123,7 @@ instance.web.form.FieldMany2ManyCheckBoxes = instance.web.form.AbstractField.ext
             value_ = val;
         }
         var formatted = {};
-        _.each(value, function(el) {
+        _.each(value_, function(el) {
             formatted[JSON.stringify(el)] = true;
         });
         this._super(formatted);
