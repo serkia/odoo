@@ -140,10 +140,6 @@ class Registry(Mapping):
         models_to_load = [] # need to preserve loading order
         lazy_property.reset_all(self)
 
-        # call hook before adding stuff in the registry
-        for model in self.models.itervalues():
-            model._before_registry_update(cr, SUPERUSER_ID)
-
         # Instantiate registered classes (via the MetaModel automatic discovery
         # or via explicit constructor call), and add them to the pool.
         for cls in models.MetaModel.module_to_models.get(module.name, []):
@@ -153,12 +149,20 @@ class Registry(Mapping):
                 # avoid double-loading models whose declaration is split
                 models_to_load.append(model._name)
 
-        # call hook after models have been instantiated
+        return [self.models[m] for m in models_to_load]
+
+    def setup_models(self, cr):
+        """ Complete the setup of models.
+            This must be called after loading modules and before using the ORM.
+        """
+        # prepare the setup on all models
+        for model in self.models.itervalues():
+            model._prepare_setup_fields(cr, SUPERUSER_ID)
+
+        # do the actual setup from a clean state
         self._m2m = {}
         for model in self.models.itervalues():
-            model._after_registry_update(cr, SUPERUSER_ID)
-
-        return [self.models[m] for m in models_to_load]
+            model._setup_fields(cr, SUPERUSER_ID)
 
     def clear_caches(self):
         """ Clear the caches

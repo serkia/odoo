@@ -2930,16 +2930,14 @@ class BaseModel(object):
                 cls._inherits[field.comodel_name] = field.name
 
     @api.model
-    def _before_registry_update(self):
-        """ method called on all models before updating the registry """
-        # reset setup of all fields
+    def _prepare_setup_fields(self):
+        """ Prepare the setup of fields once the models have been loaded. """
         for field in self._fields.itervalues():
             field.reset()
 
     @api.model
-    def _after_registry_update(self):
-        """ method called on all models after updating the registry """
-        # complete the initialization of all fields
+    def _setup_fields(self):
+        """ Setup the fields (dependency triggers, etc). """
         for field in self._fields.itervalues():
             field.setup(self.env)
 
