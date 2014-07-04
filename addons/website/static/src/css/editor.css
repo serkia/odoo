@@ -108,11 +108,11 @@
   display: none !important;
 }
 
-.cke_editable .css_editable_mode_hidden {
+.note-editable .css_editable_mode_hidden {
   display: none;
 }
 
-.cke_editable .css_editable_mode_display {
+.note-editable .css_editable_mode_display {
   display: block !important;
 }
 
@@ -371,7 +371,7 @@ ul.oe_menu_editor .disclose {
   display: inline-block;
 }
 
-.cke_editable .fa {
+.note-editable .fa {
   cursor: pointer;
 }
 
