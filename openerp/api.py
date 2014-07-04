@@ -677,7 +677,7 @@ class Environment(object):
         self.computed = defaultdict(set)    # {field: set(id), ...}
         self.dirty = set()                  # set(record)
         self.todo = {}                      # {field: records, ...}
-        self.draft = env.draft if env else Draft()
+        self.mode = env.mode if env else Mode()
         self.all = envs
         envs.add(self)
         return self
@@ -713,17 +713,38 @@ class Environment(object):
         return self.context.get('lang')
 
     @contextmanager
-    def do_in_draft(self):
-        """ Context-switch to draft mode. """
-        if self.draft:
+    def _do_in_mode(self, mode):
+        if self.mode.value:
             yield
         else:
             try:
-                self.draft.set(True)
+                self.mode.value = mode
                 yield
             finally:
-                self.draft.set(False)
+                self.mode.value = False
                 self.dirty.clear()
+
+    def do_in_draft(self):
+        """ Context-switch to draft mode, where all field updates are done in
+            cache only.
+        """
+        return self._do_in_mode(True)
+
+    @property
+    def in_draft(self):
+        """ Return whether we are in draft mode. """
+        return bool(self.mode.value)
+
+    def do_in_onchange(self):
+        """ Context-switch to 'onchange' draft mode, which is a specialized
+            draft mode used during execution of onchange methods.
+        """
+        return self._do_in_mode('onchange')
+
+    @property
+    def in_onchange(self):
+        """ Return whether we are in 'onchange' draft mode. """
+        return self.mode.value == 'onchange'
 
     def invalidate(self, spec):
         """ Invalidate some fields for some records in the cache of all
@@ -782,15 +803,9 @@ class Environment(object):
             raise Warning('Invalid cache for fields\n' + pformat(invalids))
 
 
-class Draft(object):
-    """ A boolean flag shared among environments. """
-    _state = False
-
-    def __nonzero__(self):
-        return self._state
-
-    def set(self, value):
-        self._state = bool(value)
+class Mode(object):
+    """ A mode flag shared among environments. """
+    value = False           # False, True (draft) or 'onchange' (onchange draft)
 
 
 # keep those imports here in order to handle cyclic dependencies correctly

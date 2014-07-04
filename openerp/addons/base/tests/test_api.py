@@ -251,16 +251,16 @@ class TestAPI(common.TransactionCase):
     def test_55_draft(self):
         """ Test draft mode nesting. """
         env = self.env
-        self.assertFalse(env.draft)
+        self.assertFalse(env.in_draft)
         with env.do_in_draft():
-            self.assertTrue(env.draft)
+            self.assertTrue(env.in_draft)
             with env.do_in_draft():
-                self.assertTrue(env.draft)
+                self.assertTrue(env.in_draft)
                 with env.do_in_draft():
-                    self.assertTrue(env.draft)
-                self.assertTrue(env.draft)
-            self.assertTrue(env.draft)
-        self.assertFalse(env.draft)
+                    self.assertTrue(env.in_draft)
+                self.assertTrue(env.in_draft)
+            self.assertTrue(env.in_draft)
+        self.assertFalse(env.in_draft)
 
     @mute_logger('openerp.models')
     def test_60_cache(self):

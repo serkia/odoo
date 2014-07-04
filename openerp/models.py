@@ -3093,7 +3093,7 @@ class BaseModel(object):
         if self.pool._init:
             # columns may be missing from database, do not prefetch other fields
             pass
-        elif self.env.draft:
+        elif self.env.in_draft:
             # we may be doing an onchange, do not prefetch other fields
             pass
         elif field in self.env.todo:
@@ -5172,7 +5172,7 @@ class BaseModel(object):
         record = self.browse([NewId()])
         record._cache.update(self._convert_to_cache(values))
 
-        if record.env.draft:
+        if record.env.in_onchange:
             # The cache update does not set inverse fields, so do it manually.
             # This is useful for computing a function field on secondary
             # records, if that field depends on the main record.
@@ -5565,7 +5565,7 @@ class BaseModel(object):
                 subfields[name].add(subname)
 
         # create a new record with values, and attach `self` to it
-        with env.do_in_draft():
+        with env.do_in_onchange():
             record = self.new(values)
             values = dict(record._cache)
             # attach `self` with a different context (for cache consistency)
@@ -5587,7 +5587,7 @@ class BaseModel(object):
                 continue
             done.add(name)
 
-            with env.do_in_draft():
+            with env.do_in_onchange():
                 # apply field-specific onchange methods
                 if field_onchange.get(name):
                     record._onchange_eval(name, field_onchange[name], result)
