@@ -510,7 +510,15 @@ class Field(object):
 
     def get_description(self, env):
         """ Return a dictionary that describes the field `self`. """
-        desc = {'type': self.type, 'store': self.store}
+        desc = {'type': self.type}
+        # determine 'store'
+        if self.store:
+            # if the corresponding column is a function field, check the column
+            column = env[self.model_name]._columns.get(self.name)
+            desc['store'] = getattr(column, 'store', True)
+        else:
+            desc['store'] = False
+        # determine other attributes
         for attr, prop in self.description_attrs:
             value = getattr(self, prop)
             if callable(value):
