@@ -515,7 +515,7 @@ class Field(object):
         if self.store:
             # if the corresponding column is a function field, check the column
             column = env[self.model_name]._columns.get(self.name)
-            desc['store'] = getattr(column, 'store', True)
+            desc['store'] = bool(getattr(column, 'store', True))
         else:
             desc['store'] = False
         # determine other attributes
