@@ -23,7 +23,7 @@ import itertools
 from lxml import etree
 
 from openerp import models, fields, api, _
-from openerp.exceptions import except_orm, Warning
+from openerp.exceptions import except_orm, Warning, RedirectWarning
 import openerp.addons.decimal_precision as dp
 
 # mapping invoice type to journal type
@@ -438,8 +438,9 @@ class account_invoice(models.Model):
                     rec_account = rec_prop.get_by_record(rec_prop)
                     pay_account = pay_prop.get_by_record(pay_prop)
                     if not rec_account and not pay_account:
-                        raise except_orm(_('Configuration Error!'),
-                            _('Cannot find a chart of accounts for this company, you should create one.'))
+                        action = self.env.ref('account.action_account_config')
+                        msg = _('Cannot find a chart of accounts for this company, You should configure it. \nPlease go to Account Configuration.')
+                        raise RedirectWarning(msg, action.id, _('Go to the configuration panel'))
 
             if type in ('out_invoice', 'out_refund'):
                 account_id = rec_account.id
@@ -531,7 +532,9 @@ class account_invoice(models.Model):
                 rec_account = rec_prop.get_by_record(rec_prop)
                 pay_account = pay_prop.get_by_record(pay_prop)
                 if not rec_account and not pay_account:
-                    raise self.env['res.config.settings'].get_config_warning(_('Cannot find any chart of account: you can create a new one from %(menu:account.menu_account_config)s.'))
+                    action = self.env.ref('account.action_account_config')
+                    msg = _('Cannot find a chart of accounts for this company, You should configure it. \nPlease go to Account Configuration.')
+                    raise RedirectWarning(msg, action.id, _('Go to the configuration panel'))
 
                 if type in ('out_invoice', 'out_refund'):
                     acc_id = rec_account.id
@@ -548,10 +551,9 @@ class account_invoice(models.Model):
                             continue
                         accounts = self.env['account.account'].search([('name', '=', line.account_id.name), ('company_id', '=', company_id)])
                         if not accounts:
-                            raise except_orm(
-                                _('Configuration Error!'),
-                                _('Cannot find a chart of account, you should create one from Settings\Configuration\Accounting menu.')
-                            )
+                            action = self.env.ref('account.action_account_config')
+                            msg = _('Cannot find a chart of accounts for this company, You should configure it. \nPlease go to Account Configuration.')
+                            raise RedirectWarning(msg, action.id, _('Go to the configuration panel'))
                         line.write({'account_id': accounts[-1].id})
             else:
                 for line_cmd in invoice_line or []:
@@ -574,11 +576,9 @@ class account_invoice(models.Model):
             if not values.get('journal_id'):
                 field_desc = journals.fields_get(['journal_id'])
                 type_label = next(t for t, label in field_desc['journal_id']['selection'] if t == journal_type)
-                raise except_orm(
-                    _('Configuration Error!'),
-                    _('Cannot find any account journal of "%s" type for this company.\n\n'
-                      'You can create one in the menu: \n'
-                      'Configuration\Journals\Journals.') % type_label)
+                action = self.env.ref('account.action_account_journal_form')
+                msg = _('Cannot find any account journal of type "%s" for this company, You should create one.\n Please go to Journal Configuration') % type_label
+                raise RedirectWarning(msg, action.id, _('Go to the configuration panel'))
             domain = {'journal_id':  [('id', 'in', journals.ids)]}
 
         return {'value': values, 'domain': domain}
