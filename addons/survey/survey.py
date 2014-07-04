@@ -141,8 +141,7 @@ class survey_survey(osv.Model):
 
     def _get_print_url(self, cr, uid, ids, name, arg, context=None):
         """ Computes a printing URL for the survey """
-        base_url = self.pool.get('ir.config_parameter').get_param(cr, uid,
-            'web.base.url')
+        base_url = self.pool.get('ir.config_parameter').get_param(cr, uid, 'web.base.url')
         res = {}
         for survey in self.browse(cr, uid, ids, context=context):
             res[survey.id] = urljoin(base_url, "survey/print/%s" % slug(survey))
@@ -858,8 +857,10 @@ class survey_user_input(osv.Model):
                                                'user_input_id', 'Answers'),
 
         # URLs used to display the answers
-        'result_url': fields.related('survey_id', 'result_url', string="Public link to the survey results"),
-        'print_url': fields.related('survey_id', 'print_url', string="Public link to the empty survey"),
+        'result_url': fields.related('survey_id', 'result_url', type='char',
+                                     string="Public link to the survey results"),
+        'print_url': fields.related('survey_id', 'print_url', type='char',
+                                    string="Public link to the empty survey"),
 
         'quizz_score': fields.function(_quizz_get_score, type="float", string="Score for the quiz")
     }
