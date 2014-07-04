@@ -2501,7 +2501,6 @@
                 // Back from edit button -> ignore
                 var element = $(this).closest('[data-oe-field]');
                 if (previous && previous === this) { return; }
-                console.log('---thissss', this);
                 if (is_editable_node(element) || $(this).hasClass('editor-insert-media')) { return; }
                 previous = this;
                 var $selected = $(this);
