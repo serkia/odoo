@@ -32,13 +32,14 @@ from openerp.tools.translate import _
 
 CRM_LEAD_FIELDS_TO_MERGE = ['name',
     'partner_id',
-    'channel_id',
+    'campaign_id',
     'company_id',
     'country_id',
     'section_id',
     'state_id',
     'stage_id',
-    'type_id',
+    'medium_id',
+    'source_id',
     'user_id',
     'title',
     'city',
@@ -67,7 +68,7 @@ class crm_lead(format_address, osv.osv):
     _name = "crm.lead"
     _description = "Lead/Opportunity"
     _order = "priority,date_action,id desc"
-    _inherit = ['mail.thread', 'ir.needaction_mixin', 'crm.market_mixin']
+    _inherit = ['mail.thread', 'ir.needaction_mixin', 'crm.tracking_mixin']
 
     _track = {
         'stage_id': {
