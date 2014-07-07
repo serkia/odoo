@@ -1371,6 +1371,10 @@ td {
     background: rgba(110, 200, 155, 0.17);
     border-radius: 3px;
 }
+.pos .order .summary .fidpoints.negative{
+    color: #C86E6E;
+    background: rgba(200, 110, 110, 0.17);
+}
 
 .submit-kitchen-button {
     float: left;
