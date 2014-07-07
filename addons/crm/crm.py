@@ -90,6 +90,15 @@ class crm_tracking_mixin(osv.AbstractModel):
                     vals[field] = rel_id
         return vals
 
+    def _get_default_track(self, cr, uid, field, context=None):
+        return self.get_tracked_values(cr, uid, {}, context=context).get(field)
+
+    _defaults = {
+        'source_id': lambda self, cr, uid, ctx: self._get_default_track(cr, uid, 'source_id', ctx),
+        'campaign_id': lambda self, cr, uid, ctx: self._get_default_track(cr, uid, 'campaign_id', ctx),
+        'medium_id': lambda self, cr, uid, ctx: self._get_default_track(cr, uid, 'medium_id', ctx),
+    }
+
     def create(self, cr, uid, vals, context=None):
         vals = self.get_tracked_values(cr, uid, vals, context)
         return super(crm_tracking_mixin, self).create(cr, uid, vals, context=context)

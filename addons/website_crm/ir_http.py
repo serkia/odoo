@@ -7,8 +7,9 @@ class ir_http(orm.AbstractModel):
     _inherit = 'ir.http'
 
     def _dispatch(self):
-        for key in ['campaign', 'channel', 'source']:
+        for key in ['campaign', 'medium', 'source']:
             var = "utm_%s" % key
-            if var in request.params and var not in request.session:
-                request.session[var] = request.params[var]
+            if var in request.params:
+                if var not in request.session or request.session[var] != request.params[var]:
+                    request.session[var] = request.params[var]
         return super(ir_http, self)._dispatch()
