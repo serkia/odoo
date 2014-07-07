@@ -83,7 +83,7 @@ class crm_tracking_mixin(osv.AbstractModel):
                 param_key = session_key = 'utm_%s' % short_name
                 value = vals.get(field) or (request and (request.params.get(param_key) or request.session.get(session_key)))
                 if value:
-                    Model = self.pool['crm.market.%s' % short_name]
+                    Model = self.pool['crm.tracking.%s' % short_name]
                     rel_id = Model.name_search(cr, uid, value, context=context)
                     if not rel_id:
                         rel_id = Model.create(cr, uid, {'name': value}, context=context)
