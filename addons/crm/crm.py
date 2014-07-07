@@ -73,11 +73,11 @@ class crm_tracking_mixin(osv.AbstractModel):
         'medium_id': fields.many2one('crm.tracking.medium', 'Channel', help="This is the method of delivery. EX: Postcard, Email, or Banner Ad"),
     }
 
-    def get_tracked_fields(self):
+    def get_tracked_fields(self, cr, uid, vals, context=None):
         return ['campaign_id', 'source_id', 'medium_id']
 
     def get_tracked_values(self, cr, uid, vals, context=None):
-        for field in self.get_tracked_fields():
+        for field in self.get_tracked_fields(cr, uid, vals, context=context):
             if not isinstance(vals.get(field, 'x'), int):
                 short_name = field.rstrip('_id')
                 param_key = session_key = 'utm_%s' % short_name
