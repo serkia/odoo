@@ -29,7 +29,7 @@ from openerp import workflow
 
 class sale_order(osv.osv):
     _name = "sale.order"
-    _inherit = ['mail.thread', 'ir.needaction_mixin']
+    _inherit = ['mail.thread', 'ir.needaction_mixin', 'crm.market_mixin']
     _description = "Sales Order"
     _track = {
         'state': {
