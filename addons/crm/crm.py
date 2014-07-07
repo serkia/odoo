@@ -62,9 +62,9 @@ class crm_tracking_source(osv.osv):
     }
 
 
-class crm_market_mixin(osv.AbstractModel):
+class crm_tracking_mixin(osv.AbstractModel):
     """Mixin class for objects which can be tracked by marketing. """
-    _name = 'crm.market_mixin'
+    _name = 'crm.tracking_mixin'
 
     _columns = {
         'campaign_id': fields.many2one('crm.tracking.campaign', 'Campaign',  # old domain ="['|',('section_id','=',section_id),('section_id','=',False)]"
@@ -89,7 +89,7 @@ class crm_market_mixin(osv.AbstractModel):
 
     def create(self, cr, uid, vals, context=None):
         vals = self.get_tracked_fields(cr, uid, vals, context)
-        return super(crm_market_mixin, self).create(cr, uid, vals, context=context)
+        return super(crm_tracking_mixin, self).create(cr, uid, vals, context=context)
 
 
 class crm_case_stage(osv.osv):
