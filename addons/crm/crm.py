@@ -77,18 +77,18 @@ class crm_tracking_mixin(osv.AbstractModel):
 
     def tracking_get_values(self, cr, uid, vals, context=None):
         for key, field in self.tracking_fields():
-            columnType = self._all_columns[field].column._type
-            value = vals.get(field) or (request and (request.session.get(key) or request.params.get(key)))  # params.get sould be always in session by the dispatch from ir_http
-            if columnType in ['many2one'] and isinstance(value, basestring):  # if we receive a string for a many2one, we search / create  the id
+            column = self._all_columns[field].column
+            value = vals.get(field) or (request and (request.session.get(key)))  # params.get sould be always in session by the dispatch from ir_http
+            if column._type in ['many2one'] and isinstance(value, basestring):  # if we receive a string for a many2one, we search / create  the id
                 if value:
-                    Model = self.pool[self._all_columns[field].column._obj]
+                    Model = self.pool[column._obj]
                     rel_id = Model.name_search(cr, uid, value, context=context)
                     if not rel_id:
                         rel_id = Model.create(cr, uid, {'name': value}, context=context)
                 vals[field] = rel_id
             # Here the code for other cases that many2one
-
-            vals[field] = vals.get(field)
+            else:
+                vals[field] = value
         return vals
 
     def _get_default_track(self, cr, uid, field, context=None):
