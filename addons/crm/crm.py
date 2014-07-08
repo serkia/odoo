@@ -101,10 +101,6 @@ class crm_tracking_mixin(osv.AbstractModel):
         'medium_id': lambda self, cr, uid, ctx: self._get_default_track(cr, uid, 'medium_id', ctx),
     }
 
-    def create(self, cr, uid, vals, context=None):
-        vals = self.get_tracked_values(cr, uid, vals, context)
-        return super(crm_tracking_mixin, self).create(cr, uid, vals, context=context)
-
 
 class crm_case_stage(osv.osv):
     """ Model for case stages. This models the main stages of a document
