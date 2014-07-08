@@ -35,7 +35,7 @@ needs, such as a custom fidelity point system
 
 """,
     'author': 'OpenERP SA',
-    'depends': ['point_of_sale'],
+    'depends': ['point_of_sale','loyalty'],
     'data': [
         'views/views.xml',
         'views/templates.xml'

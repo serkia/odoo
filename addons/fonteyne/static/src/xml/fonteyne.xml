@@ -2,7 +2,7 @@
 <templates id="template" xml:space="preserve">
 
     <t t-name="DiscountButton">
-        <span class="control-button fidelity-discount">
+        <span class="control-button loyalty-discount">
             <i class="fa fa-star"></i>
             Discount
         </span>
