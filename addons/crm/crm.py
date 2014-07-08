@@ -31,7 +31,7 @@ AVAILABLE_PRIORITIES = [
 ]
 
 
-class crm_tracking_medium(osv.osv):
+class crm_tracking_medium(osv.Model):
     # OLD crm.case.channel
     _name = "crm.tracking.medium"
     _description = "Channels"
@@ -42,18 +42,17 @@ class crm_tracking_medium(osv.osv):
     }
 
 
-class crm_tracking_campaign(osv.osv):
+class crm_tracking_campaign(osv.Model):
     # OLD crm.case.resource.type
     _name = "crm.tracking.campaign"
     _description = "Campaign"
     _rec_name = "name"
     _columns = {
         'name': fields.char('Campaign Name', required=True, translate=True),
-        'section_id': fields.many2one('crm.case.section', 'Sales Team'),
     }
 
 
-class crm_tracking_source(osv.osv):
+class crm_tracking_source(osv.Model):
     _name = "crm.tracking.source"
     _description = "Source"
     _rec_name = "name"
