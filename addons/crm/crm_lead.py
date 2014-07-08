@@ -68,7 +68,7 @@ class crm_lead(format_address, osv.osv):
     _name = "crm.lead"
     _description = "Lead/Opportunity"
     _order = "priority,date_action,id desc"
-    _inherit = ['mail.thread', 'ir.needaction_mixin', 'crm.tracking_mixin']
+    _inherit = ['mail.thread', 'ir.needaction_mixin', 'crm.tracking.mixin']
 
     _track = {
         'stage_id': {
