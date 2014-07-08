@@ -264,45 +264,13 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
             }
         },
         update_summary: function(){
-            console.log('update_summary');
             var order = this.pos.get('selectedOrder');
             var total     = order ? order.getTotalTaxIncluded() : 0;
             var taxes     = order ? total - order.getTotalTaxExcluded() : 0;
 
-            console.log(total,taxes);
-
             this.el.querySelector('.summary .entry.total > .value').textContent = this.format_currency(total);
             this.el.querySelector('.summary .entry.total .subentry .value').textContent = this.format_currency(taxes);
 
-            var $fidpoints = $(this.el).find('.summary .fidpoints');
-
-            if(this.pos.fidelity && order.get_client()){
-                var points        = order.getWonFidpoints();
-                var points_total  = order.get_client().fidpoints + points; 
-                var points_str    = this.format_pr(points, this.pos.fidelity.rounding); 
-                var total_str     = this.format_pr(points_total, this.pos.fidelity.rounding);
-                if( points && points > 0 ){
-                    points_str = '+' + points_str;
-                }
-                $fidpoints.replaceWith($(QWeb.render('FidelityPoints',{ 
-                    widget: this, 
-                    totalpoints: total_str, 
-                    wonpoints: points_str 
-                })));
-                $fidpoints = $(this.el).find('.summary .fidpoints');
-                $fidpoints.removeClass('oe_hidden');
-
-                console.log(points_total);
-                if(points_total < 0){
-                    console.log('negative');
-                    $fidpoints.addClass('negative');
-                }else{
-                    $fidpoints.removeClass('negative');
-                }
-            }else{
-                $fidpoints.empty();
-                $fidpoints.addClass('oe_hidden');
-            }
 
         },
     });

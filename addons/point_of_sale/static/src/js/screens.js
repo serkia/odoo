@@ -632,8 +632,8 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             contents.empty();
             for(var i = 0, len = partners.length; i < len; i++){
                 var clientline = $(QWeb.render('ClientLine',{
+                    widget:  this,
                     partner: partners[i],
-                    fidpoints: this.format_pr(partners[i].fidpoints,this.pos.fidelity.rounding),
                 }));
                 if( partners[i] === this.new_client ){
                     clientline.addClass('highlight');
@@ -697,7 +697,6 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
                 contents.append($(QWeb.render('ClientDetails',{
                     widget: this,
                     partner: partner,
-                    fidpoints: this.format_pr(partner.fidpoints, this.pos.fidelity.rounding),
                 })));
                 var new_height   = contents.height();
 
