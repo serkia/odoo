@@ -38,6 +38,10 @@ class crm_tracking_medium(osv.Model):
     _order = 'name'
     _columns = {
         'name': fields.char('Channel Name', required=True),
+        'active': fields.boolean('Active'),
+    }
+    _default = {
+        'active': lambda *a: 1,
     }
 
 
