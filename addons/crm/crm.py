@@ -38,7 +38,6 @@ class crm_tracking_medium(osv.Model):
     _order = 'name'
     _columns = {
         'name': fields.char('Channel Name', required=True),
-        'active': fields.boolean('Active'),
     }
 
 
@@ -49,6 +48,7 @@ class crm_tracking_campaign(osv.Model):
     _rec_name = "name"
     _columns = {
         'name': fields.char('Campaign Name', required=True, translate=True),
+        'section_id': fields.many2one('crm.case.section', 'Sales Team'),
     }
 
 
@@ -63,7 +63,7 @@ class crm_tracking_source(osv.Model):
 
 class crm_tracking_mixin(osv.AbstractModel):
     """Mixin class for objects which can be tracked by marketing. """
-    _name = 'crm.tracking_mixin'
+    _name = 'crm.tracking.mixin'
 
     _columns = {
         'campaign_id': fields.many2one('crm.tracking.campaign', 'Campaign',  # old domain ="['|',('section_id','=',section_id),('section_id','=',False)]"
