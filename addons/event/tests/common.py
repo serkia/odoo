@@ -15,8 +15,8 @@ class TestEventCommon(common.TransactionCase):
 
         # User groups
         self.group_employee_id = self.env['ir.model.data'].xmlid_to_res_id('base.group_user')
-        self.group_event_user_id = self.env['ir.model.data'].xmlid_to_res_id('event.group_event_user')
-        self.group_event_manager_id = self.env['ir.model.data'].xmlid_to_res_id('event.group_event_manager')
+        self.group_event_user_id = self.env['ir.model.data'].xmlid_to_res_id('base.group_marketing_user')
+        self.group_event_manager_id = self.env['ir.model.data'].xmlid_to_res_id('base.group_marketing_manager')
 
         # Test users to use through the various tests
         self.user_eventuser = self.Users.with_context({'no_reset_password': True}).create({
