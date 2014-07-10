@@ -31,7 +31,7 @@ _logger = logging.getLogger(__name__)
 class loyalty_program(osv.osv):
     _inherit = 'loyalty.program'
     _columns = {
-        'minimum_sale': fields.float('Mininum Sale', help='The minimum sale before a fidelity discount can be applied'),
+        'minimum_points': fields.float('Mininum Points', help='The minimum points before a loyalty discount can be applied'),
         'discount_product_id': fields.many2one('product.product', 'Discount Product', help='The product used to add a fidelity points discount')
     }
 
