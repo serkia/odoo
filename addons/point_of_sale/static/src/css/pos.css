@@ -1208,6 +1208,7 @@ td {
     padding: 0px 8px;
 }
 .pos .clientlist-screen .client-list tr{
+    cursor: pointer;
     transition: all 150ms linear;
     background: rgb(230,230,230);
 }
