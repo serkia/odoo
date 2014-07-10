@@ -209,6 +209,9 @@ function openerp_pos_db(instance, module){
             if(partner.address){
                 str += '|' + partner.address;
             }
+            if(partner.phone){
+                str += '|' + partner.phone;
+            }
             return str + '\n';
         },
         add_partners: function(partners){
