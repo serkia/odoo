@@ -2739,7 +2739,7 @@
             var self = this ;
             self.settings = $.extend({}, defaults.options, options);
             self.renderer = new website.summernote.Renderer(self.settings);
-            self.do_render(self);
+            self.do_render();
         },
         do_render: function() {
             var self = this;
@@ -3332,17 +3332,17 @@
                 this.preview();
             },
         }),
-        init: function (editor, editable , is_custome) {
+        init: function (editor, editable , is_custom) {
             this._super(editor, editable);
             this.text = null;
             // Store last-performed request to be able to cancel/abort it.
             this.page_exists_req = null;
             this.search_pages_req = null;
-            if(!is_custome){
+            if(!is_custom){
                 this.editable.focus();
                 this.editor.saveRange(this.editable);
             }
-            this.is_custome = is_custome;
+            this.is_custom = is_custom;
         },
         start: function () {
             var self = this;
@@ -3426,7 +3426,7 @@
             } else if (url.indexOf('://') === -1) {
                 href = 'http://' + url;
             }
-            if(this.is_custome) {
+            if(this.is_custom) {
                 self.update_link(this.editable, href , new_window , label, classes)
             } else {
                 this.editor.restoreRange(this.editable);
@@ -3492,7 +3492,7 @@
             var rng = range.create();
             var new_window = true;
             var url = '';
-            if(this.is_custome){
+            if(this.is_custom){
                 rng = document.createRange();
                 rng.selectNodeContents(this.editable)
                 url = $(this.editable).attr('href')
