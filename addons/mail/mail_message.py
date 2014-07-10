@@ -127,11 +127,21 @@ class mail_message(osv.Model):
         return {}
 
     def _get_model(self,cr, uid, ids, field_name, field_value, arg, context=None):
-        model_id = self.browse(cr, uid, ids, context=context).model_id.id
-        if model_id:
-            model_name = self.pool.get('ir.model').read(cr,uid,model_id,['model'])
-            return { ids[0] : model_name['model'] }
-        return {ids[0] : False}
+        res = {}
+        for record in self.browse(cr, uid, ids, context=context):
+            if record.model_id:
+                res[record.id] = self.pool.get('ir.model').browse(cr, uid, [record.model_id.id], context=context).model
+            else:
+                res[record.id] = False
+        return res
+
+#         model_id = self.browse(cr, uid, ids, context=context).model_id.id
+#         if model_id:
+#             model_name = self.pool.get('ir.model').read(cr,uid,model_id,['model'])
+#             return { ids[0] : model_name['model'] }
+#
+#         print {ids[0] : False}
+#         return {ids[0] : False}
 
     _columns = {
         'type': fields.selection([
