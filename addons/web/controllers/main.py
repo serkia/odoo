@@ -1338,8 +1338,10 @@ class Export(http.Controller):
                       'value': id, 'children': False,
                       'field_type': field.get('type'),
                       'required': field.get('required'),
-                      'relation_field': field.get('relation_field')}
+                      'relation_field': field.get('relation_field'),'import_compatible': False}
             records.append(record)
+            if parent_field_type == "one2many":
+                record['import_compatible'] = True
 
             if len(name.split('/')) < 3 and 'relation' in field:
                 ref = field.pop('relation')

@@ -12,6 +12,39 @@
     height: 22px;
 }
 
+.openerp .oe_export_selector_field {
+    padding: 15px;
+    margin-top: -25px;
+    font-size: 25px;
+    color: #000000 !important;
+}
+ 
+.openerp .oe_comp_checkbox {
+    margin-top: 13px;
+    margin-left: 13px;
+}
+
+.openerp .oe_fields_list {
+    font-size: 13px;
+}
+
+.openerp .oe_options_icon {
+    font-size: 17px;
+    color: #000000 !important;
+}
+
+.openerp .oe_export_head {
+    font-size: 1.5em;
+}
+
+.openerp .oe_options_head {
+    font-size: 13px;
+}
+
+.openerp .oe_options_input {
+    width: 120px;
+}
+
 .openerp tr.ui-selected td {
     background-color: #CCCCCC;
 }
@@ -29,7 +62,8 @@
 }
 
 .openerp .oe_export_fields_selector_left {
-    width: 50%;
+    width: 400px;
+    padding-top: 10px;
 }
 
 .openerp div#left_field_panel {
@@ -44,14 +78,13 @@
 
 .openerp .oe_export_fields_selector_center {
     text-align: center;
-}
-.openerp .oe_export_fields_selector_center button {
-    white-space: nowrap;
+    padding-top: 50px;
 }
 
 .openerp .oe_export_fields_selector_right {
-    width: 45%;
-    height: 400px;
+    width: 370px;
+    height: 400px !important;
+    padding-top: 10px;
 }
 
 .openerp .oe_export_fields_selector_right select{
@@ -75,6 +108,7 @@
     background-color:#E3E3E3;
     border-collapse: collapse;
     width: 100%;
+    font-size: 13px;
 }
 
 .openerp table.tree_grid a:hover {
