@@ -37,7 +37,7 @@ class project_issue_report(osv.osv):
         'opening_date': fields.date('Date of Opening', readonly=True),
         'creation_date': fields.date('Creation Date', readonly=True),
         'date_closed': fields.date('Date of Closing', readonly=True),
-        'date_last_stage_update': fields.date('Last Stage Update', readonly=True),
+        'date_last_stage_update': fields.datetime('Last Stage Update', readonly=True),
         'stage_id': fields.many2one('project.task.type', 'Stage'),
         'nbr': fields.integer('# of Issues', readonly=True),
         'working_hours_open': fields.float('Avg. Working Hours to Open', readonly=True, group_operator="avg"),
