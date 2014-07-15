@@ -1,0 +1,44 @@
+- |
+  In order to test process of the membership Work on Duration Insted of start_date and end_date ,
+  I create sale order, on Confirming Sales Order It will Create Membership line an after creating invoice set invoice id in created membership line.
+- |
+  Create Sale order and then Confirm so create membership line.
+  I create a sale order
+-
+  !record {model: sale.order, id: sale_order_membership}:
+    partner_id: base.res_partner_2
+    order_line:
+      - product_id: membership.membership_0
+        product_uom_qty: 1
+- |
+    on Confirm SO create membership line which computes the membership start and end dates, 'waiting' state
+- 
+  !workflow {model: sale.order, action: order_confirm, ref: sale_order_membership}
+- |
+   now checking membership line
+-
+  !python {model: membership.membership_line}: |
+    membership_line_pool = self.pool.get('membership.membership_line')
+    membership_line_ids = membership_line_pool.search(cr, uid, [('sale_order_id', '=', ref('sale_order_membership'))])
+    assert membership_line_ids, "membership line not created."
+    membership_lines = membership_line_pool.browse(cr, uid, membership_line_ids)
+    assert membership_lines.state == 'waiting', "membership is not in Waiting state"
+-
+  I create advance invoice.
+-
+  !python {model: sale.order}: |
+    invoice_pool = self.pool.get('account.invoice')
+    res = self.manual_invoice(cr, uid, [ref('sale_order_membership')])
+    invoice_id = res.get('res_id')
+    invoice = invoice_pool.browse(cr, uid, invoice_id)
+    invoice.signal_workflow('invoice_open')
+- |
+   now checking membership line
+-
+  !python {model: membership.membership_line}: |
+    membership_line_pool = self.pool.get('membership.membership_line')
+    membership_line_ids = membership_line_pool.search(cr, uid, [('sale_order_id', '=', ref('sale_order_membership'))])
+    assert membership_line_ids, "membership line not created."
+    membership_lines = membership_line_pool.browse(cr, uid, membership_line_ids)
+    assert membership_lines.state == 'invoiced', "invoice is not created ,membership is not in invoiced state"
+    assert membership_lines.account_invoice_line != False, "Invoice is not confirmed"

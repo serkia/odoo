@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="membership_sale_line">
+             <field name="name">membership.sale.order</field>
+             <field name="model">sale.order</field>
+             <field name="inherit_id" ref="sale.view_order_form" />
+             <field name="arch" type="xml">
+                <field name="price_unit" position="after">
+                    <field name="membership_start_date"/>
+                </field>
+             </field>
+        </record>
+    </data>
+</openerp>
