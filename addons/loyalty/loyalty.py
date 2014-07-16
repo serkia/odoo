@@ -82,7 +82,6 @@ class pos_order(osv.osv):
     def create_from_ui(self, cr, uid, orders, context=None):
         ids = super(pos_order,self).create_from_ui(cr,uid,orders,context=context)
         for order in orders:
-            pp.pprint(order)
             if order['data']['loyalty_points'] and order['data']['partner_id']:
                 partner = self.pool.get('res.partner').browse(cr,uid,order['data']['partner_id'], context=context)
                 partner.write({'loyalty_points': partner['loyalty_points'] + order['data']['loyalty_points']})
