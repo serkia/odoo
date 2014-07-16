@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="view_rating_kanban_faces">
+            <field name="name">rating.rating.kanban</field>
+            <field name="model">rating.rating</field>
+            <field name="arch" type="xml">
+                <kanban create="false" class="oe_background_grey">
+                    <field name="state"/>
+                    <field name="res_name"/>
+                    <field name="create_date"/>
+                    <field name="customer_id"/>
+                    <field name="user_id"/>
+                    <templates>
+                        <t t-name="kanban-box" t-if="record.state.raw_value != ''">
+                            <div class="oe_kanban_vignette oe_semantic_html_override"
+                                t-attf-title="Name :#{ record.res_name.raw_value }&lt;br&gt;#{ record.customer_id.value ? 'Customer :' + record.customer_id.value + '&lt;br&gt;' : '' }#{ record.user_id.value ? 'Responsible :' + record.user_id.value+'&lt;br&gt;' : '' } Date :#{ record.create_date.raw_value.toString(Date.CultureInfo.formatPatterns.shortDate) }"
+                                data-html="true" data-placement="bottom">
+                                <img t-attf-src="rating/static/src/img/#{record.state.raw_value}.png" class="oe_kanban_image"/>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_rating_graph_faces">
+           <field name="name">rating.rating.graph</field>
+           <field name="model">rating.rating</field>
+           <field name="arch" type="xml">
+                <graph string="Rating Average" type="pie">
+                    <field name="user_id"/>
+                    <field name="customer_id"/>
+                </graph>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_rating_search_form" >
+            <field name="name">rating.rating.search</field>
+            <field name="model">rating.rating</field>
+            <field name="arch" type="xml">
+                <search string="Ratings">
+                    <field name="user_id"/>
+                    <field name="state"/>
+                    <field name="customer_id"/>
+                    <field name="res_id"/>
+                    <filter string="Unhappy" domain="[('state', '=', 'bad')]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Responsible" name="Responsible" context="{'group_by':'user_id'}"/>
+                        <filter string="Customer" name="customer" context="{'group_by':'customer_id'}"/>
+                        <filter string="State" name="state" context="{'group_by':'state'}"/>
+                        <filter string="Day" icon="terp-go-today" context="{'group_by':'create_date:day'}"/>
+                        <filter string="Month" icon="terp-go-month" context="{'group_by':'create_date:month'}"/>
+                        <filter string="Year" icon="terp-go-year" context="{'group_by':'create_date:year'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_view_rating" model="ir.actions.act_window">
+            <field name="name">Rating</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">rating.rating</field>
+            <field name="view_mode">kanban,graph</field>
+            <field name="help" type="html">
+                <p>
+                    Oops !! There is no rating for this project task/issue.
+                </p>
+            </field>
+        </record>
+    </data>
+</openerp>

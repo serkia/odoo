@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <!-- inherit get state button on project task -->
+        <record id="project_view_rating" model="ir.ui.view">
+            <field name="name">project.view.rating</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="priority" eval="20"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@name='buttons']" position="inside">
+                     <button name="action_rating_task"
+                         class="oe_stat_button"
+                         type="object"
+                         icon="fa-smile-o">
+                         <field string="% Happy on task" name="percent_happy_task" widget="statinfo"/>
+                     </button>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- inherit project.task.type form view to add email template for task -->
+        <record id="project_task_type_inherit" model="ir.ui.view">
+            <field name="name">project.task.type.inherit</field>
+            <field name="model">project.task.type</field>
+            <field name="inherit_id" ref="project.task_type_edit"/>
+            <field name="priority" eval="20"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='sequence']" position="after">
+                     <field name="template_id"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_rating_project_kanban_inherited" model="ir.ui.view">
+            <field name="name">rating.project.project.kanban.inherited</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.view_project_kanban"/>
+            <field name="arch" type="xml">
+                <field name="use_tasks" position="after">
+                    <field name="happy_customer" invisible="1"/>
+                    <field name="is_visible_happy_customer" invisible="1"/>
+                </field>
+                <xpath expr="//div[contains(@class, 'oe_kanban_project_list')]" position="after">
+                    <div class="oe_kanban_project_list">
+                        <a t-if="record.is_visible_happy_customer.raw_value" name="action_view_rating" type="object">
+                            <img class="rating" src="rating/static/src/img/great.png" style="width:10%;height:10%">
+                                <t t-raw="record.happy_customer.raw_value"/> %
+                            </img>
+                        </a>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</openerp>

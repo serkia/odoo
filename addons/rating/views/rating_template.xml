@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+        <template id="rating_view">
+            <head>
+                <link rel='stylesheet' href='/web/static/lib/bootstrap/css/bootstrap.css'/>
+            </head>
+            <div class='well' style='width:50%; margin:auto; margin-top : 30px;'>
+                <h2>Rating</h2>
+                <div class="oe_right">
+                    <p>Hello <t t-esc="value.partner_id.name"/>,</p>
+                    <p>You have Rated <img t-attf-src='../../../rating/static/src/img/#{state}.png'/>
+                    to <t t-esc="value.name"/>.</p>
+                    <p>Thanks For Your Feedback.</p>
+                </div>
+            </div>
+        </template>
+        <template id="403">
+            <h1 class="mt32">403: Forbidden</h1>
+            <p>The page you were looking for could not be authorized.</p>
+        </template>
+    </data>
+</openerp>
