@@ -160,6 +160,9 @@ class crm_lead(format_address, osv.osv):
         return result, fold
 
     def fields_view_get(self, cr, user, view_id=None, view_type='form', context=None, toolbar=False, submenu=False):
+        """ Override of fields_view_get in order to remove mark as lost from leads toolbar."""
+        if context is None:
+            context = {}
         if context and context.get('opportunity_id'):
             action = self._get_formview_action(cr, user, context['opportunity_id'], context=context)
             if action.get('views') and any(view_id for view_id in action['views'] if view_id[1] == view_type):
@@ -167,6 +170,12 @@ class crm_lead(format_address, osv.osv):
         res = super(crm_lead, self).fields_view_get(cr, user, view_id, view_type, context, toolbar=toolbar, submenu=submenu)
         if view_type == 'form':
             res['arch'] = self.fields_view_get_address(cr, user, res['arch'], context=context)
+        stage_type = context.get("stage_type", False)
+        if stage_type and stage_type == "lead":
+            result = self.pool.get('ir.model.data').get_object_reference(cr, user, 'crm', 'action_mark_as_lost')[1]
+            if res.get("toolbar", False):
+                action_list = [rec for rec in res['toolbar']['action'] if rec.get('id', False) != result]
+                res['toolbar'] = {'action': action_list}
         return res
 
     _group_by_full = {
@@ -756,17 +765,22 @@ class crm_lead(format_address, osv.osv):
         return partner
 
     def _create_lead_partner(self, cr, uid, lead, context=None):
-        partner_id = False
+        partner_id = lead.partner_id
         if lead.partner_name and lead.contact_name:
             partner_id = self._lead_create_contact(cr, uid, lead, lead.partner_name, True, context=context)
             partner_id = self._lead_create_contact(cr, uid, lead, lead.contact_name, False, partner_id, context=context)
         elif lead.partner_name and not lead.contact_name:
             partner_id = self._lead_create_contact(cr, uid, lead, lead.partner_name, True, context=context)
-        elif not lead.partner_name and lead.contact_name:
+        elif not lead.partner_name and not lead.partner_id and lead.contact_name:
             partner_id = self._lead_create_contact(cr, uid, lead, lead.contact_name, False, context=context)
         elif lead.email_from and self.pool.get('res.partner')._parse_partner_name(lead.email_from, context=context)[0]:
             contact_name = self.pool.get('res.partner')._parse_partner_name(lead.email_from, context=context)[0]
             partner_id = self._lead_create_contact(cr, uid, lead, contact_name, False, context=context)
+        elif lead.partner_id and not lead.contact_name:
+            partner_id = self._lead_create_contact(cr, uid, lead, lead.partner_id.name, True, context=context)
+        elif lead.partner_id and lead.contact_name:
+            partner_id = self._lead_create_contact(cr, uid, lead, lead.partner_id.name, True, context=context)
+            partner_id = self._lead_create_contact(cr, uid, lead, lead.contact_name, False, partner_id, context=context)
         else:
             raise osv.except_osv(
                 _('Warning!'),
@@ -791,8 +805,7 @@ class crm_lead(format_address, osv.osv):
             # If the action is set to 'create' and no partner_id is set, create a new one
             if lead.partner_id:
                 partner_ids[lead.id] = lead.partner_id.id
-                continue
-            if not partner_id and action == 'create':
+            if action == 'create':
                 partner_id = self._create_lead_partner(cr, uid, lead, context)
                 self.pool['res.partner'].write(cr, uid, partner_id, {'section_id': lead.section_id and lead.section_id.id or False})
             if partner_id:
