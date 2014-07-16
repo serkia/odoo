@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<openerp>
+    <data>
+        <!-- Search view -->
+        <record model="ir.ui.view" id="view_report_website_forum">
+            <field name="name">forum.post.view</field>
+            <field name="model">forum.post</field>
+            <field name="arch" type="xml">
+                <search string="Forum on Regsitration">
+                    <field name="tag_ids" string="Tag"/>
+                    <filter string="Question" domain="[('parent_id', '=', False)]" />
+                    <filter string="Answers" domain="[('parent_id', '!=', False)]" />
+                    <filter string="Accepted Answer" domain="[('is_correct' , '!=', False), ('parent_id', '!=', False)]" />
+                    <filter string="Answered Questions" domain="[('child_count', '!=', 0), ('parent_id', '=', False)]" />
+                    <group string="Group by">
+                        <filter string="Forum" domain="[]" context="{'group_by' : 'forum_id'}" />
+                        <filter string="User" domain="[]" context="{'group_by' : 'create_uid'}" />
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Graph view -->
+        <record model="ir.ui.view" id="report_website_forum_graph">
+            <field name="name">forum.post.graph</field>
+            <field name="model">forum.post</field>
+            <field name="arch" type="xml">
+                <graph string="Forum Report" type="pivot">
+                    <field name="write_date" interval="month" type="col" />
+                    <field name="forum_id" type="row" />
+                </graph>
+            </field>
+        </record>
+
+        <!-- Action -->
+        <record model="ir.actions.act_window" id="action_report_website_forum">
+            <field name="name">Forum Report</field>
+            <field name="res_model">forum.post</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">graph</field>
+            <field name="search_view_id" ref="view_report_website_forum" />
+            <field name="view_id" ref="report_website_forum_graph" />
+            <field name="help">This report performs analysis on Questions and Answers of Forums. Analysis considers Questions and Answers and sort it by different group (Forum, User). Use this report to perform analysis on Questions and Answers of Forum.</field>
+        </record>
+
+        <!-- Menu -->
+        <menuitem parent="base.menu_reporting" id="menu_reporting_website_forum" sequence="2" name="Forum"/>
+        <menuitem parent="menu_reporting_website_forum" action="action_report_website_forum" id="menu_report_website_forum" sequence="4" />
+    </data>
+</openerp>

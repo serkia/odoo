@@ -40,6 +40,7 @@ Ask questions, get answers, no distractions
         'views/res_users.xml',
         'views/website_forum.xml',
         'views/ir_qweb.xml',
+        'views/forum_report.xml',
         'security/ir.model.access.csv',
         'data/badges_question.xml',
         'data/badges_answer.xml',
