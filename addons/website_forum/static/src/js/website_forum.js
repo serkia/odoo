@@ -15,6 +15,14 @@ $(document).ready(function () {
             }
         });
 
+    $('.tag_follow').mouseenter(function(event) {
+        $(event.currentTarget).children('div').css('display','block');
+        $(event.currentTarget).children('div').fadeIn();
+    });
+    $('.tag_follow').mouseleave(function(event) {
+        $(event.currentTarget).children('div').fadeOut();
+    });
+
         $('.vote_up,.vote_down').not('.karma_required').on('click', function (ev) {
             ev.preventDefault();
             var $link = $(ev.currentTarget);

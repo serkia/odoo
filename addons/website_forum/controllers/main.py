@@ -16,6 +16,7 @@ from openerp.addons.web.http import request
 from openerp.addons.website.controllers.main import Website as controllers
 from openerp.addons.website.models.website import slug
 from openerp.tools.translate import _
+from openerp.addons.mail import mail_alias as ma
 
 controllers = controllers()
 
@@ -164,6 +165,45 @@ class WebsiteForum(http.Controller):
     def get_url_title(self, **kwargs):
         arch = lxml.html.parse(urlopen(kwargs.get('url')))
         return arch.find(".//title").text
+
+    @http.route(['/forum/<model("forum.forum"):forum>/ask'], type='http', auth="public", website=True)
+    def question_ask(self, forum, **post):
+        if not request.session.uid:
+            return login_redirect()
+        values = self._prepare_forum_values(forum=forum, searches={},  header={'ask_hide': True})
+        return request.website.render("website_forum.ask_question", values)
+
+    @http.route('/forum/<model("forum.forum"):forum>/question/new', type='http', auth="user", methods=['POST'], website=True)
+    def question_create(self, forum, **post):
+        cr, uid, context = request.cr, request.uid, request.context
+        Tag = request.registry['forum.tag']
+        User = request.registry['res.users'].browse(cr, uid, uid, context=context)
+        question_tag_ids = []
+        if post.get('post_tags').strip('[]'):
+            tag_names = post.get('post_tags').strip('[]').replace('"', '').split(",")
+            dup_tag_name = map(lambda tagname : (ma.remove_accents(tagname)).lower(), tag_names)
+            for tag in reversed(tag_names):
+                unaccent_tag = ma.remove_accents(tag).lower()
+                if unaccent_tag in dup_tag_name and dup_tag_name.count(unaccent_tag) > 1:
+                    tag_names.remove(tag)
+                    dup_tag_name.remove(unaccent_tag)
+            tag_ids = Tag.search(cr, uid, [])
+            tags = Tag.browse(cr, uid, tag_ids, context=context)
+            for tag_name in tag_names:
+                tag = Tag._find_unique_name(tags, tag_name)
+                if tag:
+                    question_tag_ids.append((4, tag.id))
+                else:
+                    if User.karma > forum.karma_tag_create or User.id == SUPERUSER_ID:
+                       question_tag_ids.append((0, 0, {'name': tag_name, 'forum_id': forum.id}))
+        new_question_id = request.registry['forum.post'].create(
+            request.cr, request.uid, {
+                'forum_id': forum.id,
+                'name': post.get('question_name'),
+                'content': post.get('content'),
+                'tag_ids': question_tag_ids,
+            }, context=context)
+        return werkzeug.utils.redirect("/forum/%s/question/%s" % (slug(forum), new_question_id))
 
     @http.route(['''/forum/<model("forum.forum"):forum>/question/<model("forum.post", "[('forum_id','=',forum[0]),('parent_id','=',False)]"):question>'''], type='http', auth="public", website=True)
     def question(self, forum, question, **post):
@@ -344,17 +384,26 @@ class WebsiteForum(http.Controller):
         post_tags = []
         if kwargs.get('post_tag') and kwargs.get('post_tag').strip('[]'):
             Tag = request.registry['forum.tag']
-            tags = kwargs.get('post_tag').strip('[]').replace('"', '').split(",")
-            for tag in tags:
-                tag_ids = Tag.search(cr, uid, [('name', '=', tag)], context=context)
-                if tag_ids:
-                    post_tags += tag_ids
+            User = request.registry['res.users'].browse(cr, uid, uid, context=context)
+            tag_names = kwargs.get('question_tag').strip('[]').replace('"', '').split(",")
+            dup_tag_name = map(lambda tagname : (ma.remove_accents(tagname)).lower(), tag_names)
+            for tag in reversed(tag_names):
+                unaccent_tag = ma.remove_accents(tag).lower()
+                if unaccent_tag in dup_tag_name and dup_tag_name.count(unaccent_tag) > 1:
+                    tag_names.remove(tag)
+                    dup_tag_name.remove(unaccent_tag)
+            tag_ids = Tag.search(cr, uid, [])
+            tags = Tag.browse(cr, uid, tag_ids, context=context)
+            for tag_name in tag_names:
+                tag = Tag._find_unique_name(tags, tag_name)
+                if tag:
+                    question_tags.append((4, tag.id))
                 else:
-                    new_tag = Tag.create(cr, uid, {'name': tag, 'forum_id': forum.id}, context=context)
-                    post_tags.append(new_tag)
+                    if User.karma > forum.karma_tag_create or User.id == SUPERUSER_ID:
+                        question_tags.append((0, 0, {'name': tag_name, 'forum_id': forum.id}))
         vals = {
-            'tag_ids': [(6, 0, post_tags)],
-            'name': kwargs.get('post_name'),
+            'tag_ids': question_tags,
+            'name': kwargs.get('question_name'),
             'content': kwargs.get('content'),
         }
         request.registry['forum.post'].write(cr, uid, [post.id], vals, context=context)

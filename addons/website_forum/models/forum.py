@@ -9,7 +9,7 @@ from openerp.addons.website.models.website import slug
 from openerp.osv import osv, fields
 from openerp.tools import html2plaintext
 from openerp.tools.translate import _
-
+from openerp.addons.mail import mail_alias as ma
 
 class KarmaError(ValueError):
     """ Karma-related error, used for forum and posts. """
@@ -72,6 +72,7 @@ class Forum(osv.Model):
         'karma_comment_unlink_all': fields.integer('Unlink all comments'),
         'karma_retag': fields.integer('Change question tags'),
         'karma_flag': fields.integer('Flag a post as offensive'),
+        'karma_tag_create': fields.integer('Create new tag'),
     }
 
     def _get_default_faq(self, cr, uid, context=None):
@@ -125,6 +126,7 @@ class Forum(osv.Model):
         'karma_comment_unlink_all': 500,
         'karma_retag': 75,
         'karma_flag': 500,
+        'karma_tag_create': 30,
     }
 
     def create(self, cr, uid, values, context=None):
@@ -352,6 +354,14 @@ class Post(osv.Model):
         'child_ids': list(),
     }
 
+    def _add_tag_followers(self, cr, uid, ids, context=None):
+        forum_posts = self.browse(cr, uid, ids, context=context)
+        tags = set([tag for forum_post in forum_posts for tag in forum_post.tag_ids])
+        post_followers = set([partner.id for post in forum_posts if post.message_follower_ids for partner in post.message_follower_ids])
+        tag_followers = set([partner.id for tag in tags if tag.message_follower_ids for partner in tag.message_follower_ids])
+        remaining_followers = [(4, follower_id) for follower_id in list(tag_followers - post_followers)]
+        return forum_posts.write({'message_follower_ids': remaining_followers})
+
     def create(self, cr, uid, vals, context=None):
         if context is None:
             context = {}
@@ -366,6 +376,10 @@ class Post(osv.Model):
             raise KarmaError('Not enough karma to create a new question')
         elif not post.parent_id and not post.can_answer:
             raise KarmaError('Not enough karma to answer to a question')
+
+        #add tag follower to question follower
+        post._add_tag_followers()
+
         # messaging and chatter
         base_url = self.pool['ir.config_parameter'].get_param(cr, uid, 'web.base.url')
         if post.parent_id:
@@ -404,6 +418,9 @@ class Post(osv.Model):
             raise KarmaError('Not enough karma to edit a post.')
 
         res = super(Post, self).write(cr, uid, ids, vals, context=context)
+        #add tag follower to question follower
+        if 'tag_ids' in vals:
+            self._add_tag_followers(cr, uid, ids, context=context)
         # if post content modify, notify followers
         if 'content' in vals or 'name' in vals:
             for post in posts:
@@ -615,7 +632,7 @@ class Vote(osv.Model):
 class Tags(osv.Model):
     _name = "forum.tag"
     _description = "Tag"
-    _inherit = ['website.seo.metadata']
+    _inherit = ['mail.thread', 'website.seo.metadata']
 
     def _get_posts_count(self, cr, uid, ids, field_name, arg, context=None):
         return dict((tag_id, self.pool['forum.post'].search_count(cr, uid, [('tag_ids', 'in', tag_id)], context=context)) for tag_id in ids)
@@ -624,6 +641,22 @@ class Tags(osv.Model):
         return list(set(
             [tag.id for post in self.pool['forum.post'].browse(cr, SUPERUSER_ID, ids, context=context) for tag in post.tag_ids]
         ))
+
+    def _find_unique_name(self, tags, name):
+        name = ma.remove_accents(name).lower()
+        for tag in tags:
+            db_tag_name = ma.remove_accents(tag.name).lower()
+            if db_tag_name == name:
+                return tag
+        return False
+
+    def check_unique_name(self, cr, uid, ids, context=None):
+        tag_ids = self.search(cr, uid, [('id', 'not in', ids)])
+        tags = self.browse(cr, uid, tag_ids, context=context)
+        for tag in self.browse(cr, uid, ids, context=context):
+            if self._find_unique_name(tags, tag.name):
+                return False
+        return True
 
     _columns = {
         'name': fields.char('Name', required=True),
@@ -637,3 +670,15 @@ class Tags(osv.Model):
         ),
         'create_uid': fields.many2one('res.users', 'Created by', readonly=True),
     }
+
+    _sql_constraints=[('unique_name','unique(name)','Error! Tag Name Already Exist.')]
+
+    _constraints = [(check_unique_name, ' Error! Tag name must be Unique.', ['name'])]
+
+    def create(self, cr, uid, vals, context=None):
+        tag_id = super(Tags, self).create(cr, uid, vals, context=context)
+        user = self.pool['res.users'].browse(cr, uid, uid, context=context)
+        tag = self.browse(cr, uid, tag_id, context=context)
+        if user.karma < tag.forum_id.karma_tag_create and not user.id == SUPERUSER_ID:
+            raise osv.except_osv(_('Warning!'),_('Not enough Karma to create a new Tag!'))
+        return tag_id
