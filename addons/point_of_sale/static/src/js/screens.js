@@ -314,6 +314,26 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
     });
 
 
+    module.FullscreenPopup = module.PopUpWidget.extend({
+        template:'FullscreenPopupWidget',
+        show: function(){
+            var self = this;
+            this._super();
+            this.renderElement();
+            this.$('.button.fullscreen').off('click').click(function(){
+                window.document.body.webkitRequestFullscreen();
+                self.pos_widget.screen_selector.close_popup();
+            });
+            this.$('.button.cancel').off('click').click(function(){
+                self.pos_widget.screen_selector.close_popup();
+            });
+        },
+        ismobile: function(){
+            return typeof window.orientation !== 'undefined'; 
+        }
+    });
+
+
     module.ChooseReceiptPopupWidget = module.PopUpWidget.extend({
         template:'ChooseReceiptPopupWidget',
         show: function(){
@@ -348,6 +368,8 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             var self = this;
             this._super();
 
+            $('body').append('<audio src="/point_of_sale/static/src/sounds/error.wav" autoplay="true"></audio>');
+
             if( text && (text.message || text.comment) ){
                 this.$('.message').text(text.message);
                 this.$('.comment').text(text.comment);
@@ -375,6 +397,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
         show: function(barcode){
             this._super();
             this.$('.barcode').text(barcode);
+
         },
     });
 
@@ -557,6 +580,11 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
     module.ClientListScreenWidget = module.ScreenWidget.extend({
         template: 'ClientListScreenWidget',
 
+        init: function(parent, options){
+            this._super(parent, options);
+            this.partner_cache = new module.DomCache();
+        },
+
         show_leftpane: false,
 
         auto_back: true,
@@ -587,7 +615,6 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             }
 
             this.$('.client-list-contents').delegate('.client-line','click',function(event){
-                console.log('uh');
                 self.line_select(event,$(this),parseInt($(this).data('id')));
             });
 
@@ -628,17 +655,27 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             this.$('.searchbox input').focus();
         },
         render_list: function(partners){
-            var contents = this.$('.client-list-contents');
-            contents.empty();
+            var contents = this.$el[0].querySelector('.client-list-contents');
+            contents.innerHtml = "";
             for(var i = 0, len = partners.length; i < len; i++){
-                var clientline = $(QWeb.render('ClientLine',{
-                    widget:  this,
-                    partner: partners[i],
-                }));
-                if( partners[i] === this.new_client ){
-                    clientline.addClass('highlight');
+                var partner    = partners[i];
+                var clientline = this.partner_cache.get_node(partner.id);
+                if(!clientline){
+                    var clientline_html = QWeb.render('ClientLine',{ 
+                        widget: this, 
+                        partner:partners[i]
+                    });
+                    var clientline = document.createElement('tbody');
+                    clientline.innerHTML = clientline_html;
+                    clientline = clientline.childNodes[1];
+                    this.partner_cache.cache_node(partner.id,clientline);
                 }
-                contents.append(clientline);
+                if( partners === this.new_client ){
+                    clientline.classList.add('highlight');
+                }else{
+                    clientline.classList.remove('highlight');
+                }
+                contents.appendChild(clientline);
             }
         },
         save_changes: function(){
