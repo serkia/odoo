@@ -421,33 +421,41 @@
                         },
                         clicked: function (button) {
                             var className = this.getClass(button);
-                            var ancestor = editor.getSelection().getCommonAncestor();
+                            var selection = editor.getSelection();
+                            var ancestor = selection.getCommonAncestor();
+                            var range = selection.getRanges(true)[0];
 
                             editor.focus();
                             this._.panel.hide();
                             editor.fire('saveSnapshot');
 
                             // remove style
-                            var classes = [];
-                            $(ancestor.$).find('font').filter("."+this.getClasses().join(",.")).map(function () {
-                                var className = $(this).attr("class");
-                                if (classes.indexOf(className) === -1) {
-                                    classes.push(className);
-                                }
-                            });
+                            var $fonts = $(ancestor.$).find('font').add($(ancestor.$).parents('font'));
+                            if (range.startContainer.getName &&
+                                range.startContainer.getName().toLowerCase() === 'font') {
+                                $fonts = $fonts.add(range.startContainer.$);
+                            }
+                            if (range.endContainer.getName &&
+                                range.endContainer.getName().toLowerCase() === 'font') {
+                                $fonts = $fonts.add(range.startContainer.$);
+                            }
+                            var classes = $fonts.filter("font."+this.getClasses().join(',font.')).map(function () {
+                                console.log(this);
+                                return $(this).attr("class");
+                            }).get();
+
                             for (var k in classes) {
-                                editor.removeStyle( new CKEDITOR.style({
+                                editor.removeStyle(new CKEDITOR.style({
                                     element: 'font',
                                     attributes: { 'class': classes[k] },
-                                }) );
+                                }));
                             }
-
                             // add new style
                             if (className) {
-                                editor.applyStyle( new CKEDITOR.style({
-                                    element: 'font',
-                                    attributes: { 'class': className },
-                                }) );
+                                editor.applyStyle(new CKEDITOR.style({
+                                element: 'font',
+                                attributes: { 'class': className },
+                            }));
                             }
                             editor.fire('saveSnapshot');
                         }
