@@ -38,6 +38,7 @@ import openerp
 from openerp import SUPERUSER_ID
 from openerp.service import security, model as service_model
 from openerp.tools.func import lazy_property
+from openerp.tools import config
 
 _logger = logging.getLogger(__name__)
 
@@ -530,6 +531,10 @@ def serialize_exception(e):
         tmp["exception_type"] = "access_error"
     elif isinstance(e, openerp.exceptions.AccessDenied):
         tmp["exception_type"] = "access_denied"
+    # for Werkzeug debug mode raise exception it will catch by werkzeug debugger and generate html
+    # traceback page and return to client as 'internal server error'
+    elif 'werkzeug:DEBUG' in config['log_handler']:
+        raise
     return tmp
 
 def to_jsonable(o):
