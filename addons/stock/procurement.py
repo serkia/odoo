@@ -322,7 +322,7 @@ class procurement_order(osv.osv):
     def _get_next_dates(self, cr, uid, orderpoint, context=None):
         calendar_obj = self.pool.get('resource.calendar')
         att_obj = self.pool.get('resource.calendar.attendance')
-        execute, group, new_date = self._get_group(cr, uid, orderpoint, context=context)
+        dummy, group, new_date = self._get_group(cr, uid, orderpoint, context=context)
         context = context or {}
         context['no_round_hours'] = True
         if not new_date:

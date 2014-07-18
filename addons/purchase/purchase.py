@@ -1250,7 +1250,7 @@ class procurement_order(osv.osv):
            :return: the desired Order Date for the PO
         """
         if procurement.orderpoint_id.purchase_calendar_id:
-            return procurement.orderpoint_id.purchase_calendar_id.next_day
+            return datetime.strptime(procurement.orderpoint_id.purchase_calendar_id.next_day, DEFAULT_SERVER_DATETIME_FORMAT)
         seller_delay = int(procurement.product_id.seller_delay)
         return schedule_date - relativedelta(days=seller_delay)
 

@@ -24,11 +24,10 @@ from dateutil import rrule
 from dateutil.relativedelta import relativedelta
 from operator import itemgetter
 
-from openerp import tools
 from openerp.osv import fields, osv
 from openerp.tools.float_utils import float_compare
 from openerp.tools.translate import _
-from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
+from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT, DEFAULT_SERVER_DATE_FORMAT
 
 class resource_calendar(osv.osv):
     """ Calendar model for a resource. It has
@@ -44,14 +43,12 @@ class resource_calendar(osv.osv):
     _name = "resource.calendar"
     _description = "Resource Calendar"
 
-
     def _calculate_next_day(self, cr, uid, ids, fields, names, context=None):
         res = {}
         for calend in self.browse(cr, uid, ids, context=context):
             #date1 = self.get_next_day(cr, uid, calend.id, datetime.utcnow() + relativedelta(days = 1))
             _format = '%Y-%m-%d %H:%M:%S'
-            sched_date = self.schedule_days_get_date(
-            cr, uid, calend.id, 1, day_date=datetime.datetime.utcnow(), compute_leaves=True)
+            sched_date = self.schedule_days_get_date(cr, uid, calend.id, 1, day_date=datetime.datetime.utcnow(), compute_leaves=True)
             res[calend.id] = sched_date and sched_date.strftime(_format) or False
         return res
         
@@ -194,7 +191,7 @@ class resource_calendar(osv.osv):
     def get_attendances_for_weekday_date(self, cr, uid, id, weekdays, date, context=None):
         calendar = self.browse(cr, uid, id, context=None)
         res = [att for att in calendar.attendance_ids if int(att.dayofweek) in weekdays]
-        date = date.strftime(DEFAULT_SERVER_DATETIME_FORMAT)
+        date = date.strftime(DEFAULT_SERVER_DATE_FORMAT)
         res = []
         for att in calendar.attendance_ids:
             if int(att.dayofweek) in weekdays:
@@ -289,10 +286,10 @@ class resource_calendar(osv.osv):
         for leave in resource_calendar.leave_ids:
             if leave.resource_id and not resource_id == leave.resource_id.id:
                 continue
-            date_from = datetime.datetime.strptime(leave.date_from, tools.DEFAULT_SERVER_DATETIME_FORMAT)
+            date_from = datetime.datetime.strptime(leave.date_from, DEFAULT_SERVER_DATETIME_FORMAT)
             if end_datetime and date_from > end_datetime:
                 continue
-            date_to = datetime.datetime.strptime(leave.date_to, tools.DEFAULT_SERVER_DATETIME_FORMAT)
+            date_to = datetime.datetime.strptime(leave.date_to, DEFAULT_SERVER_DATETIME_FORMAT)
             if start_datetime and date_to < start_datetime:
                 continue
             leaves.append((date_from, date_to))
@@ -501,10 +498,6 @@ class resource_calendar(osv.osv):
             iterations += 1
 
         return intervals
-
-
-    
-
 
     def schedule_hours_get_date(self, cr, uid, id, hours, day_dt=None,
                                 compute_leaves=False, resource_id=None,
