@@ -604,10 +604,13 @@ class Field(object):
         """ return the null value for this field in the given environment """
         return False
 
-    def convert_to_cache(self, value, env):
+    def convert_to_cache(self, value, env, validate=True):
         """ convert `value` to the cache level in `env`; `value` may come from
             an assignment, or have the format of methods :meth:`BaseModel.read`
             or :meth:`BaseModel.write`
+
+            :param validate: optional, whether the value must be validated or
+                not before convertion.
         """
         return value
 
@@ -855,7 +858,7 @@ class Boolean(Field):
     """ Boolean field. """
     type = 'boolean'
 
-    def convert_to_cache(self, value, env):
+    def convert_to_cache(self, value, env, validate=True):
         return bool(value)
 
     def convert_to_export(self, value, env):
@@ -868,7 +871,7 @@ class Integer(Field):
     """ Integer field. """
     type = 'integer'
 
-    def convert_to_cache(self, value, env):
+    def convert_to_cache(self, value, env, validate=True):
         return int(value or 0)
 
     def convert_to_read(self, value, use_name_get=True):
@@ -908,7 +911,7 @@ class Float(Field):
     _column_digits = property(lambda self: not callable(self._digits) and self._digits)
     _column_digits_compute = property(lambda self: callable(self._digits) and self._digits)
 
-    def convert_to_cache(self, value, env):
+    def convert_to_cache(self, value, env, validate=True):
         # apply rounding here, otherwise value in cache may be wrong!
         if self.digits:
             return float_round(float(value or 0.0), precision_digits=self.digits[1])
@@ -942,7 +945,7 @@ class Char(_String):
     _related_size = property(attrgetter('size'))
     _description_size = property(attrgetter('size'))
 
-    def convert_to_cache(self, value, env):
+    def convert_to_cache(self, value, env, validate=True):
         return bool(value) and ustr(value)[:self.size]
 
 
@@ -956,7 +959,7 @@ class Text(_String):
     """
     type = 'text'
 
-    def convert_to_cache(self, value, env):
+    def convert_to_cache(self, value, env, validate=True):
         return bool(value) and ustr(value)
 
 
@@ -964,7 +967,7 @@ class Html(_String):
     """ Html field. """
     type = 'html'
 
-    def convert_to_cache(self, value, env):
+    def convert_to_cache(self, value, env, validate=True):
         return bool(value) and html_sanitize(value)
 
 
@@ -1013,7 +1016,7 @@ class Date(Field):
         """ Convert a :class:`date` value into the format expected by the ORM. """
         return value.strftime(DATE_FORMAT)
 
-    def convert_to_cache(self, value, env):
+    def convert_to_cache(self, value, env, validate=True):
         if not value:
             return False
         if isinstance(value, basestring):
@@ -1078,7 +1081,7 @@ class Datetime(Field):
         """ Convert a :class:`datetime` value into the format expected by the ORM. """
         return value.strftime(DATETIME_FORMAT)
 
-    def convert_to_cache(self, value, env):
+    def convert_to_cache(self, value, env, validate=True):
         if not value:
             return False
         if isinstance(value, basestring):
@@ -1158,7 +1161,9 @@ class Selection(Field):
             selection = selection(env[self.model_name])
         return [value for value, _ in selection]
 
-    def convert_to_cache(self, value, env):
+    def convert_to_cache(self, value, env, validate=True):
+        if not validate:
+            return value or False
         if value in self.get_values(env):
             return value
         elif not value:
@@ -1196,9 +1201,9 @@ class Reference(Selection):
 
     _column_size = property(attrgetter('size'))
 
-    def convert_to_cache(self, value, env):
+    def convert_to_cache(self, value, env, validate=True):
         if isinstance(value, BaseModel):
-            if value._name in self.get_values(env) and len(value) <= 1:
+            if (not validate or value._name in self.get_values(env)) and len(value) <= 1:
                 return value.with_env(env) or False
         elif isinstance(value, basestring):
             res_model, res_id = value.split(',')
@@ -1293,11 +1298,11 @@ class Many2one(_Relational):
         """ Update the cached value of `self` for `records` with `value`. """
         records._cache[self] = value
 
-    def convert_to_cache(self, value, env):
+    def convert_to_cache(self, value, env, validate=True):
         if isinstance(value, (NoneType, int)):
             return env[self.comodel_name].browse(value)
         if isinstance(value, BaseModel):
-            if value._name == self.comodel_name and len(value) <= 1:
+            if (not validate or value._name == self.comodel_name) and len(value) <= 1:
                 return value.with_env(env)
             raise ValueError("Wrong value for %s: %r" % (self, value))
         elif isinstance(value, tuple):
@@ -1346,9 +1351,9 @@ class _RelationalMulti(_Relational):
         for record in records:
             record._cache[self] = record[self.name] | value
 
-    def convert_to_cache(self, value, env):
+    def convert_to_cache(self, value, env, validate=True):
         if isinstance(value, BaseModel):
-            if value._name == self.comodel_name:
+            if not validate or value._name == self.comodel_name:
                 return value.with_env(env)
         elif isinstance(value, list):
             # value is a list of record ids or commands
