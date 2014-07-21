@@ -187,7 +187,7 @@ class mail_notification(osv.Model):
         body_html = message.body
         user_id = message.author_id and message.author_id.user_ids and message.author_id.user_ids[0] and message.author_id.user_ids[0].id or None
         if user_signature:
-            signature_company = self.get_signature_footer(cr, uid, user_id, res_model=message.model, res_id=message.res_id, context=context)
+            signature_company = self.get_signature_footer(cr, uid, user_id, res_model=message.model_id.model, res_id=message.res_id, context=context)
             body_html = tools.append_content_to_html(body_html, signature_company, plaintext=False, container_tag='div')
 
         # compute email references
@@ -195,8 +195,8 @@ class mail_notification(osv.Model):
 
         # custom values
         custom_values = dict()
-        if message.model and message.res_id and self.pool.get(message.model) and hasattr(self.pool[message.model], 'message_get_email_values'):
-            custom_values = self.pool[message.model].message_get_email_values(cr, uid, message.res_id, message, context=context)
+        if message.model_id.model and message.res_id and self.pool.get(message.model_id.model) and hasattr(self.pool[message.model_id.model], 'message_get_email_values'):
+            custom_values = self.pool[message.model_id.model].message_get_email_values(cr, uid, message.res_id, message, context=context)
 
         # create email values
         max_recipients = 50

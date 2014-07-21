@@ -113,9 +113,9 @@ class TestMailMessage(TestMail):
         msg_id = self.mail_message.create(cr, user_raoul_id, {'model': 'mail.group', 'res_id': self.group_pigs_id})
         msg = self.mail_message.browse(cr, user_raoul_id, msg_id)
         # Test: message content
-        self.assertIn('mail.group', msg.message_id,
+        self.assertEqual('mail.group', msg.model,
                       'mail_message: message_id should contain model')
-        self.assertIn('%s' % self.group_pigs_id, msg.message_id,
+        self.assertEqual(self.group_pigs_id, msg.res_id,
                       'mail_message: message_id should contain res_id')
         self.assertEqual(msg.reply_to, raoul_from,
                          'mail_message: incorrect reply_to: should be Raoul')
@@ -131,7 +131,9 @@ class TestMailMessage(TestMail):
         # Update message
         msg_id = self.mail_message.create(cr, user_raoul_id, {'model': 'mail.group', 'res_id': self.group_pigs_id})
         msg = self.mail_message.browse(cr, user_raoul_id, msg_id)
+        print '----------------error----------------------'
         # Test: generated reply_to
+        print msg.reply_to,'----------reply_to---------',raoul_reply_alias
         self.assertEqual(msg.reply_to, raoul_reply_alias,
                          'mail_mail: incorrect reply_to: should be Pigs alias')
 

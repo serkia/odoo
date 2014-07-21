@@ -157,11 +157,12 @@ class mail_thread(osv.AbstractModel):
         user_pid = self.pool.get('res.users').read(cr, uid, [uid], ['partner_id'], context=context)[0]['partner_id'][0]
 
         # search for unread messages, directly in SQL to improve performances
+        model_id = self.pool.get('ir.model').search(cr, uid, [('model','=',self._name)], context=context)[0]
         cr.execute("""  SELECT m.res_id FROM mail_message m
                         RIGHT JOIN mail_notification n
                         ON (n.message_id = m.id AND n.partner_id = %s AND (n.is_read = False or n.is_read IS NULL))
-                        WHERE m.model = %s AND m.res_id in %s""",
-                    (user_pid, self._name, tuple(ids),))
+                        WHERE m.model_id = %s AND m.res_id in %s""",
+                    (user_pid, model_id, tuple(ids),))
         for result in cr.fetchall():
             res[result[0]]['message_unread'] = True
             res[result[0]]['message_unread_count'] += 1
@@ -619,22 +620,22 @@ class mail_thread(osv.AbstractModel):
         act_model, act_id = self.pool.get('ir.model.data').get_object_reference(cr, uid, *self._get_inbox_action_xml_id(cr, uid, context=context))
         action = self.pool.get(act_model).read(cr, uid, [act_id], [])[0]
         params = context.get('params')
-        msg_id = model = res_id = None
+        msg_id = model_id = res_id = None
 
         if params:
             msg_id = params.get('message_id')
-            model = params.get('model')
+            model_id = params.get('model_id')
             res_id = params.get('res_id')
-        if not msg_id and not (model and res_id):
+        if not msg_id and not (model_id and res_id):
             return action
-        if msg_id and not (model and res_id):
+        if msg_id and not (model_id and res_id):
             msg = self.pool.get('mail.message').browse(cr, uid, msg_id, context=context)
             if msg.exists():
-                model, res_id = msg.model, msg.res_id
+                model_id, res_id = msg.model_id , msg.res_id
 
-        # if model + res_id found: try to redirect to the document or fallback on the Inbox
-        if model and res_id:
-            model_obj = self.pool.get(model)
+        # if model_id + res_id found: try to redirect to the document or fallback on the Inbox
+        if model_id and res_id:
+            model_obj = self.pool.get(model_id.model)
             if model_obj.check_access_rights(cr, uid, 'read', raise_exception=False):
                 try:
                     model_obj.check_access_rule(cr, uid, [res_id], 'read', context=context)
@@ -643,7 +644,7 @@ class mail_thread(osv.AbstractModel):
                     pass
             action.update({
                 'context': {
-                    'search_default_model': model,
+                    'search_default_model': model_id.model,
                     'search_default_res_id': res_id,
                 }
             })
@@ -929,14 +930,13 @@ class mail_thread(osv.AbstractModel):
         references = decode_header(message, 'References')
         in_reply_to = decode_header(message, 'In-Reply-To')
         thread_references = references or in_reply_to
-
         # 1. message is a reply to an existing message (exact match of message_id)
         ref_match = thread_references and tools.reference_re.search(thread_references)
         msg_references = thread_references.split()
         mail_message_ids = mail_msg_obj.search(cr, uid, [('message_id', 'in', msg_references)], context=context)
         if ref_match and mail_message_ids:
             original_msg = mail_msg_obj.browse(cr, SUPERUSER_ID, mail_message_ids[0], context=context)
-            model, thread_id = original_msg.model, original_msg.res_id
+            model, thread_id = original_msg.model_id.model, original_msg.res_id
             route = self.message_route_verify(
                 cr, uid, message, message_dict,
                 (model, thread_id, custom_values, uid, None),
@@ -957,11 +957,12 @@ class mail_thread(osv.AbstractModel):
             if local_hostname == reply_hostname:
                 thread_id, model = reply_thread_id, reply_model
                 if thread_id and model in self.pool:
+                    model_id = self.pool.get('ir.model').search(cr, uid, [('model','=',model)])[0]
                     model_obj = self.pool[model]
                     compat_mail_msg_ids = mail_msg_obj.search(
                         cr, uid, [
                             ('message_id', '=', False),
-                            ('model', '=', model),
+                            ('model_id', '=', model_id),
                             ('res_id', '=', thread_id),
                         ], context=context)
                     if compat_mail_msg_ids and model_obj.exists(cr, uid, thread_id) and hasattr(model_obj, 'message_update'):
@@ -1602,7 +1603,8 @@ class mail_thread(osv.AbstractModel):
 
         # _mail_flat_thread: automatically set free messages to the first posted message
         if self._mail_flat_thread and not parent_id and thread_id:
-            message_ids = mail_message.search(cr, uid, ['&', ('res_id', '=', thread_id), ('model', '=', model)], context=context, order="id ASC", limit=1)
+            model_id = self.pool.get('ir.model').search(cr, uid, [('model','=',model)])[0]
+            message_ids = mail_message.search(cr, uid, ['&', ('res_id', '=', thread_id), ('model_id', '=', model_id)], context=context, order="id ASC", limit=1)
             parent_id = message_ids and message_ids[0] or False
         # we want to set a parent: force to set the parent_id to the oldest ancestor, to avoid having more than 1 level of thread
         elif parent_id:
@@ -1864,26 +1866,28 @@ class mail_thread(osv.AbstractModel):
     def message_mark_as_unread(self, cr, uid, ids, context=None):
         """ Set as unread. """
         partner_id = self.pool.get('res.users').browse(cr, uid, uid, context=context).partner_id.id
+        model_id = self.pool.get('ir.model').search(cr, uid, [('model','=',self._name)])[0]
         cr.execute('''
             UPDATE mail_notification SET
                 is_read=false
             WHERE
-                message_id IN (SELECT id from mail_message where res_id=any(%s) and model=%s limit 1) and
+                message_id IN (SELECT id from mail_message where res_id=any(%s) and model_id=%s limit 1) and
                 partner_id = %s
-        ''', (ids, self._name, partner_id))
+        ''', (ids, model_id, partner_id))
         self.pool.get('mail.notification').invalidate_cache(cr, uid, ['is_read'], context=context)
         return True
 
     def message_mark_as_read(self, cr, uid, ids, context=None):
         """ Set as read. """
         partner_id = self.pool.get('res.users').browse(cr, uid, uid, context=context).partner_id.id
+        model_id = self.pool.get('ir.model').search(cr, uid, [('model','=',self._name)])[0]
         cr.execute('''
             UPDATE mail_notification SET
                 is_read=true
             WHERE
-                message_id IN (SELECT id FROM mail_message WHERE res_id=ANY(%s) AND model=%s) AND
+                message_id IN (SELECT id FROM mail_message WHERE res_id=ANY(%s) AND model_id=%s) AND
                 partner_id = %s
-        ''', (ids, self._name, partner_id))
+        ''', (ids, model_id, partner_id))
         self.pool.get('mail.notification').invalidate_cache(cr, uid, ['is_read'], context=context)
         return True
 
@@ -1932,15 +1936,15 @@ class mail_thread(osv.AbstractModel):
 
         # get the sbtype id of the comment Message
         subtype_res_id = self.pool.get('ir.model.data').xmlid_to_res_id(cr, uid, 'mail.mt_comment', raise_if_not_found=True)
-        
+        model_id = self.pool.get('ir.model').search(cr, uid, [('model','=',self._name)])[0]
         # get the ids of the comment and none-comment of the thread
         message_obj = self.pool.get('mail.message')
         msg_ids_comment = message_obj.search(cr, uid, [
-                    ('model', '=', self._name),
+                    ('model_id', '=', model_id),
                     ('res_id', '=', id),
                     ('subtype_id', '=', subtype_res_id)], context=context)
         msg_ids_not_comment = message_obj.search(cr, uid, [
-                    ('model', '=', self._name),
+                    ('model_id', '=', model_id),
                     ('res_id', '=', id),
                     ('subtype_id', '!=', subtype_res_id)], context=context)
         

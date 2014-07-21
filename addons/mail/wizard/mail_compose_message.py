@@ -142,7 +142,7 @@ class mail_compose_message(osv.TransientModel):
         if operation == 'create' and uid != SUPERUSER_ID:
             # read mail_compose_message.ids to have their values
             message_values = {}
-            cr.execute('SELECT DISTINCT id, model, res_id FROM "%s" WHERE id = ANY (%%s) AND res_id = 0' % self._table, (ids,))
+            cr.execute('SELECT DISTINCT id, model_id, res_id FROM "%s" WHERE id = ANY (%%s) AND res_id = 0' % self._table, (ids,))
             for id, rmod, rid in cr.fetchall():
                 message_values[id] = {'model': rmod, 'res_id': rid}
             # remove from the set to check the ids that mail_compose_message accepts
