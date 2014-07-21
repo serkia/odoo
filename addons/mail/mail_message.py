@@ -121,9 +121,7 @@ class mail_message(osv.Model):
         if value:
             model_id = self.pool.get('ir.model').search(cr,uid,[('model','=',value)])
             if model_id:
-                self.write(cr,uid,ids,{'model_id': model_id[0]})
-        else:
-            self.write(cr,uid,ids,{'model_id': 0})
+                self.write(cr, uid, ids, {'model_id': model_id[0]})
         return {}
 
     def _get_model(self,cr, uid, ids, field_name, field_value, arg, context=None):
