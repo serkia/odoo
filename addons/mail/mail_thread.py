@@ -620,22 +620,22 @@ class mail_thread(osv.AbstractModel):
         act_model, act_id = self.pool.get('ir.model.data').get_object_reference(cr, uid, *self._get_inbox_action_xml_id(cr, uid, context=context))
         action = self.pool.get(act_model).read(cr, uid, [act_id], [])[0]
         params = context.get('params')
-        msg_id = model_id = res_id = None
+        msg_id = model = res_id = None
 
         if params:
             msg_id = params.get('message_id')
-            model_id = params.get('model_id')
+            model = params.get('model')
             res_id = params.get('res_id')
-        if not msg_id and not (model_id and res_id):
+        if not msg_id and not (model and res_id):
             return action
-        if msg_id and not (model_id and res_id):
+        if msg_id and not (model and res_id):
             msg = self.pool.get('mail.message').browse(cr, uid, msg_id, context=context)
             if msg.exists():
-                model_id, res_id = msg.model_id , msg.res_id
+                model, res_id = msg.model_id.model , msg.res_id
 
-        # if model_id + res_id found: try to redirect to the document or fallback on the Inbox
-        if model_id and res_id:
-            model_obj = self.pool.get(model_id.model)
+        # if model + res_id found: try to redirect to the document or fallback on the Inbox
+        if model and res_id:
+            model_obj = self.pool.get(model)
             if model_obj.check_access_rights(cr, uid, 'read', raise_exception=False):
                 try:
                     model_obj.check_access_rule(cr, uid, [res_id], 'read', context=context)
@@ -644,7 +644,7 @@ class mail_thread(osv.AbstractModel):
                     pass
             action.update({
                 'context': {
-                    'search_default_model': model_id.model,
+                    'search_default_model': model,
                     'search_default_res_id': res_id,
                 }
             })

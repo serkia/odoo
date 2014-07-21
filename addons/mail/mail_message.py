@@ -128,7 +128,7 @@ class mail_message(osv.Model):
         res = {}
         for record in self.browse(cr, uid, ids, context=context):
             if record.model_id:
-                res[record.id] = self.pool.get('ir.model').browse(cr, uid, [record.model_id.id], context=context).model
+                res[record.id] = self.pool.get('ir.model').browse(cr, SUPERUSER_ID, [record.model_id.id], context=context).model
             else:
                 res[record.id] = False
         return res
@@ -793,7 +793,7 @@ class mail_message(osv.Model):
         """ Return a specific reply_to: alias of the document through message_get_reply_to
             or take the email_from
         """
-        model, res_id, email_from = values.get('model_id'), values.get('res_id'), values.get('email_from')
+        model, res_id, email_from = values.get('model'), values.get('res_id'), values.get('email_from')
         ctx = dict(context, thread_model=model)
         return self.pool['mail.thread'].message_get_reply_to(cr, uid, [res_id], default=email_from, context=ctx)[res_id]
 

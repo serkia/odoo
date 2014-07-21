@@ -131,9 +131,7 @@ class TestMailMessage(TestMail):
         # Update message
         msg_id = self.mail_message.create(cr, user_raoul_id, {'model': 'mail.group', 'res_id': self.group_pigs_id})
         msg = self.mail_message.browse(cr, user_raoul_id, msg_id)
-        print '----------------error----------------------'
         # Test: generated reply_to
-        print msg.reply_to,'----------reply_to---------',raoul_reply_alias
         self.assertEqual(msg.reply_to, raoul_reply_alias,
                          'mail_mail: incorrect reply_to: should be Pigs alias')
 

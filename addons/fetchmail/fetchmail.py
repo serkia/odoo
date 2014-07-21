@@ -200,6 +200,7 @@ openerp_mailgate: "|/path/to/openerp-mailgate.py --host=localhost -u %(uid)d -p 
                         result, data = imap_server.fetch(num, '(RFC822)')
                         imap_server.store(num, '-FLAGS', '\\Seen')
                         try:
+                            print '------------fetch mail messages -------------'
                             res_id = mail_thread.message_process(cr, uid, server.object_id.model,
                                                                  data[0][1],
                                                                  save_original=server.original,
