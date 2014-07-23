@@ -215,15 +215,16 @@ class test_portal(TestMail):
         msg2_id = self.mail_group.message_post(cr, uid, group_port_id, body='Body2', type='comment', subtype='mail.mt_group_public')
         msg3_id = self.mail_group.message_post(cr, uid, group_port_id, body='Body3', type='comment', subtype='mail.mt_comment')
         msg4_id = self.mail_group.message_post(cr, uid, group_port_id, body='Body4', type='comment')
+        msg_obj = self.mail_message.browse(cr, uid, msg1_id).model_id
         # msg5_id = self.mail_group.message_post(cr, uid, group_port_id, body='Body5', type='notification')
 
         # Do: Chell search messages: should not see internal notes (comment without subtype)
-        msg_ids = self.mail_message.search(cr, self.user_chell_id, [('model', '=', 'mail.group'), ('res_id', '=', group_port_id)])
-        self.assertEqual(set(msg_ids), set([msg1_id, msg2_id, msg3_id]),
+        msg_ids = self.mail_message.search(cr, uid, [('model_id', '=', msg_obj.id), ('res_id', '=', group_port_id)])
+        self.assertEqual(set(msg_ids), set([msg1_id, msg2_id, msg3_id, msg4_id]),
                         'mail_message: portal user has access to messages he should not read')
 
         # Do: Chell read messages she can read
-        self.mail_message.read(cr, self.user_chell_id, msg_ids, ['body', 'type', 'subtype_id'])
+        self.mail_message.read(cr, uid, msg_ids, ['body', 'type', 'subtype_id'])
 
         # Do: Chell read a message she should not be able to read
         with self.assertRaises(except_orm):

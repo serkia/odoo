@@ -1005,7 +1005,7 @@ class mail_thread(osv.AbstractModel):
         local_parts = [e.split('@')[0] for e in tools.email_split(rcpt_tos)]
         if local_parts:
             mail_alias = self.pool.get('mail.alias')
-            alias_ids = mail_alias.search(cr, uid, [('alias_name', 'in', local_parts)])
+            alias_ids = mail_alias.search(cr, SUPERUSER_ID, [('alias_name', 'in', local_parts)])
             if alias_ids:
                 routes = []
                 for alias in mail_alias.browse(cr, uid, alias_ids, context=context):
