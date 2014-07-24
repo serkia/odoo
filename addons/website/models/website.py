@@ -191,29 +191,37 @@ class website(osv.osv):
         template_module, template_name = template.split('.')
 
         # completely arbitrary max_length
-        page_name = slugify(name, max_length=50)
+        default_name = slugify(name, max_length=50)
+        page_name = default_name
         page_xmlid = "%s.%s" % (template_module, page_name)
+        inc = 0
 
-        try:
-            # existing page
-            imd.get_object_reference(cr, uid, template_module, page_name)
-        except ValueError:
-            # new page
-            _, template_id = imd.get_object_reference(cr, uid, template_module, template_name)
-            page_id = view.copy(cr, uid, template_id, context=context)
-            page = view.browse(cr, uid, page_id, context=context)
-            page.write({
-                'arch': page.arch.replace(template, page_xmlid),
-                'name': page_name,
-                'page': ispage,
-            })
-            imd.create(cr, uid, {
-                'name': page_name,
-                'module': template_module,
-                'model': 'ir.ui.view',
-                'res_id': page_id,
-                'noupdate': True
-            }, context=context)
+        # check existing page
+        while True:
+            try:
+                imd.get_object_reference(cr, uid, template_module, page_name)
+                page_name = "%s%s" % (default_name, inc or "")
+                page_xmlid = "%s.%s" % (template_module, page_name)
+                inc += 1
+            except ValueError:
+                break
+
+        # new page
+        _, template_id = imd.get_object_reference(cr, uid, template_module, template_name)
+        page_id = view.copy(cr, uid, template_id, context=context)
+        page = view.browse(cr, uid, page_id, context=context)
+        page.write({
+            'arch': page.arch.replace(template, page_xmlid),
+            'name': page_name,
+            'page': ispage,
+        })
+        imd.create(cr, uid, {
+            'name': page_name,
+            'module': template_module,
+            'model': 'ir.ui.view',
+            'res_id': page_id,
+            'noupdate': True
+        }, context=context)
         return page_xmlid
 
     def page_for_name(self, cr, uid, ids, name, module='website', context=None):
