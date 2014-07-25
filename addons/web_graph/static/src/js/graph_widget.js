@@ -423,23 +423,22 @@ openerp.web_graph.Graph = openerp.web.Widget.extend({
     build_headers: function () {
         var pivot = this.pivot,
             nbr_measures = pivot.measures.length,
-            height = _.max(_.map(pivot.cols.headers, function(g) {return g.path.length;})),
+            height = _.max(_.map(pivot.cols.headers, function(g) {return g.path.length;})) + 1,
             rows = [];
 
         _.each(pivot.cols.headers, function (col) {
-            if (col.path.length === 0) { return;}
             var cell_width = nbr_measures * (col.expanded ? pivot.get_ancestor_leaves(col).length : 1),
-                cell_height = col.expanded ? 1 : height - col.path.length + 1,
+                cell_height = col.expanded ? 1 : height - col.path.length,
                 cell = {width: cell_width, height: cell_height, title: col.title, id: col.id, expanded: col.expanded};
-            if (rows[col.path.length - 1]) {
-                rows[col.path.length - 1].push(cell);
+            if (rows[col.path.length]) {
+                rows[col.path.length].push(cell);
             } else {
-                rows[col.path.length - 1] = [cell];
+                rows[col.path.length] = [cell];
             }
         });
 
         if (pivot.get_cols_leaves().length > 1) {
-            rows[0].push({width: nbr_measures, height: height, title: _t('Total'), id: pivot.main_col().id });
+            rows[0].push({width: nbr_measures, height: height, title: ' ', id: pivot.main_col().id });
         }
         if (pivot.cols.headers.length === 1) {
             rows = [[{width: nbr_measures, height: 1, title: _t('Total'), id: pivot.main_col().id, expanded: false}]];
