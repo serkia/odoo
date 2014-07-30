@@ -23,7 +23,7 @@
         <field name="arch" type="xml">
             <search string="Purchase Orders">
                 <filter icon="terp-document-new" string="Quotations" name="quotes" domain="[('state','=','draft')]"/>
-                <filter icon="terp-gtk-jump-to-rtl" string="Orders" name="orders" domain="[('state','&lt;&gt;','draft'),('state','&lt;&gt;','cancel')]"/>
+                <filter icon="terp-gtk-jump-to-rtl" string="Orders" name="orders" domain="['&amp;',('state','&lt;&gt;','draft'),('state','&lt;&gt;','cancel')]"/>
                 <field name="partner_id"/>
                 <field name="product_id"/>
                 <group expand="0" string="Extended Filters">
