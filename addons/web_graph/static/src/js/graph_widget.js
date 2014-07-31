@@ -562,7 +562,6 @@ openerp.web_graph.Graph = openerp.web.Widget.extend({
         this.table.toggleClass('heatmap', this.heatmap_mode !== 'none');
         this.$('.graph_options_selection label').last().toggleClass('disabled', this.pivot.no_data);
         this.width = this.$el.width();
-        this.height = Math.min(Math.max(document.documentElement.clientHeight - 116 - 60, 250), Math.round(0.8*this.$el.width()));
 
         this.$('.graph_header').toggle(this.visible_ui);
         if (this.pivot.no_data) {
@@ -572,6 +571,10 @@ openerp.web_graph.Graph = openerp.web.Widget.extend({
                 this.draw_table();
                 $(window).scrollTop(scroll);
             } else {
+                var $manager_body = this.$el.closest('.oe_view_manager_body'),
+                    $drawer = $manager_body.children('.oe_searchview_drawer_container');
+                // 65 to offset padding, margin, button toolbar
+                this.height = Math.max($manager_body.height() - $drawer.height() - 65, 250); 
                 this.$('.graph_main_content').append($('<div><svg>'));
                 this.svg = this.$('.graph_main_content svg')[0];
                 this[this.mode]();
