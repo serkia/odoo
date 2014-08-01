@@ -230,6 +230,11 @@ instance.web.Dialog = instance.web.Widget.extend({
                 if (opened_modal.length > 0){
                     //we still have other opened modal so we should focus it
                     opened_modal[opened_modal.length-1].focus();
+                    //keep class modal-open (deleted by bootstrap hide fnct) on body 
+                    //to allow scrolling inside the modal
+                    if ($('.modal').length !== 0){
+                        $('body').addClass('modal-open');
+                    }
                 }
             },0);
         }
