@@ -48,6 +48,9 @@ class hr_config_settings(osv.osv_memory):
             help ="""This installs the module account_analytic_analysis, which will install sales management too."""),
         'module_hr_payroll': fields.boolean('Manage payroll',
             help ="""This installs the module hr_payroll."""),
+        'group_multi_departments': fields.boolean("Manage employees documents by department",
+            implied_group='hr.group_multi_departments', group="base.group_hr_user",
+            help="""Allows you to manage employees documents by department."""),
     }
 
     def onchange_hr_timesheet(self, cr, uid, ids, timesheet, context=None):

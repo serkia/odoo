@@ -19,10 +19,14 @@
 #
 ##############################################################################
 
+from datetime import date, datetime
+from dateutil import relativedelta
+
 import logging
 
 from openerp import SUPERUSER_ID
 from openerp import tools
+from openerp import api
 from openerp.modules.module import get_module_resource
 from openerp.osv import fields, osv
 from openerp.tools.translate import _
@@ -376,6 +380,37 @@ class hr_department(osv.osv):
     _name = "hr.department"
     _description = "HR Department"
     _inherit = ['mail.thread', 'ir.needaction_mixin']
+    _period_number = 5
+
+    @api.model
+    def __get_bar_values(self, obj, domain, read_fields, value_field, groupby_field):
+        """ Generic method to generate data for bar chart values using SparklineBarWidget.
+            This method performs obj.read_group(cr, uid, domain, read_fields, groupby_field).
+
+            :param obj: the target model (i.e. hr_holidays, hr_expense_expense)
+            :param domain: the domain applied to the read_group
+            :param list read_fields: the list of fields to read in the read_group
+            :param str value_field: the field used to compute the value of the bar slice
+            :param str groupby_field: the fields used to group
+
+            :return list section_result: a list of dicts: [
+                                                {   'value': (int) bar_column_value,
+                                                    'tootip': (str) bar_column_tooltip,
+                                                }
+                                            ]
+        """
+        month_begin = date.today().replace(day=1)
+        section_result = [{
+                          'value': 0,
+                          'tooltip': (month_begin + relativedelta.relativedelta(months=-i)).strftime('%B %Y'),
+                          } for i in range(self._period_number - 1, -1, -1)]
+        group_obj = obj.read_group(domain, read_fields, groupby_field)
+        pattern = tools.DEFAULT_SERVER_DATE_FORMAT if obj.fields_get(groupby_field)[groupby_field]['type'] == 'date' else tools.DEFAULT_SERVER_DATETIME_FORMAT
+        for group in group_obj:
+            group_begin_date = datetime.strptime(group['__domain'][0][2], pattern)
+            month_delta = relativedelta.relativedelta(month_begin, group_begin_date)
+            section_result[self._period_number - (month_delta.months + 1)] = {'value': group.get(value_field, 0), 'tooltip': group.get(groupby_field, 0)}
+        return section_result
 
     def _dept_name_get_fnc(self, cr, uid, ids, prop, unknow_none, context=None):
         res = self.name_get(cr, uid, ids, context=context)
@@ -391,6 +426,7 @@ class hr_department(osv.osv):
         'member_ids': fields.one2many('hr.employee', 'department_id', 'Members', readonly=True),
         'jobs_ids': fields.one2many('hr.job', 'department_id', 'Jobs'),
         'note': fields.text('Note'),
+        'color': fields.integer('Color Index'),
     }
 
     _defaults = {

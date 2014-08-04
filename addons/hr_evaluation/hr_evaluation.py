@@ -372,3 +372,4 @@ class hr_evaluation_interview(osv.Model):
         response = response_obj.browse(cr, uid, interview.request_id.id, context=context)
         context.update({'survey_token': response.token})
         return survey_obj.action_start_survey(cr, uid, [interview.survey_id.id], context=context)
+

@@ -41,6 +41,8 @@
                     <filter string="Company" context="{'group_by':'company_id'}" groups="base.group_multi_company"/>
                     <separator/>
                     <filter string="Create Month" context="{'group_by':'create_date:month'}" help="Creation Date"/>
+                    <filter string="Date" name="group_date" context="{'group_by':'date'}" help="Group by month of date"/>
+                    <filter name="group_employee_id" string="Employee" context="{'group_by':'employee_id'}"/>
                 </group>
             </search>
         </field>
