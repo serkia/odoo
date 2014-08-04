@@ -40,7 +40,6 @@ DATETIME_LENGTH = len(datetime.now().strftime(DATETIME_FORMAT))
 
 _logger = logging.getLogger(__name__)
 
-
 class SpecialValue(object):
     """ Encapsulates a value in the cache in place of a normal value. """
     def __init__(self, value):
@@ -232,11 +231,12 @@ class Field(object):
 
         .. rubric:: Incremental definition
 
-        A field is defined as class attribute on a model class. If the model is
-        extended (see :class:`BaseModel`), one can also extend the field
-        definition by redefining a field with the same name and same type on the
-        subclass. In that case, the attributes of the field are taken from the
-        parent class and overridden by the ones given in subclasses.
+        A field is defined as class attribute on a model class. If the model
+        is extended (see :class:`~openerp.models.Model`), one can also extend
+        the field definition by redefining a field with the same name and same
+        type on the subclass. In that case, the attributes of the field are
+        taken from the parent class and overridden by the ones given in
+        subclasses.
 
         For instance, the second class below only adds a tooltip on the field
         ``state``::
@@ -291,7 +291,9 @@ class Field(object):
         self._free_attrs = []
 
     def copy(self, **kwargs):
-        """ make a copy of `self`, possibly modified with parameters `kwargs` """
+        """ copy(item) -> test
+
+        make a copy of `self`, possibly modified with parameters `kwargs` """
         field = copy(self)
         field._attrs = {key: val for key, val in kwargs.iteritems() if val is not None}
         field._free_attrs = list(self._free_attrs)
@@ -858,7 +860,6 @@ class Field(object):
 
 
 class Boolean(Field):
-    """ Boolean field. """
     type = 'boolean'
 
     def convert_to_cache(self, value, env, validate=True):
@@ -871,7 +872,6 @@ class Boolean(Field):
 
 
 class Integer(Field):
-    """ Integer field. """
     type = 'integer'
 
     def convert_to_cache(self, value, env, validate=True):
@@ -890,11 +890,10 @@ class Integer(Field):
 
 
 class Float(Field):
-    """ Float field. The precision digits are given by the attribute
+    """ The precision digits are given by the attribute
 
-        :param digits: a pair (total, decimal), or a function taking a database
-            cursor and returning a pair (total, decimal)
-
+    :param digits: a pair (total, decimal), or a function taking a database
+                   cursor and returning a pair (total, decimal)
     """
     type = 'float'
     _digits = None              # digits argument passed to class initializer
@@ -932,14 +931,11 @@ class _String(Field):
 
 
 class Char(_String):
-    """ Char field.
+    """ Basic string field, can be length-limited, usually displayed as a
+    single-line string in clients
 
-        :param size: the maximum size of values stored for that field (integer,
-            optional)
-
-        :param translate: whether the value of the field has translations
-            (boolean, by default ``False``)
-
+    :param int size: the maximum size of values stored for that field
+    :param bool translate: whether the values of this field can be translated
     """
     type = 'char'
     size = None
@@ -953,12 +949,10 @@ class Char(_String):
 
 
 class Text(_String):
-    """ Text field. Very similar to :class:`Char`, but typically for longer
-        contents.
+    """ Text field. Very similar to :class:`~.Char` but used for longer
+     contents and displayed as a multiline text box
 
-        :param translate: whether the value of the field has translations
-            (boolean, by default ``False``)
-
+    :param translate: whether the value of this field can be translated
     """
     type = 'text'
 
@@ -967,7 +961,6 @@ class Text(_String):
 
 
 class Html(_String):
-    """ Html field. """
     type = 'html'
 
     def convert_to_cache(self, value, env, validate=True):
@@ -975,7 +968,6 @@ class Html(_String):
 
 
 class Date(Field):
-    """ Date field. """
     type = 'date'
 
     @staticmethod
@@ -1033,7 +1025,6 @@ class Date(Field):
 
 
 class Datetime(Field):
-    """ Datetime field. """
     type = 'datetime'
 
     @staticmethod
@@ -1098,20 +1089,17 @@ class Datetime(Field):
 
 
 class Binary(Field):
-    """ Binary field. """
     type = 'binary'
 
 
 class Selection(Field):
-    """ Selection field.
-
-        :param selection: specifies the possible values for this field.
+    """ :param selection: specifies the possible values for this field.
             It is given as either a list of pairs (`value`, `string`), or a
             model method, or a method name.
 
-        The attribute `selection` is mandatory except in the case of related
-        fields (see :ref:`field-related`) or field extensions
-        (see :ref:`field-incremental-definition`).
+    The attribute `selection` is mandatory except in the case of
+    :ref:`related fields <field-related>` or :ref:`field extensions
+    <field-incremental-definition>`.
     """
     type = 'selection'
     selection = None        # [(value, string), ...], model method or method name
@@ -1184,16 +1172,6 @@ class Selection(Field):
 
 
 class Reference(Selection):
-    """ Reference field.
-
-        :param selection: specifies the possible model names for this field.
-            It is given as either a list of pairs (`value`, `string`), or a
-            model method, or a method name.
-
-        The attribute `selection` is mandatory except in the case of related
-        fields (see :ref:`field-related`) or field extensions
-        (see :ref:`field-incremental-definition`).
-    """
     type = 'reference'
     size = 128
 
@@ -1256,28 +1234,28 @@ class _Relational(Field):
 
 
 class Many2one(_Relational):
-    """ Many2one field; the value of such a field is a recordset of size 0 (no
-        record) or 1 (a single record).
+    """ The value of such a field is a recordset of size 0 (no
+    record) or 1 (a single record).
 
-        :param comodel_name: name of the target model (string)
+    :param comodel_name: name of the target model (string)
 
-        :param domain: an optional domain to set on candidate values on the
-            client side (domain or string)
+    :param domain: an optional domain to set on candidate values on the
+        client side (domain or string)
 
-        :param context: an optional context to use on the client side when
-            handling that field (dictionary)
+    :param context: an optional context to use on the client side when
+        handling that field (dictionary)
 
-        :param ondelete: what to do when the referred record is deleted;
-            possible values are: ``'set null'``, ``'restrict'``, ``'cascade'``
+    :param ondelete: what to do when the referred record is deleted;
+        possible values are: ``'set null'``, ``'restrict'``, ``'cascade'``
 
-        :param auto_join: whether JOINs are generated upon search through that
-            field (boolean, by default ``False``)
+    :param auto_join: whether JOINs are generated upon search through that
+        field (boolean, by default ``False``)
 
-        :param delegate: set it to ``True`` to make fields of the target model
-            accessible from the current model (corresponds to ``_inherits``)
+    :param delegate: set it to ``True`` to make fields of the target model
+        accessible from the current model (corresponds to ``_inherits``)
 
-        The attribute `comodel_name` is mandatory except in the case of related
-        fields or field extensions.
+    The attribute `comodel_name` is mandatory except in the case of related
+    fields or field extensions.
     """
     type = 'many2one'
     ondelete = 'set null'               # what to do when value is deleted
@@ -1560,12 +1538,17 @@ class Many2many(_RelationalMulti):
 class Id(Field):
     """ Special case for field 'id'. """
     store = True
+    #: Can't write this!
     readonly = True
 
     def __init__(self, string=None, **kwargs):
         super(Id, self).__init__(type='integer', string=string, **kwargs)
 
     def to_column(self):
+        """ to_column() -> fields._column
+
+        Whatever
+        """
         return fields.integer('ID')
 
     def __get__(self, record, owner):
