@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+<data>
+
+<template id="website_crm_scoring_assign" inherit_id="website.user_navbar" groups="base.group_user">
+    <xpath expr="//ul[@id='oe_systray']/li/a[@data-action='promote-current-page']/.." position="after">
+       <li groups="base.group_website_designer">
+            <a data-action="set_score" href="#">
+                <span title="Set the score of this page">Score</span>
+            </a>
+        </li>
+    </xpath>
+</template>
+
+</data>
+</openerp>
