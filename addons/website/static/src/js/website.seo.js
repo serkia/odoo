@@ -462,6 +462,7 @@
                 var fields = ['website_meta_title', 'website_meta_description', 'website_meta_keywords'];
                 var model = website.session.model(obj.model);
                 model.call('read', [[obj.id], fields, website.get_context()]).then(function (data) {
+                    debugger;
                     if (data.length) {
                         var meta = data[0];
                         meta.model = obj.model;
@@ -477,6 +478,7 @@
         },
         saveMetaData: function (data) {
             var obj = this.getMainObject();
+            debugger;
             if (!obj) {
                 return $.Deferred().reject();
             } else {
