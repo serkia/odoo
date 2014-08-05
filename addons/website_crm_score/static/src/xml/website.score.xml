@@ -2,6 +2,13 @@
 <templates id="template" xml:space="preserve">
     
     <t t-name="website.score.set">
+        <div class="input-group">
+            <input type="number" name="page_score" class="form-control" maxlength="30"/>
+            <span class="input-group-btn">
+              <button data-action="add_score" class="btn btn-default" type="button">Add</button>
+              <button data-action="get_score" class="btn btn-default" type="button">Get</button>
+            </span>
+        </div>
         <div class="modal fade oe_seo_configuration js_seo_configuration" tabindex="-1" role="dialog">
             <div class="modal-dialog">
                 <div class="modal-content">
