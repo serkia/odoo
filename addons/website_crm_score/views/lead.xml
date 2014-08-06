@@ -4,6 +4,7 @@
 
 	<data>
 
+
 		<record model="ir.ui.view" id="lead_tree_view">
 			<field name="name">crm.lead.tree.inherit</field>
 			<field name="model">crm.lead</field>
@@ -30,6 +31,28 @@
 		<menuitem id="leads_menu" name="Leads" parent="main_scoring_menu" />
 
 		<menuitem id="sublead_menu" name="Leads" parent="leads_menu" action="lead_list_action" />
+
+
+		<record model="ir.ui.view" id="view_score_form">
+			<field name="name">ir.ui.view.inherit.score</field>
+			<field name="model">ir.ui.view</field>
+			<field name="inherit_id" ref="base.view_view_form" />
+			<field name="arch" type="xml">
+				<field name="priority" position="after">
+	                <field name="score_id" /> <!-- TODO: attrs="{'invisible':[('page','=',True)]}"/> -->
+	            </field>
+			</field>
+		</record>
+
+
+		<record model="ir.actions.act_window" id="lead_setting_action">
+			<field name="name">Views</field>
+			<field name="res_model">ir.ui.view</field>
+			<field name="view_type">form</field>
+			<field name="view_mode">tree,form</field>
+		</record>
+
+		<menuitem id="setting_menu" name="View" parent="sublead_menu" action="lead_setting_action" />
 
 	</data>
 </openerp>

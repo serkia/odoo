@@ -29,4 +29,46 @@
         </div>
     </t>
 
+    <t t-name="website.set.score">
+        <div class="modal fade oe_seo_configuration js_seo_configuration" tabindex="-1" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button title="Close" type="button" class="close" data-dismiss="modal">×</button>
+                        <div class="h2">Set This Page Score</div>
+                        <div class="text-muted">
+                            Track your leads efficiently.
+                        </div>
+                    </div>
+                    <div class="modal-body">
+                        <div class="js_seo_tips" />
+                        <section>
+                            <h3 class="page-header">Set this page score</h3>
+                            <div class="form-horizontal mt16" role="form">
+                                <div class="form-group">
+                                    <label for="score_name" class="col-sm-2 control-label">Score Name</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" name="score_name" class="form-control" maxlength="70" size="70"/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="score_value" class="col-sm-8 control-label">Score</label>
+                                    <div class="col-sm-8">
+                                        <input type="number" name="score_value" class="form-control"/>
+                                        <!-- <textarea name="seo_page_description" class="form-control" rows="3" cols="70" t-att-maxlength="widget.maxDescriptionSize"/> -->
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" data-action="save_score" class="btn btn-primary">Save</button>
+                        or
+                        <a data-action="discard" data-dismiss="modal" href="#" >Discard</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
 </templates>
