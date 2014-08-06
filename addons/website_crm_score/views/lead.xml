@@ -39,7 +39,7 @@
 			<field name="inherit_id" ref="base.view_view_form" />
 			<field name="arch" type="xml">
 				<field name="priority" position="after">
-	                <field name="score_id" /> <!-- TODO: attrs="{'invisible':[('page','=',True)]}"/> -->
+	                <field name="score_id" /> <!-- QUESTION:  attrs="{'invisible':[('page','=',True)]}"/>  : cet attribut ne marche pas parce qu'il ne trouve pas page, pourtant il est supposé etre present sur view ... un truv que je fais pas bien ? --> 
 	            </field>
 			</field>
 		</record>
@@ -52,7 +52,17 @@
 			<field name="view_mode">tree,form</field>
 		</record>
 
-		<menuitem id="setting_menu" name="View" parent="sublead_menu" action="lead_setting_action" />
+		<menuitem id="views_menu" name="Views" parent="sublead_menu" action="lead_setting_action" />
+
+
+		<record model="ir.actions.act_window" id="score_setting_action">
+			<field name="name">Scores</field>
+			<field name="res_model">website.crm.score</field>
+			<field name="view_type">form</field>
+			<field name="view_mode">tree,form</field>
+		</record>
+
+		<menuitem id="scores_menu" name="Scores" parent="sublead_menu" action="score_setting_action" />
 
 	</data>
 </openerp>

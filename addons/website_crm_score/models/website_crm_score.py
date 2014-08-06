@@ -1,7 +1,7 @@
 from openerp.osv import osv, fields
 
 
-class Lead(osv.Model):
+class website_crm_score(osv.Model):
 
 	_name = "website.crm.score"
 

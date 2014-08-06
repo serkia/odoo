@@ -9,7 +9,7 @@ class Lead(osv.Model):
 	# Old API
 	# def _compute_score(self, cr, uid, ids, field, arg, context=None):
 	# 	r = {}
-	# 	for lead in  self.browse(cr, uid, ids, context=context):
+	# 	for lead in self.browse(cr, uid, ids, context=context):
 	# 		s=0
 	# 		print lead
 	# 		for score in lead.score_ids:
