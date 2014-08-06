@@ -26,10 +26,9 @@
     website.score.Configurator = openerp.Widget.extend({
     	template: 'website.set.score',
         events: {
-            'keyup input[name=score_name]': 'nameChanged',
-            'keyup input[name=score_value]': 'valueChanged',
-            'click button[data-action=add_score]': 'saveScore',
-            'click button[data-action=get_score]': 'getScore',
+            //'keyup input[name=score_name]': 'nameChanged',
+            //'keyup input[name=score_value]': 'valueChanged',
+            'click button[data-action=save_score]': 'saveScore',
             'hidden.bs.modal': 'destroy',
         },
 
@@ -38,7 +37,28 @@
         },
 
         start: function() {
+            var last;
             this.$el.modal();
+            this.$el.find('#link').select2({
+                minimumInputLength: 1,
+                placeholder: _t("Crm Score"),
+                query: function (q) {
+                    if (q.term == last) return;
+                    last = q.term;
+                    //var VIEWS = new openerp.Model('ir_ui_view');
+
+                    var results = [{"loc":"do"}, {"loc":"request"}, {"loc":"in"}, {"loc":"database"}];
+                    var rs = _.map(results, function (r) {
+                            return { id: r.loc, text: r.loc, };
+                        });
+                        
+                        q.callback({
+                            more: false,
+                            results: rs
+                        });
+
+                },
+            });
         },
 
         getMainObject: function () {
@@ -55,12 +75,11 @@
         },
 
         saveScore: function (score) {
-            var $input = this.$('input[name=page_score]');
+            var $input = this.$('input[name=score_value]');
             var score = _.isNumber(score) ? score : $input.val();
-            // debugger;
             console.log(score);
             var obj = this.getMainObject();
-            // debugger;
+            debugger;
             if (!obj) {
                 return $.Deferred().reject();
             } else {
