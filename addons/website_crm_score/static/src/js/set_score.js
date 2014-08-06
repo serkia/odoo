@@ -24,18 +24,21 @@
     website.score = {};
 
     website.score.Configurator = openerp.Widget.extend({
-    	template: 'website.score.set',
+    	template: 'website.set.score',
         events: {
+            'keyup input[name=score_name]': 'nameChanged',
+            'keyup input[name=score_value]': 'valueChanged',
             'click button[data-action=add_score]': 'saveScore',
             'click button[data-action=get_score]': 'getScore',
             'hidden.bs.modal': 'destroy',
         },
+
         init: function() {
             console.log('in init');
         },
 
         start: function() {
-            // self.$el.find('input[name=page_score]').val(10);
+            this.$el.modal();
         },
 
         getMainObject: function () {
