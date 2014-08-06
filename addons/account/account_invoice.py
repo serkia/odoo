@@ -1515,14 +1515,15 @@ class account_invoice_tax(models.Model):
         tax_grouped = {}
         currency = invoice.currency_id.with_context(date=invoice.date_invoice or fields.Date.today())
         apply_on = 'refund'
-        if invoice.type in ['out_invoice','in_invoice']:
+        if invoice.type in ['out_invoice', 'in_invoice']:
             apply_on = 'invoice'
         for line in invoice.invoice_line:
             taxes = line.invoice_line_tax_id.compute_all(
                 (line.price_unit * (1 - (line.discount or 0.0) / 100.0)),
                 line.quantity, line.product_id, invoice.partner_id, date=invoice.date_invoice, apply_on=apply_on)['taxes']
             for tax in taxes:
-                val={'invoice_id': invoice.id,
+                val = {
+                    'invoice_id': invoice.id,
                     'name': tax['name'],
                     'sequence': tax['sequence'],
                     'amount': tax['amount'],
@@ -1533,7 +1534,8 @@ class account_invoice_tax(models.Model):
                     'base_code_id': tax['code_type'] and tax['code_type'] == 'base' and tax['code_id'] or False,
                     'tax_code_id': tax['code_type'] and tax['code_type'] == 'tax' and tax['code_id'] or False,
                     'account_id': tax['account_id'] or line.account_id.id,
-                    'account_analytic_id': tax['analytic_account_id']}
+                    'account_analytic_id': tax['analytic_account_id'],
+                    'tax_id': tax['tax_id']}
 
                 # If the taxes generate moves on the same financial account as the invoice line
                 # and no default analytic account is defined at the tax level, propagate the
