@@ -39,7 +39,8 @@
 			<field name="inherit_id" ref="base.view_view_form" />
 			<field name="arch" type="xml">
 				<field name="priority" position="after">
-	                <field name="score_id" /> <!-- QUESTION:  attrs="{'invisible':[('page','=',True)]}"/>  : cet attribut ne marche pas parce qu'il ne trouve pas page, pourtant il est supposé etre present sur view ... un truv que je fais pas bien ? --> 
+					<field name="page"  attrs="{'invisible':True}"/>
+	                <field name="score_id"  attrs="{'invisible':[('page','=',False)]}"/>
 	            </field>
 			</field>
 		</record>
