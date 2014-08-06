@@ -45,6 +45,17 @@
 			</field>
 		</record>
 
+		<record model="ir.ui.view" id="view_crm_score_tree">
+			<field name="name">Website Crm Score Tree Main</field>
+			<field name="model">website.crm.score</field>
+			<field name="arch" type="xml">
+	            <tree string="Meetings" fonts="bold:score>3" colors="red:score&lt;0">
+					<field name="name"/>
+					<field name="score"/>
+				</tree>
+			</field>
+		</record>
+
 
 		<record model="ir.actions.act_window" id="lead_setting_action">
 			<field name="name">Views</field>
