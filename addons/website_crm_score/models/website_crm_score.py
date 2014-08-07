@@ -1,9 +1,5 @@
-# REM : WHY NOT WITH NEW API ?
-
-
 from openerp.osv import osv
-from openerp import api, fields, models, _
-import itertools
+from openerp import fields
 
 
 class website_crm_score(osv.Model):
@@ -18,12 +14,10 @@ class website_crm_score(osv.Model):
 
     # New API
     name = fields.Char("Name")
-    score  = fields.Float("Score")
+    score = fields.Float("Score")
     view_ids = fields.One2many('ir.ui.view', 'score_id', string='Viewsss')
 
-
-    def score_exists(self, cr, uid, ids, name, context=None): # page_exists(self, cr, uid, ids, name, module='website', context=None):
-        module = "website.crm.score"
+    def score_exists(self, cr, uid, ids, name, context=None):  # page_exists(self, cr, uid, ids, name, module='website', context=None):
         scores = self.pool['website.crm.score'].search_read(cr, uid, domain=[], fields=['name'], context=context)
         exists = False
         name = name.lower()
@@ -38,4 +32,3 @@ class website_crm_score(osv.Model):
         needle = needle.lower()
         matching_scores = [score for score in scores if needle in score['name'].lower()]
         return matching_scores
-

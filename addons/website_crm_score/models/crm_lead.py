@@ -1,38 +1,34 @@
 from openerp.osv import osv
-from openerp import api, models, fields
+from openerp import api, fields
 
 
 class Lead(osv.Model):
+    _inherit = 'crm.lead'
 
-	_inherit = 'crm.lead'
-	
-	# Old API
-	# def _compute_score(self, cr, uid, ids, field, arg, context=None):
-	# 	r = {}
-	# 	for lead in self.browse(cr, uid, ids, context=context):
-	# 		s=0
-	# 		print lead
-	# 		for score in lead.score_ids:
-	# 			s += score.value
-	# 		print s
-	# 		r[lead.id] = s
-	# 	print r
-	# 	return r
+    # Old API
+    # def _compute_score(self, cr, uid, ids, field, arg, context=None):
+    #   r = {}
+    #   for lead in self.browse(cr, uid, ids, context=context):
+    #       s=0
+    #       print lead
+    #       for score in lead.score_ids:
+    #           s += score.value
+    #       print s
+    #       r[lead.id] = s
+    #   print r
+    #   return r
 
-	# _columns = {
-	# 	'score' : fields.function(_compute_score, type='float', string='Score', store=True),
-	# 	'score_ids' : fields.many2many('crm.score', 'crm_score_rel', 'lead_id', 'score_id', 'Scores'),
-	# }
+    # _columns = {
+    #   'score' : fields.function(_compute_score, type='float', string='Score', store=True),
+    #   'score_ids' : fields.many2many('crm.score', 'crm_score_rel', 'lead_id', 'score_id', 'Scores'),
+    # }
 
-	# New API
-	@api.one
-	def _compute_score(self):
-		s=0
-		for score in self.score_ids:
-			s += score.score
-		self.score = s
+    # New API
+    @api.one
+    def _compute_score(self):
+        self.score = self.score_ids and sum(map(lambda x: x.id, self.score_ids)) or 0
+        for score_id in self.score_ids:
+            self.score += score_id.score
 
-	score = fields.Float(compute='_compute_score')
-	score_ids = fields.Many2many('website.crm.score', 'crm_score_rel', 'lead_id', 'score_id', 'Scores')
-
-	
+    score = fields.Float(compute='_compute_score')
+    score_ids = fields.Many2many('website.crm.score', 'crm_score_rel', 'lead_id', 'score_id', 'Scores')
