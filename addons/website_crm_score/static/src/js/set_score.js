@@ -26,18 +26,17 @@
     website.score.Configurator = openerp.Widget.extend({
     	template: 'website.set.score',
         events: {
-            //'keyup input[name=score_name]': 'nameChanged',
-            //'keyup input[name=score_value]': 'valueChanged',
             'click button[data-action=save_score]': 'saveScore',
             'hidden.bs.modal': 'destroy',
         },
-
         init: function() {
             console.log('in init');
         },
 
         start: function() {
+            // The popup doesn't close itself...
             var last;
+            var self = this;
             this.$el.modal();
             this.$el.find('#link').select2({
                 minimumInputLength: 1,
@@ -45,19 +44,53 @@
                 query: function (q) {
                     if (q.term == last) return;
                     last = q.term;
-                    //var VIEWS = new openerp.Model('ir_ui_view');
 
-                    var results = [{"loc":"do"}, {"loc":"request"}, {"loc":"in"}, {"loc":"database"}];
-                    var rs = _.map(results, function (r) {
-                            return { id: r.loc, text: r.loc, };
+                    $.when(
+                        self.score_exists(q.term),
+                        self.fetch_scores(q.term)
+                    ).then(function (exists, results) {
+                        var rs = _.map(results, function (r) {
+                            return { id: r.id, text: r.name, };
                         });
-                        
+                        if (!exists && false) { // TODO: create a new score
+                            rs.push({
+                                create: true,
+                                id: q.term,
+                                text: _.str.sprintf(_t("Create Score '%s'"), q.term),
+                            });
+                        }
                         q.callback({
                             more: false,
                             results: rs
                         });
-
+                    }, function () { // TODO: check if this is useful and what it does
+                        q.callback({more: false, results: []});
+                    });
                 },
+            });
+        },
+
+        call: function (method, args, kwargs) {
+            var self = this;
+
+            return openerp.jsonRpc('/web/dataset/call_kw', 'call', {
+                model: 'website.crm.score',
+                method: method,
+                args: args,
+                kwargs: kwargs,
+            });
+        },
+
+        score_exists: function (term) {
+            return this.call('score_exists', [null, term], {
+                context: website.get_context(),
+            });
+        },
+
+        fetch_scores: function (term) {
+            return this.call('search_scores', [null, term], {
+                limit: 9,
+                context: website.get_context(),
             });
         },
 
@@ -74,32 +107,24 @@
             }
         },
 
-        saveScore: function (score) {
-            var $input = this.$('input[name=score_value]');
-            var score = _.isNumber(score) ? score : $input.val();
-            console.log(score);
+        saveScore: function (event) {
+            var data = $('#link').select2('data');
             var obj = this.getMainObject();
-            debugger;
             if (!obj) {
                 return $.Deferred().reject();
             } else {
-                var data = {};
-                data.website_score = score
-                var model = website.session.model(obj.model);
-                model.call('write', [[obj.id], data, website.get_context()]);
+                // if (data.create){ // should there be another popup that allows the creation of a score ?
+                if (data){
+                    var id = data.id;
+                    console.log(id);
+                    var model = website.session.model(obj.model);
+                    var towrite = { score_id: data.id }
+                    model.call('write', [[obj.id], towrite, website.get_context()]); 
+                }
             }
         },
 
-        getScore: function () {
-            var obj = this.getMainObject();
-            var model = website.session.model(obj.model);
-            model.call('read', [[obj.id], ['website_score'], website.get_context()]).then(function (data) {
-                console.log(data[0].website_score);
-            });
-        },
-
         destroy: function () {
-            // this.htmlPage.changeKeywords(this.keywordList.keywords());
             this._super();
         },
 

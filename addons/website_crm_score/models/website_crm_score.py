@@ -3,6 +3,7 @@
 
 from openerp.osv import osv
 from openerp import api, fields, models, _
+import itertools
 
 
 class website_crm_score(osv.Model):
@@ -10,7 +11,7 @@ class website_crm_score(osv.Model):
 
     # Old API
     # _columns = {
-    #     'name': fields.char("Name"),
+    #     'name': fields.char("Name")
     #     'score': fields.float("Score"),
     #     'view_ids': fields.one2many('ir.ui.view', 'score_id', string='Viewsss')
     # }
@@ -19,3 +20,22 @@ class website_crm_score(osv.Model):
     name = fields.Char("Name")
     score  = fields.Float("Score")
     view_ids = fields.One2many('ir.ui.view', 'score_id', string='Viewsss')
+
+
+    def score_exists(self, cr, uid, ids, name, context=None): # page_exists(self, cr, uid, ids, name, module='website', context=None):
+        module = "website.crm.score"
+        scores = self.pool['website.crm.score'].search_read(cr, uid, domain=[], fields=['name'], context=context)
+        exists = False
+        name = name.lower()
+        for score in scores:
+            if name == score['name'].lower():
+                exists = True
+                break
+        return exists
+
+    def search_scores(self, cr, uid, ids, needle=None, limit=None, context=None):
+        scores = self.pool['website.crm.score'].search_read(cr, uid, domain=[], fields=['name'], limit=limit, context=context)
+        needle = needle.lower()
+        matching_scores = [score for score in scores if needle in score['name'].lower()]
+        return matching_scores
+

@@ -8,20 +8,18 @@ class PageController(addons.website.controllers.main.Website):
     @http.route(auth="public", website=True)
     def page(self, page, **opt):
 
-        # print 'PageController.page'
-
         response = super(PageController, self).page(page, **opt)
-        lead_id = request.httprequest.cookies.get('lead_id')
+        lead_id = int(request.httprequest.cookies.get('lead_id'))
         view = request.website.get_template(page)
-        print view
         score_id = view.score_id.id
 
         if score_id:
             if lead_id:
-                lead = request.registry["crm.lead"].browse(request.cr, request.uid, int(lead_id), context=request.context)
+                # updating the lead with the new scores
+                lead = request.registry["crm.lead"].browse(request.cr, request.uid, lead_id, context=request.context)
                 current_scores = [score.id for score in lead.score_ids] # get all the scores that are already assigned to the lead
                 if not score_id in current_scores:
-                    request.registry["crm.lead"].write(request.cr, 1, int(lead_id), {'score_ids': [(4, score_id)]}, context=request.context) # add the new score to the lead
+                    request.registry["crm.lead"].write(request.cr, 1, lead_id, {'score_ids': [(4, score_id)]}, context=request.context) # add the new score to the lead
 
             else:
                 # storing the score_id in a cookie 
@@ -31,7 +29,7 @@ class PageController(addons.website.controllers.main.Website):
                     if not str(score_id) in tags:
                         tags.append(score_id)
                     else: 
-                        tags = None # Todo: c'est moche, faire autrement
+                        tags = None # Todo: ugly, do something else
                 else: 
                     tags = [score_id]
 
@@ -58,17 +56,22 @@ class ContactController(addons.website_crm.controllers.main.contactus):
 
     def create_lead(self, request, values, kwargs):
 
-        lead_id = request.httprequest.cookies.get('lead_id')
+        lead_id = int(request.httprequest.cookies.get('lead_id'))
         if lead_id:
+            # a lead_id cookie exists, linking the information to the right lead
+            lead = request.registry["crm.lead"].browse(request.cr, request.uid, lead_id, context=request.context)
             print "lead already exists", lead_id
-            # TODO: Add new info to lead
-            # the fields are magically in values
+            print values
+            for fieldname, fieldvalue in values.items():
+                if fieldname in lead._all_columns and not lead[fieldname]:
+                    lead[fieldname] = fieldvalue
+                    # TODO: what to do, merge/replace ?
         else:
+            # no lead_id cookie, a lead is created
             new_lead_id = super(ContactController, self).create_lead(request, values, kwargs)
             crm_tags = request.httprequest.cookies.get('crm_tags')
             if crm_tags:
                 tags = crm_tags.split(',')
                 wlist = [(4, int(sid)) for sid in tags]
-                # import pdb; pdb.set_trace()
                 request.registry["crm.lead"].write(request.cr, 1, new_lead_id, {'score_ids': wlist}, context=request.context)
             return new_lead_id
