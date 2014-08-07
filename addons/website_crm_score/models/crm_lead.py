@@ -29,7 +29,7 @@ class Lead(osv.Model):
 	def _compute_score(self):
 		s=0
 		for score in self.score_ids:
-			s += score.value
+			s += score.score
 		self.score = s
 
 	score = fields.Float(compute='_compute_score')

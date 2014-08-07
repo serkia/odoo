@@ -2,110 +2,125 @@
 
 <openerp>
 
-	<data>
+    <data>
 
 
-		<record model="ir.ui.view" id="lead_tree_view">
-			<field name="name">crm.lead.tree.inherit</field>
-			<field name="model">crm.lead</field>
-			<field name="inherit_id" ref="crm.crm_case_tree_view_leads" />
-			<field name="arch" type="xml">
-				<field name="phone" position="after">
-					<field name="score" />
-				</field>
-<!-- 				<field name="country_id" position="attributes">
-					<attribute name="invisible">0</attribute>
-				</field> -->
-			</field>
-		</record>
+        <record model="ir.ui.view" id="lead_tree_view">
+            <field name="name">crm.lead.tree.inherit</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_case_tree_view_leads" />
+            <field name="arch" type="xml">
+                <field name="phone" position="after">
+                    <field name="score" />
+                </field>
+            </field>
+        </record>
 
-		<record model="ir.actions.act_window" id="lead_list_action">
-			<field name="name">Leads</field>
-			<field name="res_model">crm.lead</field>
-			<field name="view_type">form</field>
-			<field name="view_mode">tree,form</field>
-		</record>
+        <record model="ir.ui.view" id="lead_score_form">
+            <field name="name">crm.lead.form.inherit</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_case_form_view_leads" />
+            <field name="arch" type="xml">
+                <field name="categ_ids" position="after">
+                    <field name="score"/>
+                    <field name="score_ids"
+                        widget="many2many_tags"
+                        domain="[('object_id.model','=','crm.lead')]"
+                        context="{'object_name': 'crm.lead'}"
+                        readonly="1"
+                    />
+                    <!-- <field name="score_ids"/> -->
+                </field>
+            </field>
+        </record>
 
-		<menuitem id="main_scoring_menu" name="Lead scoring" />
+        <record model="ir.actions.act_window" id="lead_list_action">
+            <field name="name">Leads</field>
+            <field name="res_model">crm.lead</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
 
-		<menuitem id="leads_menu" name="Leads" parent="main_scoring_menu" />
+        <menuitem id="main_scoring_menu" name="Lead scoring" />
 
-		<menuitem id="sublead_menu" name="Leads" parent="leads_menu" action="lead_list_action" />
+        <menuitem id="leads_menu" name="Leads" parent="main_scoring_menu" />
+
+        <menuitem id="sublead_menu" name="Leads" parent="leads_menu" action="lead_list_action" />
 
 
-		<record model="ir.ui.view" id="view_score_form">
-			<field name="name">ir.ui.view.inherit.score</field>
-			<field name="model">ir.ui.view</field>
-			<field name="inherit_id" ref="base.view_view_form" />
-			<field name="arch" type="xml">
-				<field name="priority" position="after">
-					<field name="page"  attrs="{'invisible':True}"/>
-	                <field name="score_id"  attrs="{'invisible':[('page','=',False)]}"/>
-	            </field>
-			</field>
-		</record>
+        <record model="ir.ui.view" id="view_score_form">
+            <field name="name">ir.ui.view.inherit.score</field>
+            <field name="model">ir.ui.view</field>
+            <field name="inherit_id" ref="base.view_view_form" />
+            <field name="arch" type="xml">
+                <field name="priority" position="after">
+                    <field name="page"  attrs="{'invisible':True}"/>
+                    <field name="score_id"  attrs="{'invisible':[('page','=',False)]}"/>
+                </field>
+            </field>
+        </record>
 
-		<record model="ir.ui.view" id="view_crm_score_tree">
-			<field name="name">Website Crm Score Tree Main</field>
-			<field name="model">website.crm.score</field>
-			<field name="arch" type="xml">
-	            <tree string="Score" fonts="bold:score>3" colors="red:score&lt;0">
-					<field name="name"/>
-					<field name="score"/>
-				</tree>
-			</field>
-		</record>
+        <record model="ir.ui.view" id="view_crm_score_tree">
+            <field name="name">Website Crm Score Tree Main</field>
+            <field name="model">website.crm.score</field>
+            <field name="arch" type="xml">
+                <tree string="Score" fonts="bold:score>3" colors="red:score&lt;0">
+                    <field name="name"/>
+                    <field name="score"/>
+                </tree>
+            </field>
+        </record>
 
-		<record model="ir.ui.view" id="view_crm_score_form">
-			<field name="name">Website Crm Score Form Main</field>
-			<field name="model">website.crm.score</field>
-			<field name="arch" type="xml">
-	            <form string="Meetings">
-	                <sheet>
-	                    <div class="oe_title">
-	                        <div class="oe_edit_only">
-	                            <label for="name"/>
-	                        </div>
-	                        <h1>
-	                            <field name="name"/>
-	                        </h1>
-	                    </div>
-	                    <group>
-	                		<field name="score"/>
-	                	</group>
-	                    <notebook>
-	                        <page string="Views">
-	                            <field name="view_ids" >
-	                                <tree string="Views details" create="false" delete="false">
-	                                	<field name="xml_id"/>
-	                                	<field name="name"/>
-	                               	</tree>
+        <record model="ir.ui.view" id="view_crm_score_form">
+            <field name="name">Website Crm Score Form Main</field>
+            <field name="model">website.crm.score</field>
+            <field name="arch" type="xml">
+                <form string="Meetings">
+                    <sheet>
+                        <div class="oe_title">
+                            <div class="oe_edit_only">
+                                <label for="name"/>
+                            </div>
+                            <h1>
+                                <field name="name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <field name="score"/>
+                        </group>
+                        <notebook>
+                            <page string="Views">
+                                <field name="view_ids" >
+                                    <tree string="Views details" create="false" delete="false">
+                                        <field name="xml_id"/>
+                                        <field name="name"/>
+                                    </tree>
                                </field>
-	                        </page>
-	                    </notebook>
-	                </sheet>
+                            </page>
+                        </notebook>
+                    </sheet>
                 </form>            
-			</field>
-		</record>
+            </field>
+        </record>
 
-		<record model="ir.actions.act_window" id="lead_setting_action">
-			<field name="name">Views</field>
-			<field name="res_model">ir.ui.view</field>
-			<field name="view_type">form</field>
-			<field name="view_mode">tree,form</field>
-		</record>
+        <record model="ir.actions.act_window" id="lead_setting_action">
+            <field name="name">Views</field>
+            <field name="res_model">ir.ui.view</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
 
-		<menuitem id="views_menu" name="Views" parent="sublead_menu" action="lead_setting_action" />
+        <menuitem id="views_menu" name="Views" parent="sublead_menu" action="lead_setting_action" />
 
 
-		<record model="ir.actions.act_window" id="score_setting_action">
-			<field name="name">Scores</field>
-			<field name="res_model">website.crm.score</field>
-			<field name="view_type">form</field>
-			<field name="view_mode">tree,form</field>
-		</record>
+        <record model="ir.actions.act_window" id="score_setting_action">
+            <field name="name">Scores</field>
+            <field name="res_model">website.crm.score</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
 
-		<menuitem id="scores_menu" name="Scores" parent="sublead_menu" action="score_setting_action" />
+        <menuitem id="scores_menu" name="Scores" parent="sublead_menu" action="score_setting_action" />
 
-	</data>
+    </data>
 </openerp>
