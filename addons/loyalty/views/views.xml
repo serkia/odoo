@@ -61,12 +61,20 @@
             <field name="arch" type="xml">
                 <form string="Loyalty Program">
 
-                    <group col="2">
+                    <group col="4">
                         <field name="name" />
                         <field name="currency" />
                         <field name="product" />
                         <field name="order" />
                         <field name="rounding" />
+                    </group>
+
+                    <group string="Exceptions">
+                        <field name='product_exceptions'/>
+                    </group>
+
+                    <group string="Rewards">
+                        <field name='rewards'/>
                     </group>
 
                 </form>
