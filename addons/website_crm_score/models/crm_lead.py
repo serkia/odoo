@@ -17,7 +17,6 @@ class Lead(osv.Model):
     #       r[lead.id] = s
     #   print r
     #   return r
-
     # _columns = {
     #   'score' : fields.function(_compute_score, type='float', string='Score', store=True),
     #   'score_ids' : fields.many2many('crm.score', 'crm_score_rel', 'lead_id', 'score_id', 'Scores'),

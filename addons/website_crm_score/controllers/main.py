@@ -42,7 +42,6 @@ class PageController(addons.website.controllers.main.Website):
                 if tags:
                     crm_tags = ','.join(map(str, tags))
                     response.set_cookie('crm_tags', crm_tags)
-
         return response
 
 
@@ -51,13 +50,13 @@ class ContactController(addons.website_crm.controllers.main.contactus):
     @http.route(['/crm/contactus'], type='http', auth="public", website=True)
     def contactus(self, **kwargs):
         response = super(ContactController, self).contactus(**kwargs)
-        # rem: if error, you dont pass into preRenderThanks so you don't have _values...
-        lead_id = response.qcontext.get('_values', {}).get('lead_id')
-        if lead_id:  # a new lead has been created
-            response.set_cookie('lead_id', str(lead_id))  # rem: why cats as string ? not auto for cookies?
-            response.delete_cookie('crm_tags')
-        else:
-            pass  # lead_id == None because no lead was created
+        if '_values' in response.qcontext:  # contactus failed
+            lead_id = response.qcontext.get('_values', {}).get('lead_id')
+            if lead_id:  # a new lead has been created
+                response.set_cookie('lead_id', str(lead_id))  # rem: why cats as string ? not auto for cookies? -> marche pas si pas de cast : TypeError: Expected bytes
+                response.delete_cookie('crm_tags')
+            else:
+                pass  # lead_id == None because no lead was created
         return response
 
     def create_lead(self, request, values, kwargs):

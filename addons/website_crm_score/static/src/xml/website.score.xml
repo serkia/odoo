@@ -2,9 +2,9 @@
 <templates id="template" xml:space="preserve">
     
     <t t-name="website.set.score">
-        <div class="modal fade oe_seo_configuration js_seo_configuration" tabindex="-1" role="dialog">
+        <div class="modal fade js_seo_configuration" tabindex="-1" role="dialog">
             <div class="modal-dialog">
-                <div class="modal-content">
+                <div class="modal-content"> 
                     <div class="modal-header">
                         <button title="Close" type="button" class="close" data-dismiss="modal">×</button>
                         <div class="h2">Set This Page Score</div>
@@ -21,6 +21,35 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" data-action="save_score" class="btn btn-primary">Save</button>
+                        or
+                        <a data-action="discard" data-dismiss="modal" href="#" >Discard</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="website.create.score">
+        <div class="modal fade js_seo_configuration" tabindex="-1" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button title="Close" type="button" class="close" data-dismiss="modal">×</button>
+                        <div class="h2">Create a new score</div>
+                        <div class="text-muted">
+                            Track your leads efficiently.
+                        </div>
+                    </div>
+                    <div class="modal-body">
+                        <div class="js_seo_tips" />
+                        <section>
+                            <h3 class="page-header">Set this page score to:</h3>
+                            <h3 id="score_name"></h3>
+                            <input type="number" step="any" id="score_value" class="form-control"/>
+                        </section>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" data-action="create_score" class="btn btn-primary">Save</button>
                         or
                         <a data-action="discard" data-dismiss="modal" href="#" >Discard</a>
                     </div>
