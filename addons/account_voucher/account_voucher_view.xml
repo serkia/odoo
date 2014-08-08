@@ -61,6 +61,7 @@
                         <field name="currency_id" groups="base.group_multi_currency"/>
                         <field name="account_id" widget="selection" invisible="True"/>
                         <field name="payment_rate_currency_id" invisible="1"/>
+                        <field name="tax_included" invisible="1"/>
                     </group>
                     <notebook colspan="4">
                         <page string="Voucher Entry">
@@ -76,8 +77,9 @@
                             <group>
                                 <field name="narration" nolabel="1" placeholder="Internal Notes"/>
                                 <group class="oe_subtotal_footer oe_right" attrs="{'invisible':[('type','in',['payment', 'receipt', False])]}">
-                                    <field name="tax_id" on_change="onchange_price(line_ids, tax_id, partner_id)" widget="selection" nolabel="1"/>
-                                    <field name="tax_amount" nolabel="1"/>
+                                    <field name="tax_id" on_change="onchange_price(line_ids, tax_id, partner_id)" widget="selection" />
+                                    <field name="tax_amount" class="oe_inline"/>
+                                    <em attrs="{'invisible':[('tax_included','=',False)]}">(included)</em>
                                     <div class="oe_subtotal_footer_separator">
                                         <label for="amount"/>
                                         <button type="object" icon="terp-stock_format-scientific"   name="compute_tax" class="oe_link oe_edit_only" string="(Update)" attrs="{'invisible': [('state','!=','draft')]}"/>

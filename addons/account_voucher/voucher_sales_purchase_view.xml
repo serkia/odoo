@@ -242,6 +242,7 @@
                                 groups="account.group_account_user"/>
                             <field name="paid_amount_in_company_currency" invisible="1"/>
                             <field name="currency_help_label" invisible="1"/>
+                            <field name="tax_included" invisible="1"/>
                         </group>
                     </group>
                     <notebook>
@@ -257,23 +258,12 @@
                             <group>
                                 <field name="narration" placeholder="Internal Notes" nolabel="1"/>
                                 <group class="oe_subtotal_footer oe_right">
-                                    <!--
+                                    <field name="tax_id" on_change="onchange_price(line_dr_ids, tax_id, partner_id)" widget="selection" nolabel="1"
+                                        domain="[('type_tax_use','in',('purchase','all')), ('parent_id', '=', False)]"/>
                                     <div>
-                                        <label for="tax_id" />
-                                        <button type="object" 
-                                            icon="terp-stock_format-scientific" 
-                                            name="compute_tax"
-                                            attrs="{'invisible': [('state','!=','draft')]}"/>
+                                        <field name="tax_amount" nolabel="1" class="oe_inline"/>
+                                        <em attrs="{'invisible':[('tax_included','=',False)]}">(included)</em>
                                     </div>
-                                    -->
-                                    <field name="tax_id" 
-                                        on_change="onchange_price(line_dr_ids, tax_id, partner_id)"
-                                        widget="selection" nolabel="1"
-					placeholder="Tax"
-
-                                        domain="[('type_tax_use','in',('purchase','all')), ('parent_id', '=', False)]"
-                                        />
-                                    <field name="tax_amount" nolabel="1"/>
                                     <div class="oe_subtotal_footer_separator">
                                         <label for="amount"/>
                                         <button type="object" class="oe_link oe_edit_only"

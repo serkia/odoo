@@ -367,7 +367,8 @@ class account_voucher(osv.osv):
                         \n* The \'Posted\' status is used when user create voucher,a voucher number is generated and voucher entries are created in account \
                         \n* The \'Cancelled\' status is used when user cancel voucher.'),
         'amount': fields.float('Total', digits_compute=dp.get_precision('Account'), required=True, readonly=True, states={'draft':[('readonly',False)]}),
-        'tax_amount':fields.float('Tax Amount', digits_compute=dp.get_precision('Account'), readonly=True, states={'draft':[('readonly',False)]}),
+        'tax_amount':fields.float('Tax Amount', digits_compute=dp.get_precision('Account'), readonly=True,
+            help="Part of the voucher allocated to the tax"),
         'reference': fields.char('Ref #', size=64, readonly=True, states={'draft':[('readonly',False)]}, help="Transaction reference number."),
         'number': fields.char('Number', size=32, readonly=True,),
         'move_id':fields.many2one('account.move', 'Account Entry'),
@@ -379,7 +380,8 @@ class account_voucher(osv.osv):
             ('pay_now','Pay Directly'),
             ('pay_later','Pay Later or Group Funds'),
         ],'Payment', select=True, readonly=True, states={'draft':[('readonly',False)]}),
-        'tax_id': fields.many2one('account.tax', 'Tax', readonly=True, states={'draft':[('readonly',False)]}, domain=[('price_include','=', False)], help="Only for tax excluded from price"),
+        'tax_id': fields.many2one('account.tax', 'Tax', readonly=True, states={'draft':[('readonly',False)]}),
+        'tax_included': fields.related('tax_id', 'price_include', string="Tax included in price", readonly=True, type='boolean'),
         'pre_line':fields.boolean('Previous Payments ?', required=False),
         'date_due': fields.date('Due Date', readonly=True, select=True, states={'draft':[('readonly',False)]}),
         'payment_option':fields.selection([
@@ -420,48 +422,35 @@ class account_voucher(osv.osv):
     }
 
     def compute_tax(self, cr, uid, ids, context=None):
+        """Recompute the total tax amount of the voucher and the untax_amount of each line"""
         tax_pool = self.pool.get('account.tax')
         partner_pool = self.pool.get('res.partner')
         position_pool = self.pool.get('account.fiscal.position')
-        voucher_line_pool = self.pool.get('account.voucher.line')
         voucher_pool = self.pool.get('account.voucher')
-        if context is None: context = {}
-
+        account_voucher_line = self.pool.get('account.voucher.line')
         for voucher in voucher_pool.browse(cr, uid, ids, context=context):
-            voucher_amount = 0.0
+            total = 0.0
             for line in voucher.line_ids:
-                voucher_amount += line.untax_amount or line.amount
-                line.amount = line.untax_amount or line.amount
-                voucher_line_pool.write(cr, uid, [line.id], {'amount':line.amount, 'untax_amount':line.untax_amount})
+                total += line.amount
 
             if not voucher.tax_id:
-                self.write(cr, uid, [voucher.id], {'amount':voucher_amount, 'tax_amount':0.0})
+                self.write(cr, uid, [voucher.id], {'amount':total, 'tax_amount':0.0})
                 continue
 
-            tax = [tax_pool.browse(cr, uid, voucher.tax_id.id, context=context)]
-            partner = partner_pool.browse(cr, uid, voucher.partner_id.id, context=context) or False
-            taxes = position_pool.map_tax(cr, uid, partner and partner.property_account_position or False, tax)
-            tax = tax_pool.browse(cr, uid, taxes, context=context)
-
-            total = voucher_amount
+            tax = tax_pool.browse(cr, uid, voucher.tax_id.id, context=context)
+            partner = voucher.partner_id and partner_pool.browse(cr, uid, voucher.partner_id.id, context=context) or False
+            tax_ids = position_pool.map_tax(cr, uid, partner and partner.property_account_position or False, [tax])
+            tax = tax_ids and tax_pool.browse(cr, uid, tax_ids[0], context=context) or False
             total_tax = 0.0
 
-            if not tax[0].price_include:
+            if tax:
                 for line in voucher.line_ids:
-                    for tax_line in tax_pool.compute_all(cr, uid, tax, line.amount, 1).get('taxes', []):
-                        total_tax += tax_line.get('amount', 0.0)
-                total += total_tax
-            else:
-                for line in voucher.line_ids:
-                    line_total = 0.0
-                    line_tax = 0.0
-
-                    for tax_line in tax_pool.compute_all(cr, uid, tax, line.untax_amount or line.amount, 1).get('taxes', []):
-                        line_tax += tax_line.get('amount', 0.0)
-                        line_total += tax_line.get('price_unit')
-                    total_tax += line_tax
-                    untax_amount = line.untax_amount or line.amount
-                    voucher_line_pool.write(cr, uid, [line.id], {'amount':line_total, 'untax_amount':untax_amount})
+                    tax_amount = tax_pool.compute_all(cr, uid, [tax], line.amount, 1, partner=line.partner_id)
+                    total_tax += tax_amount.get('taxes') and tax_amount['taxes'][0].get('amount', 0.0) or 0.0
+                    if line.untax_amount != tax_amount['total']:
+                        account_voucher_line.write(cr, uid, line.id, {'untax_amount': tax_amount['total']}, context=context)
+                if not voucher.tax_included:
+                    total += total_tax
 
             self.write(cr, uid, [voucher.id], {'amount':total, 'tax_amount':total_tax})
         return True
@@ -484,25 +473,28 @@ class account_voucher(osv.osv):
 
         total_tax = 0.0
         for line in line_ids:
-            line_amount = 0.0
             line_amount = line.get('amount',0.0)
 
             if tax_id:
-                tax = [tax_pool.browse(cr, uid, tax_id, context=context)]
+                tax = tax_pool.browse(cr, uid, tax_id, context=context)
+
                 if partner_id:
                     partner = partner_pool.browse(cr, uid, partner_id, context=context) or False
-                    taxes = position_pool.map_tax(cr, uid, partner and partner.property_account_position or False, tax)
-                    tax = tax_pool.browse(cr, uid, taxes, context=context)
+                    taxes = position_pool.map_tax(cr, uid, partner and partner.property_account_position or False, [tax])
+                    # map_tax returns at most the same number as taxes to map
+                    if taxes and taxes[0] != tax_id:
+                        tax = tax_pool.browse(cr, uid, taxes[0], context=context)
+                        res['tax_id'] = tax.id
 
-                if not tax[0].price_include:
-                    for tax_line in tax_pool.compute_all(cr, uid, tax, line_amount, 1).get('taxes', []):
-                        total_tax += tax_line.get('amount')
+                for tax_line in tax_pool.compute_all(cr, uid, [tax], line_amount, 1).get('taxes', []):
+                    total_tax += tax_line.get('amount')
+                    if not tax.price_include:
+                        line_amount += tax_line.get('amount')
 
             voucher_total += line_amount
-        total = voucher_total + total_tax
 
         res.update({
-            'amount': total or voucher_total,
+            'amount': voucher_total,
             'tax_amount': total_tax
         })
         return {
@@ -939,6 +931,7 @@ class account_voucher(osv.osv):
         return {'type': 'ir.actions.act_window_close'}
 
     def proforma_voucher(self, cr, uid, ids, context=None):
+        self.compute_tax(cr, uid, ids, context=context)
         self.action_move_line_create(cr, uid, ids, context=context)
         return True
 
@@ -1197,9 +1190,8 @@ class account_voucher(osv.osv):
         rec_lst_ids = []
 
         date = self.read(cr, uid, voucher_id, ['date'], context=context)['date']
-        ctx = context.copy()
-        ctx.update({'date': date})
-        voucher = self.pool.get('account.voucher').browse(cr, uid, voucher_id, context=ctx)
+        ctx = dict(context, date=date)
+        voucher = self.browse(cr, uid, voucher_id, context=ctx)
         voucher_currency = voucher.journal_id.currency or voucher.company_id.currency_id
         ctx.update({
             'voucher_special_currency_rate': voucher_currency.rate * voucher.payment_rate ,
@@ -1263,7 +1255,9 @@ class account_voucher(osv.osv):
             # compute the amount in foreign currency
             foreign_currency_diff = 0.0
             amount_currency = False
+            rec_ids = []
             if line.move_line_id:
+                rec_ids.append(line.move_line_id.id)
                 # We want to set it on the account move line as soon as the original line had a foreign currency
                 if line.move_line_id.currency_id and line.move_line_id.currency_id.id != company_currency:
                     # we compute the amount in that foreign currency.
@@ -1279,8 +1273,7 @@ class account_voucher(osv.osv):
                     foreign_currency_diff = line.move_line_id.amount_residual_currency - abs(amount_currency)
 
             move_line['amount_currency'] = amount_currency
-            voucher_line = move_line_obj.create(cr, uid, move_line)
-            rec_ids = [voucher_line, line.move_line_id.id]
+            rec_ids.append( move_line_obj.create(cr, uid, move_line) )
 
             if not currency_obj.is_zero(cr, uid, voucher.company_id.currency_id, currency_rate_difference):
                 # Change difference entry in company currency
@@ -1395,8 +1388,7 @@ class account_voucher(osv.osv):
             # we select the context to use accordingly if it's a multicurrency case or not
             context = self._sel_context(cr, uid, voucher.id, context)
             # But for the operations made by _convert_amount, we always need to give the date in the context
-            ctx = context.copy()
-            ctx.update({'date': voucher.date})
+            ctx = dict(context, date=voucher.date)
             # Create the account move record.
             move_id = move_pool.create(cr, uid, self.account_move_get(cr, uid, voucher.id, context=context), context=context)
             # Get the name of the account_move just created
