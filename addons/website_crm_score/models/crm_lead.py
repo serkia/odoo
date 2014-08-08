@@ -25,7 +25,8 @@ class Lead(osv.Model):
     # New API
     @api.one
     def _compute_score(self):
-        self.score = self.score_ids and sum(map(lambda x: x.id, self.score_ids)) or 0
+        # self.score = self.score_ids and sum(map(lambda x: x.id, self.score_ids)) or 0 # why ?
+        self.score = 0
         for score_id in self.score_ids:
             self.score += score_id.score
 

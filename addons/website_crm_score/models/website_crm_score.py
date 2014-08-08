@@ -1,5 +1,5 @@
 from openerp.osv import osv
-from openerp import fields
+from openerp import fields  # api
 
 
 class website_crm_score(osv.Model):
@@ -41,3 +41,18 @@ class website_crm_score(osv.Model):
             'score': vals.get('value'),
         }
         return self.create(cr, uid, values, context=context)
+
+    def name_get(self, cr, uid, ids, context=None):
+        res = []
+        for record in self.browse(cr, uid, ids, context=context):
+            name = record.name
+            name = name + ('  (%g)' % (record.score))
+            res.append((record.id, name))
+        return res
+
+    # @api.one  # TypeError: <built-in function id> is not JSON serializable
+    # def name_get(self):
+    #     res = []
+    #     ret_name = self.name + ('  (%g)' % (self.score))
+    #     res.append((id, ret_name))
+    #     return res
