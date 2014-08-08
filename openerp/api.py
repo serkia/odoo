@@ -137,8 +137,11 @@ def propagate(from_method, to_method):
 
 
 def constrains(*args):
-    """ Return a decorator that specifies the field dependencies of a method
-        implementing a constraint checker. Each argument must be a field name.
+    """ Decorates a constraint checker. Each argument is the name of a field
+    implemented in the check.
+
+    Should raise :class:`~openerp.exceptions.ValidationError` if the
+    validation failed.
     """
     return lambda method: decorate(method, '_constrains', args)
 
