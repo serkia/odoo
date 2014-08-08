@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates id="template" xml:space="preserve">
     
+    <!-- Need to move in promote if you considere that it's finish (al) -->
     <t t-name="website.set.score">
-        <div class="modal fade js_seo_configuration" tabindex="-1" role="dialog">
+        <div class="modal fade " tabindex="-1" role="dialog">
             <div class="modal-dialog">
                 <div class="modal-content"> 
                     <div class="modal-header">
@@ -13,7 +14,6 @@
                         </div>
                     </div>
                     <div class="modal-body">
-                        <div class="js_seo_tips" />
                         <section>
                             <h3 class="page-header">Set this page score</h3>
                             <input type="hidden" id="link" class="form-control"/>
@@ -30,7 +30,7 @@
     </t>
 
     <t t-name="website.create.score">
-        <div class="modal fade js_seo_configuration" tabindex="-1" role="dialog">
+        <div class="modal fade " tabindex="-1" role="dialog">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -41,11 +41,30 @@
                         </div>
                     </div>
                     <div class="modal-body">
-                        <div class="js_seo_tips" />
                         <section>
                             <h3 class="page-header">Set this page score to:</h3>
-                            <h3 id="score_name"></h3>
-                            <input type="number" step="any" id="score_value" class="form-control"/>
+                            <!-- 
+                                Maybe something like that ? Your are the designer :) 
+                            -->
+                            <div class="form-inline row">
+                                <div class="input-group col-md-offset-1 col-md-6">
+                                    <b style="margin-left:20px"> Name: </b><span id="score_name" />
+                                </div>
+                                <div class="input-group pull-right col-md-4">
+                                  <span class="input-group-addon">
+                                      <a href="#" class="mb8 js_minus">
+                                          <i class="fa fa-minus"></i>
+                                      </a>
+                                  </span>
+                                  <input value="1" type="text" class="js_quantity form-control " id="score_value" />
+                                  <span class="input-group-addon">
+                                      <a href="#" class="mb8 float_left js_more">
+                                          <i class="fa fa-plus"></i>
+                                      </a>
+                                  </span>
+                                </div>
+                            </div>
+
                         </section>
                     </div>
                     <div class="modal-footer">

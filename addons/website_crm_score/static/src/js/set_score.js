@@ -13,7 +13,6 @@
         template: 'website.create.score',
         events: {
             'click button[data-action=create_score]': 'createScore',
-            'hidden.bs.modal': 'destroy', //buggy, don't know why
         },
         init: function(self, name) {
             this.name = name.split("'")[1];
@@ -33,25 +32,20 @@
             var value_input = $('#score_value').val();
             var value = $.isNumeric(value_input) ? value_input : 0;
             var model = website.session.model('website.crm.score');
-            model.call('create_score', [{'name':self.name, 'value':value}, website.get_context()]).then(function (data) { 
+            model.call('create_score', [{'name':self.name, 'value':value}, website.get_context()]).then(function (data) {
                 self.parent.setScoreToView({'id':data});
             }).then(function() {
-                self.$el.modal('hide'); 
+                self.$el.modal('hide');
             });
-        },
-
-        destroy: function () {
-            this._super();
         },
     });
 
     website.score.Configurator = openerp.Widget.extend({
-    	template: 'website.set.score',
+        template: 'website.set.score',
         events: {
             'click button[data-action=save_score]': 'saveScore',
-            'hidden.bs.modal': 'destroy', //buggy, don't know why
+            'hidden.bs.modal': 'destroy',
         },
-
         start: function() {
             var last;
             var self = this;
@@ -143,10 +137,7 @@
                 return $.Deferred().reject();
             } else {
                 if (data){
-                    var id = data.id;
-                    var model = website.session.model(obj.model);
-                    var towrite = { score_id: data.id }
-                    model.call('write', [[obj.id], towrite, website.get_context()]); 
+                    return website.session.model(obj.model).call('write', [[obj.id], { score_id: data.id }, website.get_context()]);
                 }
             }
         },
