@@ -32,3 +32,12 @@ class website_crm_score(osv.Model):
         needle = needle.lower()
         matching_scores = [score for score in scores if needle in score['name'].lower()]
         return matching_scores
+
+    def create_score(self, cr, uid, vals, context=None):
+        print "score creation"
+        print vals
+        values = {
+            'name': vals.get('name'),
+            'score': vals.get('value'),
+        }
+        return self.create(cr, uid, values, context=context)
