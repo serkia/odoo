@@ -20,36 +20,27 @@
         },
 
         start: function() {
-            // this.$el.find('#score_name').attr('placeholder',this.name);
             this.$el.find('#score_name').text(this.name);
             this.$el.modal();
         },
 
         createScore: function (event) {
             var self = this;
-            // var name_input = $('#score_name').val();
-            // var name = name_input ? name_input : this.name;
             var value_input = $('#score_value').val();
             var value = $.isNumeric(value_input) ? value_input : 0;
             var model = website.session.model('website.crm.score');
             model.call('create_score', [{'name':self.name, 'value':value}, website.get_context()]).then(function (data) {
-                self.parent.setScoreToView({'id':data});
+                self.parent.$el.find("#link").select2("data", { id: data, text: self.name });
             }).then(function() {
                 self.$el.modal('hide');
             });
         },
     });
 
-    website.score.Configurator = openerp.Widget.extend({
-        template: 'website.set.score',
-        events: {
-            'click button[data-action=save_score]': 'saveScore',
-            'hidden.bs.modal': 'destroy',
-        },
+    website.seo.Configurator.include({       
         start: function() {
             var last;
             var self = this;
-            this.$el.modal();
             this.$el.find('#link').select2({
                 minimumInputLength: 1,
                 placeholder: _t("Crm Score"),
@@ -82,9 +73,9 @@
                 var data = $('#link').select2('data');
                 if (data.create){
                     new website.score.Creator(self, data.text).appendTo($(document.body));
-                    self.$el.modal('hide');
                 }
             });
+            this._super.apply(this, arguments);
         },
 
         call: function (method, args, kwargs) {
@@ -111,28 +102,8 @@
             });
         },
 
-        getMainObject: function () {
-            var repr = $('html').data('main-object');
-            var m = repr.match(/(.+)\((\d+),(.*)\)/);
-            if (!m) {
-                return null;
-            } else {
-                return {
-                    model: m[1],
-                    id: m[2]|0
-                };
-            }
-        },
-
-        saveScore: function(event) {
-            var self = this;
-            var data = $('#link').select2('data');
-            this.setScoreToView(data);
-            self.$el.modal('hide'); // error : Uncaught TypeError: Cannot read property 'callbackList' of undefined
-        },
-
         setScoreToView: function(data) {
-            var obj = this.getMainObject();
+            var obj = website.seo.Configurator.prototype.getMainObject();
             if (!obj) {
                 return $.Deferred().reject();
             } else {
@@ -142,17 +113,13 @@
             }
         },
 
-        destroy: function () {
+        update: function () {
+            var self = this;
+            var data = $('#link').select2('data');
+            this.setScoreToView(data);
             this._super();
         },
 
     });
-
-    website.ready().done(function() {
-        $(document.body).on('click', 'a[data-action=set_score]', function() {
-            new website.score.Configurator(this).appendTo($(document.body));
-        });
-    });
-
 
 })();
