@@ -9,7 +9,7 @@
     'data': [
         'views/lead.xml',
         'views/website_crm_score.xml',
-        'views/sales.xml',
+        # 'views/sales.xml',
         'security/ir.model.access.csv',
     ],
 }
