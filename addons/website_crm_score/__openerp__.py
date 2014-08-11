@@ -10,5 +10,6 @@
         'views/lead.xml',
         'views/template.xml',
         'views/website_crm_score.xml',
+        'views/sales.xml',
     ],
 }

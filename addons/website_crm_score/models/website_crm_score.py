@@ -15,7 +15,7 @@ class website_crm_score(osv.Model):
     # New API
     name = fields.Char("Name")
     score = fields.Float("Score")
-    view_ids = fields.One2many('ir.ui.view', 'score_id', string='Viewsss')
+    view_ids = fields.One2many('ir.ui.view', 'score_id', string='Views')
 
     def score_exists(self, cr, uid, ids, name, context=None):  # page_exists(self, cr, uid, ids, name, module='website', context=None):
         scores = self.pool['website.crm.score'].search_read(cr, uid, domain=[], fields=['name'], context=context)
@@ -46,7 +46,7 @@ class website_crm_score(osv.Model):
         res = []
         for record in self.browse(cr, uid, ids, context=context):
             name = record.name
-            name = name + ('  (%g)' % (record.score))
+            name = name + (' (%g)' % (record.score))
             res.append((record.id, name))
         return res
 
