@@ -17,6 +17,20 @@ class website_crm_score(osv.Model):
     score = fields.Float("Score")
     view_ids = fields.One2many('ir.ui.view', 'score_id', string='Views')
 
+    _sql_constraints = [
+        ('name_unique', 'unique (name)', "The name must be unique"),
+    ]
+
+    def copy(self, cr, uid, id, default, context=None):
+        score = self.browse(cr, uid, id, context=context)
+        new_name = "Copy of %s" % score.name
+        # =like is the original LIKE operator from SQL
+        others_count = self.search(cr, uid, [('name', '=like', new_name+'%')], count=True, context=context)
+        if others_count > 0:
+            new_name = "%s (%s)" % (new_name, others_count+1)
+        default['name'] = new_name
+        return super(website_crm_score, self).copy(cr, uid, id, default, context=context)
+
     def score_exists(self, cr, uid, ids, name, context=None):  # page_exists(self, cr, uid, ids, name, module='website', context=None):
         scores = self.pool['website.crm.score'].search_read(cr, uid, domain=[], fields=['name'], context=context)
         exists = False

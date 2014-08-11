@@ -1,8 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates id="template" xml:space="preserve">
     
+
+    <t t-extend="website.seo_configuration">
+        <t t-jquery="div.modal-body" t-operation="append">
+            <section class="set_score">
+                <h3 class="page-header mt16">4. Set Score <small>to better track your leads</small></h3>
+                <div class="form-horizontal" role="form">
+                    <div class="form-group">
+                        <label for="save_score" class="col-sm-3 control-label">Set score:</label>
+                        <div class="col-sm-4">  <!-- how do I make this bigger ? -->
+                            <div class="input-group">
+                                <input type="hidden" name="save_score" id="link" class="form-control" maxlength="30"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </t>
+    </t>
+
     <!-- Need to move in promote if you considere that it's finish (al) -->
-    <t t-name="website.set.score">
+<!--     <t t-name="website.set.score">
         <div class="modal fade " tabindex="-1" role="dialog">
             <div class="modal-dialog">
                 <div class="modal-content"> 
@@ -27,7 +46,7 @@
                 </div>
             </div>
         </div>
-    </t>
+    </t> -->
 
     <t t-name="website.create.score">
         <div class="modal fade " tabindex="-1" role="dialog">
@@ -48,20 +67,22 @@
                             -->
                             <div class="form-inline row">
                                 <div class="input-group col-md-offset-1 col-md-6">
-                                    <b style="margin-left:20px"> Name: </b><span id="score_name" />
+                                    <h3><b style="margin-left:20px"> Name: </b><span id="score_name" /></h3>
                                 </div>
-                                <div class="input-group pull-right col-md-4">
-                                  <span class="input-group-addon">
-                                      <a href="#" class="mb8 js_minus">
-                                          <i class="fa fa-minus"></i>
-                                      </a>
-                                  </span>
-                                  <input value="1" type="text" class="js_quantity form-control " id="score_value" />
-                                  <span class="input-group-addon">
-                                      <a href="#" class="mb8 float_left js_more">
-                                          <i class="fa fa-plus"></i>
-                                      </a>
-                                  </span>
+                                <div class="input-group col-md-4"> <!-- pull-right removed -->
+                                    <!-- What is needed for the plus and minus button to work ? -->
+                                    <!-- <span class="input-group-addon">
+                                        <a href="#" class="mb8 js_minus">
+                                            <i class="fa fa-minus"></i>
+                                        </a>
+                                    </span> -->
+                                    <input value="1" type="number" step="any" class="js_quantity form-control " id="score_value" />
+                                    <!-- <input value="1" type="text" class="js_quantity form-control " id="score_value" /> -->
+                                    <!-- <span class="input-group-addon">
+                                        <a href="#" class="mb8 float_left js_more">
+                                            <i class="fa fa-plus"></i>
+                                        </a>
+                                    </span> -->
                                 </div>
                             </div>
 
@@ -79,34 +100,3 @@
 
 </templates>
 
-<!-- <template id="website_crm_scoring_assign" inherit_id="website.template" groups="base.group_user">
-    <xpath expr="//div[@class='modal-body']/section[@class='js_seo_keywords_list']" position="after">
-        <section class="set_score">
-            <h3 class="page-header mt16">1. Set Score Keywords <small>describing your page content</small></h3>
-            <div class="modal fade " tabindex="-1" role="dialog">
-                <div class="modal-dialog">
-                    <div class="modal-content"> 
-                        <div class="modal-header">
-                            <button title="Close" type="button" class="close" data-dismiss="modal">×</button>
-                            <div class="h2">Set This Page Score</div>
-                            <div class="text-muted">
-                                Track your leads efficiently.
-                            </div>
-                        </div>
-                        <div class="modal-body">
-                            <section>
-                                <h3 class="page-header">Set this page score</h3>
-                                <input type="hidden" id="link" class="form-control"/>
-                            </section>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" data-action="save_score" class="btn btn-primary">Save</button>
-                            or
-                            <a data-action="discard" data-dismiss="modal" href="#" >Discard</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </xpath>
-</template> -->
