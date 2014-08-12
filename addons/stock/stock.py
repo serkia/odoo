@@ -2160,6 +2160,8 @@ class stock_move(osv.osv):
         pickings = {}
         if context is None:
             context = {}
+        order = 'prodlot_id, ' + self._order
+        ids = self.search(cr, uid, [('id', 'in', ids)], order=order, context=context)
         for move in self.browse(cr, uid, ids, context=context):
             if move.product_id.type == 'consu' or move.location_id.usage == 'supplier':
                 if move.state in ('confirmed', 'waiting'):
