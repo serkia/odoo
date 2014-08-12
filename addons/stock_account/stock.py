@@ -102,13 +102,34 @@ class stock_move(osv.osv):
         @param type: Type of invoice
         @return: The price unit for the move line
         """
+        pricelist_obj = self.pool.get("product.pricelist")
         if context is None:
             context = {}
         if type in ('in_invoice', 'in_refund'):
             # Take the user company and pricetype
             product = move_line.product_id.with_context(currency_id=move_line.company_id.currency_id.id)
             amount_unit = product.price_get('standard_price')[move_line.product_id.id]
+            # If partner given, search price in its purchase pricelist
+            if move_line.partner_id and move_line.partner_id.property_product_pricelist_purchase:
+                pricelist = move_line.partner_id.property_product_pricelist.id
+                price = pricelist_obj.price_get(cr, uid, [pricelist],
+                    product, move_line.product_uom_qty, move_line.partner_id.id, {
+                        'uom': move_line.product_uom.id,
+                        'date': move_line.date,
+                        })[pricelist]
+                if price:
+                    return price
             return amount_unit
+        # If partner given, search price in its sale pricelist
+        if move_line.partner_id and move_line.partner_id.property_product_pricelist:
+            pricelist = move_line.partner_id.property_product_pricelist.id
+            price = pricelist_obj.price_get(cr, uid, [pricelist],
+                    product, move_line.product_uom_qty, move_line.partner_id.id, {
+                        'uom': move_line.product_uom.id,
+                        'date': move_line.date,
+                        })[pricelist]
+            if price:
+                return price
         return move_line.product_id.list_price
 
     def _get_invoice_line_vals(self, cr, uid, move, partner, inv_type, context=None):
