@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<openerp>
+
+    <data>
+         <record model="ir.ui.view" id="sales_team_form_view_assign">
+            <field name="name">crm.case.section.form.inherit</field>
+            <field name="model">crm.case.section</field>
+            <field name="inherit_id" ref="sales_team.crm_case_section_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@string='Team Members']" position="replace">
+                    <page string="Assignation">
+                        <field name="member_ids" widget="many2many_kanban">
+                            <kanban quick_create="false" create="true">
+                                <field name="has_image"/>
+                                <field name="ratio"/>
+                                <field name="filter_ids"/>
+                                <templates>
+                                    <t t-name="kanban-tooltip">
+                                       <!-- <field name="display_name"/> -->
+                                       TOOLTIP  <!-- marche pas ! -->
+                                    </t>
+                                    <t t-name="kanban-box">
+                                        <div class="oe_kanban_vignette oe_semantic_html_override">
+                                            <a type="open">
+                                                <t t-if="record.has_image.raw_value === true">
+                                                    <img t-att-src="kanban_image('res.partner', 'image_small', record.id.value)" class="oe_kanban_image"/>
+                                                </t>
+                                            </a>
+                                            <div class="oe_kanban_details" tooltip="kanban-tooltip">
+                                                <h4 class="oe_partner_heading" tooltip="kanban-tooltip"><a type="open"><field name="display_name"/></a></h4>
+                                                <div class="oe_kanban_partner_categories"/>
+                                                <div class="oe_kanban_partner_links"/>
+                                                <ul>
+                                                    <li t-if="record.filter_ids.raw_value"><span class="oe_i">q</span><field name="filter_ids"/></li> <!-- Comment mettre le symbole filter a coté des filtres ? -->
+                                                    <li><field name="leads_count"/> Leads (<field name="new_leads_count"/> new)</li>
+                                                    <li t-if="record.ratio.raw_value">Assign lead: <field name="ratio" widget="priority"/></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </templates>
+                            </kanban>
+                        </field>
+                    </page>
+               </xpath>
+            </field>
+        </record>
+
+
+        <record id="view_users_form" model="ir.ui.view">
+            <field name="name">res.users.form.inherit</field>
+            <field name="model">res.users</field>
+            <field name="type">form</field>
+            <field name="inherit_id" ref="base.view_users_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group[@string='Messaging and Social']" position="after">
+                    <group string="Leads">
+                        <field name="filter_ids"/>  <!-- col etc ... -->
+                        <field name="ratio" widget="priority"/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+        
+
+    </data>
+</openerp>

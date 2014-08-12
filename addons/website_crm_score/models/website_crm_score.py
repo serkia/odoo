@@ -48,8 +48,6 @@ class website_crm_score(osv.Model):
         return matching_scores
 
     def create_score(self, cr, uid, vals, context=None):
-        print "score creation"
-        print vals
         values = {
             'name': vals.get('name'),
             'score': vals.get('value'),

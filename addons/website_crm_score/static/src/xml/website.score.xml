@@ -89,7 +89,7 @@
                         </section>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" data-action="create_score" class="btn btn-primary">Save</button>
+                        <button type="button" data-action="create_score" class="btn btn-primary">Create</button>
                         or
                         <a data-action="discard" data-dismiss="modal" href="#" >Discard</a>
                     </div>
