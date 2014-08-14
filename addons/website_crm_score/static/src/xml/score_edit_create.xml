@@ -1,27 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates id="template" xml:space="preserve">
     
-
-    <t t-extend="website.seo_configuration">
-        <t t-jquery="div.modal-body" t-operation="append">
-            <section class="set_score">
-                <h3 class="page-header mt16">4. Set Score <small>to better track your leads</small></h3>
-                <div class="form-horizontal" role="form">
-                    <div class="form-group">
-                        <label for="save_score" class="col-sm-3 control-label">Set score:</label>
-                        <div class="col-sm-4">  <!-- how do I make this bigger ? -->
-                            <div class="input-group">
-                                <input type="hidden" name="save_score" id="link" class="form-control" maxlength="30"/>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </t>
-    </t>
-
-    <!-- Need to move in promote if you considere that it's finish (al) -->
-<!--     <t t-name="website.set.score">
+    <t t-name="website.set.score">
         <div class="modal fade " tabindex="-1" role="dialog">
             <div class="modal-dialog">
                 <div class="modal-content"> 
@@ -46,7 +26,7 @@
                 </div>
             </div>
         </div>
-    </t> -->
+    </t>
 
     <t t-name="website.create.score">
         <div class="modal fade " tabindex="-1" role="dialog">

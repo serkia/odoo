@@ -4,7 +4,7 @@
     var website = openerp.website;
     var _t = openerp._t;
 
-    website.add_template_file('/website_crm_score/static/src/xml/website.score.xml');
+    website.add_template_file('/website_crm_score/static/src/xml/score_edit_create.xml');
 
     website.score = {};
 
@@ -37,14 +37,25 @@
         },
     });
 
-    website.seo.Configurator.include({       
+    website.score.Configurator = openerp.Widget.extend({
+        template: 'website.set.score',
+        events: {
+            'click button[data-action=save_score]': 'saveScore',
+            'hidden.bs.modal': 'destroy',
+        },
+
         start: function() {
             var last;
             var self = this;
-            // var currentScore = this.getCurrentScore(); // to get the place holder
+            this.$el.modal();
+            this.getCurrentScore().then( function(data) {
+                // si ca return $.Deferred().reject(); il se passe quoi ?
+                if(data[0]["score_id"]) {
+                    self.$el.find("#link").select2("data", { id: data[0]["score_id"][0], text: data[0]["score_id"][1] });
+                }
+            });
             this.$el.find('#link').select2({
                 minimumInputLength: 1,
-                // put in placeholder the name of the score currently used
                 placeholder: _t("Crm Score"),
                 query: function (q) {
                     if (q.term == last) return;
@@ -77,7 +88,6 @@
                     new website.score.Creator(self, data.text).appendTo($(document.body));
                 }
             });
-            this._super.apply(this, arguments);
         },
 
         call: function (method, args, kwargs) {
@@ -109,7 +119,7 @@
             if (!obj) {
                 return $.Deferred().reject();
             } else {
-                return website.session.model(obj.model).call('read', [[obj.id], ['score_id'], website.get_context()]);
+                return website.session.model(obj.model).call('read', [[obj.id], ['score_id'], website.get_context()])
             }
         },
 
@@ -119,30 +129,31 @@
                 return $.Deferred().reject();
             } else {
                 if (data){
-                    // error here:
-// 2014-08-12 06:43:58,787 3238 ERROR lde-test openerp.sql_db: bad query: update ir_ui_view set "website_meta_keywords"='',"website_meta_title"='YourCompany - Homepage',write_uid=1,write_date=(now() at time zone 'UTC') where id IN (317)
-// Traceback (most recent call last):
-// File "/home/lde/Odoo/git/odoo/openerp/sql_db.py", line 230, in execute
-// res = self._obj.execute(query, params)
-// TransactionRollbackError: could not serialize access due to concurrent update
                     return website.session.model(obj.model).call('write', [[obj.id], { score_id: data.id }, website.get_context()]);
                 }
             }
         },
 
-        update: function () {
+        saveScore: function () {
             var self = this;
-            self._super();
+            
             var data = $('#link').select2('data');
-            //debugger;
-            this.setScoreToView(data).then( function(xx) {
-                console.log("def");
-                //debugger;
-                
+            this.setScoreToView(data).then( function() {
+                self.$el.modal('hide');
             });
             
         },
 
+        destroy: function () {
+            this._super();
+         },
+
+    });
+
+    website.ready().done(function() {
+        $(document.body).on('click', 'a[data-action=set_score]', function() {
+            new website.score.Configurator(this).appendTo($(document.body));
+        });
     });
 
 })();
