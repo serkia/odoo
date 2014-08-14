@@ -2,11 +2,14 @@
 
 <templates>
     <t t-name="GanttView">
-        <div>
-            <div t-att-id="widget.chart_id" class="oe_gantt"/>
+        <div class="oe_gantt">
+            <button class="oe_button oe_gantt_button_create">Create</button>
+            <strong>Zoom Timeline: </strong>
+            <input type="radio" name="scale" value="day" />Day
+            <input type="radio" name="scale" value="week" />Week
+            <input type="radio" name="scale" value="month" />Month
+            <input type="radio" name="scale" value="year" />Year
+            <div t-att-id="widget.chart_id" class="oe_gantt_view"/>
         </div>
-    </t>
-    <t t-name="GanttView-create-button">
-        <button class="oe_button oe_gantt_button_create">Create</button>
     </t>
 </templates>

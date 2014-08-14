@@ -85,3 +85,7 @@
 
 }
 
+.modal-dialog .dropdown-menu.state{
+    right: 0 !important;
+    left: initial;
+}
