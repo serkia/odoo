@@ -3,7 +3,21 @@
 <openerp>
 
     <data>
-         <record model="ir.ui.view" id="sales_team_form_view_assign">
+
+        <!-- Scheduler for Lead Assign-->
+   <!--      <record forcecreate="True" id="ir_cron_lead_assign" model="ir.cron">
+            <field name="name">Lead Assign Cron</field>
+            <field eval="True" name="active" />
+            <field name="user_id" ref="base.user_root" />
+            <field name="interval_number">1</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field eval="False" name="doall" />
+            <field eval="'crm.case.section'" name="model" />
+            <field eval="'assign_leads'" name="function" />
+        </record> -->
+
+        <record model="ir.ui.view" id="sales_team_form_view_assign">
             <field name="name">crm.case.section.form.inherit</field>
             <field name="model">crm.case.section</field>
             <field name="inherit_id" ref="sales_team.crm_case_section_view_form"/>

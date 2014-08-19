@@ -1,3 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_website_crm_score,access_website_crm_score,model_website_crm_score,,1,0,0,0
 access_website_crm_score,access_website_crm_score,model_website_crm_score,base.group_website_designer,1,1,1,1
+access_crm_lead_score_date,access_crm_lead_score_date,model_crm_lead_score_date,,1,0,0,0
+access_crm_lead_score_date,access_crm_lead_score_date,model_crm_lead_score_date,base.group_system,1,1,1,1
+access_section_user,access_section_user,model_section_user,,1,0,0,0
+access_section_user,access_section_user,model_section_user,base.group_system,1,1,1,1

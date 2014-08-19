@@ -10,7 +10,7 @@ def write_score(cr, uid, score_id, lead_id, model, context=None):
     ids = request.registry['crm_lead_score_date'].search(cr, SUPERUSER_ID, domain, context=context)
     request.registry['crm_lead_score_date'].write(cr, SUPERUSER_ID, ids, {'date': fields.Datetime.now()}, context=context)
     # writing a note in the log of the lead
-    name = request.registry['website.crm.score'].read(cr, uid, score_id, fields=['name'], context=context)
+    name = request.registry['website.crm.score'].read(cr, SUPERUSER_ID, score_id, fields=['name'], context=context)
     body = 'This lead was granted the score <b>' + str(name['name']) + '</b>'
     model.message_post(cr, uid, [lead_id], body=body, subject="Score granted", context=context)
 
@@ -23,7 +23,7 @@ class PageController(addons.website.controllers.main.Website):
         cr, uid, context = request.cr, request.uid, request.context
 
         # used to test the lead assignement to teams
-        request.registry["crm.case.section"].assign_leads(cr, uid, context)
+        # request.registry["crm.case.section"].assign_leads(cr, uid, context)
 
         response = super(PageController, self).page(page, **opt)
         view = request.website.get_template(page)
