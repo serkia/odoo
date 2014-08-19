@@ -21,7 +21,7 @@
             <field name="model">crm.lead</field>
             <field name="inherit_id" ref="crm.crm_case_form_view_leads" />
             <field name="arch" type="xml">
-                <field name="categ_ids" position="after">
+                <!-- <field name="categ_ids" position="after">
                     <field name="score"/>
                     <field name="score_ids"
                         widget="many2many_tags"
@@ -29,8 +29,19 @@
                         context="{'object_name': 'crm.lead'}"
                         readonly="1"
                     />
-                    <!-- <field name="score_ids"/> -->
-                </field>
+                </field> -->
+                <xpath expr="//group[@string='Misc']" position="after">
+                    <group string="Scoring">
+                        <field name="score"/>
+                        <field name="score_ids"
+                            widget="many2many_tags"
+                            domain="[('object_id.model','=','crm.lead')]"
+                            context="{'object_name': 'crm.lead'}"
+                            readonly="1"
+                        />
+                        <field name="language" readonly="1"/>
+                    </group>
+                </xpath>
             </field>
         </record>
 
@@ -121,6 +132,54 @@
         </record>
 
         <menuitem id="scores_menu" name="Scores" parent="sublead_menu" action="score_setting_action" />
+
+
+        <record model="ir.ui.view" id="view_crm_score_form">
+            <field name="name">Section User Form</field>
+            <field name="model">section.user</field>
+            <field name="arch" type="xml">
+                <form string="Section User">
+                    <field name="section_id"/>
+                    <field name="user_id"/>
+                    <field name="maximum_user_leads"/>
+                    <!-- <field name="section_model"/> -->
+                    <!-- <field name="user_domain" widget="char_domain" options="{'model': 'res.users'}" /> -->
+                    <field name="section_domain" widget="char_domain" options="{'model': 'ir.filters'}"/>
+                </form>            
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_crm_score_tree">
+            <field name="name">Section User Tree</field>
+            <field name="model">section.user</field>
+            <field name="arch" type="xml">
+                <tree string="Section User">
+                    <field name="section_id"/>
+                    <field name="user_id"/>
+                    <field name="maximum_user_leads"/>
+                </tree>            
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="section_user_action">
+            <field name="name">SectionUser</field>
+            <field name="res_model">section.user</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem id="section_user" name="SectionUser" parent="sublead_menu" action="section_user_action" />
+
+
+
+
+<!--         <record id="mt_scoring" model="mail.message.subtype">
+            <field name="name">Scoring</field>
+            <field name="res_model">crm.lead</field>
+            <field name="default" eval="False"/>
+            <field name="description">Scoring</field>
+        </record>
+ -->
 
     </data>
 </openerp>

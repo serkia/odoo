@@ -8,35 +8,46 @@
             <field name="model">crm.case.section</field>
             <field name="inherit_id" ref="sales_team.crm_case_section_view_form"/>
             <field name="arch" type="xml">
+                <xpath expr="//notebook[@colspan='4']" position="before">
+                    <field name="filter_ids"/>
+                    <group>
+                        <field name="maximum_section_leads"/>
+                    </group>
+                </xpath>
+<!--                 <field name="active" position="after">
+                    <table>
+                        <tr>
+                            <td><span class="fa fa-filter"/></td> 
+                            <td>
+                                <field name="filter_ids"/>
+                            </td>
+                        </tr>
+                    </table>
+                </field> -->
                 <xpath expr="//page[@string='Team Members']" position="replace">
                     <page string="Assignation">
-                        <field name="member_ids" widget="many2many_kanban">
+                        <field name="section_user_ids" widget="many2many_kanban">
+                            <t t-debug='pdb'/> 
                             <kanban quick_create="false" create="true">
-                                <field name="has_image"/>
-                                <field name="ratio"/>
-                                <field name="filter_ids"/>
+                                <field name="user_id"/>
                                 <templates>
-                                    <t t-name="kanban-tooltip">
-                                       <!-- <field name="display_name"/> -->
-                                       TOOLTIP  <!-- marche pas ! -->
-                                    </t>
+                                    <!-- <t t-debug='pdb'/> -->
                                     <t t-name="kanban-box">
-                                        <div class="oe_kanban_vignette oe_semantic_html_override">
-                                            <a type="open">
-                                                <t t-if="record.has_image.raw_value === true">
-                                                    <img t-att-src="kanban_image('res.partner', 'image_small', record.id.value)" class="oe_kanban_image"/>
-                                                </t>
-                                            </a>
-                                            <div class="oe_kanban_details" tooltip="kanban-tooltip">
-                                                <h4 class="oe_partner_heading" tooltip="kanban-tooltip"><a type="open"><field name="display_name"/></a></h4>
-                                                <div class="oe_kanban_partner_categories"/>
-                                                <div class="oe_kanban_partner_links"/>
-                                                <ul>
-                                                    <li t-if="record.filter_ids.raw_value"><span class="oe_i">q</span><field name="filter_ids"/></li> <!-- Comment mettre le symbole filter a coté des filtres ? -->
-                                                    <li><field name="leads_count"/> Leads (<field name="new_leads_count"/> new)</li>
-                                                    <li t-if="record.ratio.raw_value">Assign lead: <field name="ratio" widget="priority"/></li>
-                                                </ul>
-                                            </div>
+                                        <a type="open">     
+                                            <img t-att-src="kanban_image('res.partner', 'image_small', record.id.value)" class="oe_kanban_image"/>
+                                        </a>
+
+                                        <!-- section_domain displays a domain, how do I display this ?-->
+                                        <div class="oe_kanban_details">
+                                            <ul>
+                                                <li><a type="open">
+                                                    <field name="user_name"/>
+                                                </a></li>
+                                                <li><field name="section_domain" widget="char_domain"/></li> <!-- widget is uesless -->
+                                                <li><field name="maximum_user_leads"/></li>
+                                                <!-- sparkline....... -->
+                                                <li><field name="percentage_leads" widget="sparkline_bar" options="{'height': '20px', 'barWidth': 4, 'barSpacing': 1}"/></li> <!-- widget is uesless -->
+                                            </ul>
                                         </div>
                                     </t>
                                 </templates>
@@ -48,7 +59,7 @@
         </record>
 
 
-        <record id="view_users_form" model="ir.ui.view">
+<!--         <record id="view_users_form" model="ir.ui.view">
             <field name="name">res.users.form.inherit</field>
             <field name="model">res.users</field>
             <field name="type">form</field>
@@ -56,12 +67,13 @@
             <field name="arch" type="xml">
                 <xpath expr="//group[@string='Messaging and Social']" position="after">
                     <group string="Leads">
-                        <field name="filter_ids"/>  <!-- col etc ... -->
+                        <field name="filter_ids"/>
                         <field name="ratio" widget="priority"/>
                     </group>
                 </xpath>
             </field>
-        </record>
+        </record> 
+-->
         
 
     </data>

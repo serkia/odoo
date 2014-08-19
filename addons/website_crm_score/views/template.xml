@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+<data>
+
+<template id="website_crm_scoring_assign" inherit_id="website.user_navbar" groups="base.group_user">
+    <xpath expr="//ul[@id='oe_systray']/li/a[@data-action='promote-current-page']/.." position="after">
+       <li groups="base.group_website_designer">
+            <a data-action="set_score" href="#">
+                <span title="Set the score of this page">Score</span>
+            </a>
+        </li>
+    </xpath>
+</template>
+
+<!-- <template id="website_crm_scoring_assign_in_promote" inherit_id="website.template" groups="base.group_user">
+    <xpath expr="//div[@class='modal-body']/section[@class='js_seo_keywords_list']" position="after">
+       <section class="js_seo_keywords_list">
+	        <h3 class="page-header mt16">1. Define Score <small>describing your page content</small></h3>
+	        <div class="form-horizontal" role="form">
+	            <div class="form-group">
+	                <label for="seo_page_keywords" class="col-sm-3 control-label">Add keyword:</label>
+	                <div class="col-sm-4">
+	                    <div class="input-group">
+	                      <input type="text" name="seo_page_keywords" class="form-control" maxlength="30"/>
+	                      <span class="input-group-btn">
+	                          <button data-action="add" class="btn btn-default" type="button">Add</button>
+	                      </span>
+	                    </div>
+	                </div>
+	            </div>
+	        </div>
+	        <span class="text-muted">Most searched topics related to your keywords, ordered by importance:</span>
+
+	    </section>
+    </xpath>
+</template> -->
+
+</data>
+</openerp>
