@@ -23,7 +23,7 @@ class PageController(addons.website.controllers.main.Website):
         cr, uid, context = request.cr, request.uid, request.context
 
         # used to test the lead assignement to teams
-        # request.registry["crm.case.section"].assign_leads(cr, uid, context)
+        request.registry["crm.case.section"].assign_leads(cr, uid, context)
 
         response = super(PageController, self).page(page, **opt)
         view = request.website.get_template(page)

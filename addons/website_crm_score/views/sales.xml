@@ -46,7 +46,8 @@
                                                 <li><field name="section_domain" widget="char_domain"/></li> <!-- widget is uesless -->
                                                 <li><field name="maximum_user_leads"/></li>
                                                 <!-- sparkline....... -->
-                                                <li><field name="percentage_leads" widget="sparkline_bar" options="{'height': '20px', 'barWidth': 4, 'barSpacing': 1}"/></li> <!-- widget is uesless -->
+                                                <li><field name="percentage_leads"/> <!-- widget="sparkline_bar" options="{'height': '20px', 'barWidth': 4, 'barSpacing': 1}"/> --><!-- widget is uesless -->
+                                                </li>
                                             </ul>
                                         </div>
                                     </t>
