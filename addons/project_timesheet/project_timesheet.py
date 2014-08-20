@@ -24,6 +24,7 @@ import datetime
 from openerp.osv import fields, osv
 from openerp import tools
 from openerp.tools.translate import _
+from openerp.addons.analytic.models import analytic
 
 class project_project(osv.osv):
     _inherit = 'project.project'
@@ -222,7 +223,30 @@ class project_work(osv.osv):
 
 class task(osv.osv):
     _inherit = "project.task"
+    
+    def _get_current_contract_state(self, cr, uid, ids, field_names, args, context=None):
+        res = {}
+        for task in self.browse(cr, uid, ids, context=context):
+            res[task.id] = False
+            contrat = task.project_id and task.project_id.analytic_account_id
+            if contrat.partner_id and contrat.use_tasks:
+                res[task.id] = contrat.state
+        return res
 
+    _columns = {
+        'contract_state': fields.function(_get_current_contract_state, string='Contract Status', type='selection', selection=analytic.ANALYTIC_ACCOUNT_STATE),
+    }
+    
+    def onchange_project(self, cr, uid, ids, project_id, context=None):
+        result = super(task, self).onchange_project(cr, uid, ids, project_id, context=context)
+        value = result.get('value', {})
+        if project_id:
+            project = self.pool.get('project.project').browse(cr, uid, project_id, context=context)
+            contract_state = project.analytic_account_id.partner_id and project.analytic_account_id.use_tasks and project.analytic_account_id.state or False
+            value['contract_state'] = contract_state
+        result['value'] = value
+        return result
+        
     def unlink(self, cr, uid, ids, *args, **kwargs):
         for task_obj in self.browse(cr, uid, ids, *args, **kwargs):
             if task_obj.work_ids:

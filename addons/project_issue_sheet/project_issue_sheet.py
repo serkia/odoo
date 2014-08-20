@@ -21,13 +21,25 @@
 
 from openerp.osv import fields,osv,orm
 from openerp.tools.translate import _
+from openerp.addons.analytic.models import analytic
 
 class project_issue(osv.osv):
     _inherit = 'project.issue'
     _description = 'project issue'
+    
+    def _get_current_contract_state(self, cr, uid, ids, field_names, args, context=None):
+        res = {}
+        for issue in self.browse(cr, uid, ids, context=context):
+            res[issue.id] = False
+            contrat = issue.project_id and issue.project_id.analytic_account_id
+            if contrat.partner_id and contrat.use_issues:
+                res[issue.id] = contrat.state
+        return res
+        
     _columns = {
         'timesheet_ids': fields.one2many('hr.analytic.timesheet', 'issue_id', 'Timesheets'),
         'analytic_account_id': fields.many2one('account.analytic.account', 'Analytic Account'), 
+        'contract_state': fields.function(_get_current_contract_state, string='Contract Status', type='selection', selection=analytic.ANALYTIC_ACCOUNT_STATE), 
     }
     
     def on_change_project(self, cr, uid, ids, project_id, context=None):
@@ -43,6 +55,7 @@ class project_issue(osv.osv):
         account = project.analytic_account_id
         if account:
             result['value']['analytic_account_id'] = account.id
+            result['value']['contract_state'] = account.partner_id and account.use_issues and account.state or False
 
         return result
 
