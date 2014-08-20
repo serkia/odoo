@@ -5,17 +5,17 @@
     <data>
 
         <!-- Scheduler for Lead Assign-->
-   <!--      <record forcecreate="True" id="ir_cron_lead_assign" model="ir.cron">
+        <record forcecreate="True" id="ir_cron_lead_assign" model="ir.cron">
             <field name="name">Lead Assign Cron</field>
             <field eval="True" name="active" />
             <field name="user_id" ref="base.user_root" />
             <field name="interval_number">1</field>
-            <field name="interval_type">minutes</field>
+            <field name="interval_type">hours</field>
             <field name="numbercall">-1</field>
             <field eval="False" name="doall" />
             <field eval="'crm.case.section'" name="model" />
             <field eval="'assign_leads'" name="function" />
-        </record> -->
+        </record>
 
         <record model="ir.ui.view" id="sales_team_form_view_assign">
             <field name="name">crm.case.section.form.inherit</field>
@@ -44,25 +44,48 @@
                             <t t-debug='pdb'/> 
                             <kanban quick_create="false" create="true">
                                 <field name="user_id"/>
+                                <field name="running"/>
                                 <templates>
                                     <!-- <t t-debug='pdb'/> -->
                                     <t t-name="kanban-box">
                                         <a type="open">     
                                             <img t-att-src="kanban_image('res.partner', 'image_small', record.id.value)" class="oe_kanban_image"/>
                                         </a>
-
                                         <!-- section_domain displays a domain, how do I display this ?-->
                                         <div class="oe_kanban_details">
-                                            <ul>
-                                                <li><a type="open">
-                                                    <field name="user_name"/>
-                                                </a></li>
-                                                <li><field name="section_domain" widget="char_domain"/></li> <!-- widget is uesless -->
-                                                <li><field name="maximum_user_leads"/></li>
-                                                <!-- sparkline....... -->
-                                                <li><field name="percentage_leads"/> <!-- widget="sparkline_bar" options="{'height': '20px', 'barWidth': 4, 'barSpacing': 1}"/> --><!-- widget is uesless -->
-                                                </li>
-                                            </ul>
+                                            <table>
+                                                <tr>
+                                                    <td>
+                                                        <ul>
+                                                            <li><a type="open">
+                                                                <field name="user_name"/>
+                                                            </a></li>
+                                                            <li><field name="section_domain" widget="char_domain"/></li> <!-- widget is uesless -->
+                                                            <li><field name="maximum_user_leads"/></li>
+                                                            <li>
+                                                                <button name="toggle_active" type="object">
+                                                                    <t t-if="record.running.raw_value === true">Active</t>
+                                                                    <t t-if="record.running.raw_value === false">Inactive</t>
+                                                                </button>
+                                                            </li>
+                                                        </ul>
+                                                    </td> 
+                                                    <td>
+                                                        <!-- todo: edit css -->
+                                                        <field name="percentage_leads" widget="gauge" 
+                                                            style="width:120px; height: 100px; cursor: pointer;"/> 
+                                                        <!-- <field name="leads_count" widget="gauge" 
+                                                            style="width:108px; height: 81px; cursor: pointer;"
+                                                            options="{'max_field': 'maximum_user_leads'}"/>  -->
+                                                    </td> 
+                                                </tr>
+                                            </table>
+                                            <!-- <button name="toggle_active" type="object">
+                                                <t t-if="record.running.raw_value === true">Active</t>
+                                                <t t-if="record.running.raw_value === false">Inactive</t>
+                                            </button> -->
+                                                <!-- <t t-if="!running">Inactive</t> -->
+
                                         </div>
                                     </t>
                                 </templates>

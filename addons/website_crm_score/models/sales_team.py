@@ -31,7 +31,7 @@ class crm_case_section(osv.osv):
 
     def assign_leads(self, cr, uid, context=None):
 
-        # print 'assigning leads'
+        print 'Assigning leads'
 
         def get_filters(filter_ids):
             filters = [safe_eval(f['domain']) for f in all_filters if f['id'] in filter_ids]
@@ -54,7 +54,7 @@ class crm_case_section(osv.osv):
         # casting the list into a dict to ease the access afterwards
         all_salesteams = {team['id']: team for team in all_salesteams}
 
-        section_users_fields = ['section_domain', 'user_id', 'section_id', 'leads_count', 'maximum_user_leads', 'user_name']
+        section_users_fields = ['section_domain', 'user_id', 'section_id', 'leads_count', 'maximum_user_leads', 'user_name', 'running']
         all_section_users = self.pool['section.user'].search_read(cr, SUPERUSER_ID, fields=section_users_fields, context=context)
         # casting the list into a dict to ease the access afterwards
         all_section_users = {section_user['id']: section_user for section_user in all_section_users}
@@ -63,11 +63,6 @@ class crm_case_section(osv.osv):
         leads_fields = ['section_id', 'user_id']
         all_leads = self.pool["crm.lead"].search_read(cr, SUPERUSER_ID, fields=leads_fields, context=context)
         # todo: creating a dict here might be a good idea to avoid the list comprehension to get one item
-
-        # users_fields = ['leads_count']
-        # all_users = self.pool['res.users'].search_read(cr, SUPERUSER_ID, fields=users_fields, context=context)
-        # # casting the list into a dict to ease the access afterwards
-        # all_users = {user['id']: user for user in all_users}
 
         # lead assignement to salesteams
         potential_salesteams_for_leads = {}
@@ -95,7 +90,7 @@ class crm_case_section(osv.osv):
                     # updates value in all_leads and all_salesteams
                     lead['section_id'] = (salesteam['id'], dummyString)
                     salesteam['leads_count'] += 1
-                    # print "Lead", lead['id'], "assigned to team", salesteam['id']
+                    print "Lead", lead['id'], "assigned to team", salesteam['id']
                     body = "Lead assigned to salesteam <b>" + salesteam['name'] + '</b>'
                     self.pool["crm.lead"].message_post(cr, SUPERUSER_ID, [lead['id']], body=body, subject="Auto-assign to salesteam", context=context)
                 else:
@@ -120,7 +115,7 @@ class crm_case_section(osv.osv):
                     # should be done otherwise, it represents a lot of accesses to the db
                     domain = [('id', 'in', to_assign_leads_ids)] + filters
                     lead_fit = self.pool["crm.lead"].search(cr, SUPERUSER_ID, domain, context=context)
-                    if lead_fit:
+                    if lead_fit and section_user['running']:
                         list_to_dict_keys(potential_salesmen_for_leads, lead_fit, section_user['id'])
             # print 'dict', potential_salesmen_for_leads
 
@@ -139,7 +134,7 @@ class crm_case_section(osv.osv):
                         section_user['leads_count'] += 1
                         body = "Lead assigned to salesman <b>" + section_user['user_name'] + '</b>'
                         self.pool["crm.lead"].message_post(cr, SUPERUSER_ID, [lead['id']], body=body, subject="Auto-assign to salesman", context=context)
-                        # print "Lead", lead['id'], "assigned to user", section_user['user_id']
+                        print "Lead", lead['id'], "assigned to user", section_user['user_id']
                     else:
                         del section_user_ids[r]
 
@@ -163,11 +158,10 @@ class res_users(osv.Model):
         delta = datetime.timedelta(days=7)
         self.new_leads_count = self.lead_ids and sum(map(lambda x: 1 if (now - fields.Datetime.from_string(x.create_date)) < delta else 0, self.lead_ids)) or 0   # use timedelta
 
-    # ratio = fields.Selection(AVAILABLE_RATIO, string='Ratio', default='0')
-    # filter_ids = fields.Many2many('ir.filters', strong='Filters')
     lead_ids = fields.One2many('crm.lead', 'user_id', string='Leads')
     new_leads_count = fields.Integer(compute='_count_new_leads')
     leads_count = fields.Integer(compute='_count_leads')
+    running = fields.Boolean(string='Running', default=True)
 
 
 class section_user(models.Model):
@@ -189,8 +183,17 @@ class section_user(models.Model):
     section_id = fields.Many2one('crm.case.section', string='SaleTeam', required=True)
     user_id = fields.Many2one('res.users', string='Saleman', required=True)
     user_name = fields.Char(related='user_id.partner_id.display_name')
-    # section_model = fields.Selection(DOMAINS, string='Filters', required=True)
+    running = fields.Boolean(related='user_id.running')
     section_domain = fields.Char('Domain')
     maximum_user_leads = fields.Integer('Maximum leads')
     leads_count = fields.Integer(compute='_count_leads')
     percentage_leads = fields.Float(compute='_get_percentage', string='Percentage leads')
+
+    @api.one
+    def toggle_active(self):
+        if self.running:
+            # todo: Can I do that or must I use a write ?
+            self.running = False
+        else:
+            # todo: Same question
+            self.running = True

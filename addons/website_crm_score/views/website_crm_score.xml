@@ -7,11 +7,5 @@
                 <script type="text/javascript" src="/website_crm_score/static/src/js/set_score.js"></script> 
             </xpath>
         </template>
-
-        <!-- <template id="assets_backend" name="assign assets" inherit_id="web.assets_backend">
-            <xpath expr="." position="inside">
-                <link rel="stylesheet" href="/website_crm_score/static/src/css/sales.css"/>
-            </xpath>
-        </template> -->
     </data>
 </openerp>
