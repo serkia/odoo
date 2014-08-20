@@ -23,7 +23,8 @@
             <field name="inherit_id" ref="sales_team.crm_case_section_view_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//notebook[@colspan='4']" position="before">
-                    <field name="filter_ids"/>
+                    <!-- <field name="filter_ids"/> -->
+                    <field name="section_domain" widget="char_domain" options="{'model': 'crm.lead'}"/>
                     <group>
                         <field name="maximum_section_leads"/>
                     </group>
@@ -49,7 +50,7 @@
                                     <!-- <t t-debug='pdb'/> -->
                                     <t t-name="kanban-box">
                                         <a type="open">     
-                                            <img t-att-src="kanban_image('res.partner', 'image_small', record.id.value)" class="oe_kanban_image"/>
+                                            <img t-att-src="kanban_image('res.partner', 'image_small', record.user_id.id)" class="oe_kanban_image"/>
                                         </a>
                                         <!-- section_domain displays a domain, how do I display this ?-->
                                         <div class="oe_kanban_details">
@@ -60,7 +61,7 @@
                                                             <li><a type="open">
                                                                 <field name="user_name"/>
                                                             </a></li>
-                                                            <li><field name="section_domain" widget="char_domain"/></li> <!-- widget is uesless -->
+                                                            <li><field name="section_user_domain" widget="char_domain"/></li> <!-- widget is uesless -->
                                                             <li><field name="maximum_user_leads"/></li>
                                                             <li>
                                                                 <button name="toggle_active" type="object">
