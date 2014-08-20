@@ -17,6 +17,7 @@
             <field name="name">Wcs team 2</field>
             <field name="code">T2</field>
             <field name="maximum_section_leads">150</field>
+            <field name="section_domain">[['country_id', '=', 'France']]</field>
         </record>
 
 

@@ -23,22 +23,11 @@
             <field name="inherit_id" ref="sales_team.crm_case_section_view_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//notebook[@colspan='4']" position="before">
-                    <!-- <field name="filter_ids"/> -->
                     <field name="section_domain" widget="char_domain" options="{'model': 'crm.lead'}"/>
                     <group>
                         <field name="maximum_section_leads"/>
                     </group>
                 </xpath>
-<!--                 <field name="active" position="after">
-                    <table>
-                        <tr>
-                            <td><span class="fa fa-filter"/></td> 
-                            <td>
-                                <field name="filter_ids"/>
-                            </td>
-                        </tr>
-                    </table>
-                </field> -->
                 <xpath expr="//page[@string='Team Members']" position="replace">
                     <page string="Assignation">
                         <field name="section_user_ids" widget="many2many_kanban">
@@ -47,12 +36,10 @@
                                 <field name="user_id"/>
                                 <field name="running"/>
                                 <templates>
-                                    <!-- <t t-debug='pdb'/> -->
                                     <t t-name="kanban-box">
                                         <a type="open">     
                                             <img t-att-src="kanban_image('res.partner', 'image_small', record.user_id.id)" class="oe_kanban_image"/>
                                         </a>
-                                        <!-- section_domain displays a domain, how do I display this ?-->
                                         <div class="oe_kanban_details">
                                             <table>
                                                 <tr>
@@ -61,7 +48,8 @@
                                                             <li><a type="open">
                                                                 <field name="user_name"/>
                                                             </a></li>
-                                                            <li><field name="section_user_domain" widget="char_domain"/></li> <!-- widget is uesless -->
+                                                            <!-- widget is uesless because char_domain doesn't exist for kanban view-->
+                                                            <li><field name="section_user_domain" widget="char_domain"/></li>
                                                             <li><field name="maximum_user_leads"/></li>
                                                             <li>
                                                                 <button name="toggle_active" type="object">
@@ -81,12 +69,6 @@
                                                     </td> 
                                                 </tr>
                                             </table>
-                                            <!-- <button name="toggle_active" type="object">
-                                                <t t-if="record.running.raw_value === true">Active</t>
-                                                <t t-if="record.running.raw_value === false">Inactive</t>
-                                            </button> -->
-                                                <!-- <t t-if="!running">Inactive</t> -->
-
                                         </div>
                                     </t>
                                 </templates>
@@ -96,24 +78,5 @@
                </xpath>
             </field>
         </record>
-
-
-<!--         <record id="view_users_form" model="ir.ui.view">
-            <field name="name">res.users.form.inherit</field>
-            <field name="model">res.users</field>
-            <field name="type">form</field>
-            <field name="inherit_id" ref="base.view_users_form"/>
-            <field name="arch" type="xml">
-                <xpath expr="//group[@string='Messaging and Social']" position="after">
-                    <group string="Leads">
-                        <field name="filter_ids"/>
-                        <field name="ratio" widget="priority"/>
-                    </group>
-                </xpath>
-            </field>
-        </record> 
--->
-        
-
     </data>
 </openerp>

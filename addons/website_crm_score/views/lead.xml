@@ -33,15 +33,6 @@
             <field name="model">crm.lead</field>
             <field name="inherit_id" ref="crm.crm_case_form_view_leads" />
             <field name="arch" type="xml">
-                <!-- <field name="categ_ids" position="after">
-                    <field name="score"/>
-                    <field name="score_ids"
-                        widget="many2many_tags"
-                        domain="[('object_id.model','=','crm.lead')]"
-                        context="{'object_name': 'crm.lead'}"
-                        readonly="1"
-                    />
-                </field> -->
                 <xpath expr="//group[@string='Misc']" position="after">
                     <group string="Scoring">
                         <field name="score"/>
@@ -154,8 +145,6 @@
                     <field name="section_id"/>
                     <field name="user_id"/>
                     <field name="maximum_user_leads"/>
-                    <!-- <field name="section_model"/> -->
-                    <!-- <field name="user_domain" widget="char_domain" options="{'model': 'res.users'}" /> -->
                     <field name="section_user_domain" widget="char_domain" options="{'model': 'crm.lead'}"/>
                 </form>            
             </field>

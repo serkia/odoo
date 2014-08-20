@@ -1,10 +1,10 @@
 from openerp.osv import osv
 from openerp import fields, api, models, SUPERUSER_ID
-import time
 import datetime
 from openerp.tools.safe_eval import safe_eval
 from random import randint
 
+# todo: is this useful ?
 AVAILABLE_RATIO = [
     ('0', 'No ratio'),
     ('1', 'Very Low'),
@@ -23,7 +23,6 @@ class crm_case_section(osv.osv):
         self.leads_count = self.lead_ids and sum(map(lambda x: 1, self.lead_ids)) or 0
 
     ratio = fields.Float(string='Ratio')
-    # filter_ids = fields.Many2many('ir.filters', string='Filters')
     section_domain = fields.Char('Domain')
     lead_ids = fields.One2many('crm.lead', 'section_id', string='Leads')
     leads_count = fields.Integer(compute='_count_leads')
@@ -69,7 +68,7 @@ class crm_case_section(osv.osv):
             if lead_fit:
                 list_to_dict_keys(potential_salesteams_for_leads, lead_fit, salesteam['id'])
 
-        # /!\ section_id contains a tuple
+        # /!\ section_id contains a tuple, dummyString fills the tuple along with the id (same applies later for user_id)
         dummyString = 'dummy'
         for lead_id, salesteams_ids in potential_salesteams_for_leads.iteritems():
             lead = [lead for lead in all_leads if lead['id'] == lead_id][0]
@@ -84,8 +83,8 @@ class crm_case_section(osv.osv):
                     lead['section_id'] = (salesteam['id'], dummyString)
                     salesteam['leads_count'] += 1
                     # print "Lead", lead['id'], "assigned to team", salesteam['id']
-                    body = "Lead assigned to salesteam <b>" + salesteam['name'] + '</b>'
-                    self.pool["crm.lead"].message_post(cr, SUPERUSER_ID, [lead['id']], body=body, subject="Auto-assign to salesteam", context=context)
+                    # body = "Lead assigned to salesteam <b>" + salesteam['name'] + '</b>'
+                    # self.pool["crm.lead"].message_post(cr, SUPERUSER_ID, [lead['id']], body=body, subject="Auto-assign to salesteam", context=context)
                 else:
                     del salesteams_ids[r]
 
@@ -126,8 +125,8 @@ class crm_case_section(osv.osv):
                         # updates value in all_leads and all_salesteams
                         lead['user_id'] = (section_user['user_id'], dummyString)
                         section_user['leads_count'] += 1
-                        body = "Lead assigned to salesman <b>" + section_user['user_name'] + '</b>'
-                        self.pool["crm.lead"].message_post(cr, SUPERUSER_ID, [lead['id']], body=body, subject="Auto-assign to salesman", context=context)
+                        # body = "Lead assigned to salesman <b>" + section_user['user_name'] + '</b>'
+                        # self.pool["crm.lead"].message_post(cr, SUPERUSER_ID, [lead['id']], body=body, subject="Auto-assign to salesman", context=context)
                         # print "Lead", lead['id'], "assigned to user", section_user['user_id']
                     else:
                         del section_user_ids[r]
@@ -135,9 +134,6 @@ class crm_case_section(osv.osv):
 
 class res_users(osv.Model):
     _inherit = 'res.users'
-
-    def _date_to_string(self, value):  # how can I do something else ?
-        return time.mktime(datetime.datetime.strptime(value, "%Y-%m-%d %H:%M:%S").timetuple())  # server datetimeformat
 
     @api.one
     def _count_leads(self):
@@ -167,7 +163,7 @@ class section_user(models.Model):
     @api.one
     def _get_percentage(self):
         try:
-            self.percentage_leads = round(100 * self.user_id.leads_count / float(self.maximum_user_leads), 2)
+            self.percentage_leads = round(100 * self.leads_count / float(self.maximum_user_leads), 2)
         except ZeroDivisionError:
             self.percentage_leads = 0.0
 
