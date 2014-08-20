@@ -13,4 +13,7 @@
         'views/template.xml',
         'security/ir.model.access.csv',
     ],
+    'demo': [
+        'website_crm_score_demo.xml',
+    ],
 }

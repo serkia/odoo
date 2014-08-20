@@ -118,8 +118,6 @@ class ContactController(addons.website_crm.controllers.main.contactus):
             # add language
             # todo: seems super complicated, is there an easier way ?
             lang = context.get('lang', False)
-            print lang
             lang_id = request.registry["res.lang"].search(cr, SUPERUSER_ID, [('code', '=', lang)], context=context)[0]
-            print lang_id
             request.registry["crm.lead"].write(cr, SUPERUSER_ID, new_lead_id, {'language': lang_id}, context=context)
             return new_lead_id
