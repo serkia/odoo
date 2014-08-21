@@ -29,7 +29,7 @@ class crm_case_section(osv.osv):
     maximum_section_leads = fields.Integer('Maximum leads')
     section_user_ids = fields.One2many('section.user', 'section_id', string='Salemen')
 
-    def assign_leads(self, cr, uid, context=None):
+    def assign_leads(self, cr, uid, ids, context=None):
 
         # print 'Assigning leads'
 
@@ -178,9 +178,6 @@ class section_user(models.Model):
 
     @api.one
     def toggle_active(self):
-        if self.running:
-            # todo: Can I do that or must I use a write ?
-            self.running = False
-        else:
-            # todo: Same question
-            self.running = True
+        # todo: Can I do that or must I use a write ?
+        self.running = not self.running
+

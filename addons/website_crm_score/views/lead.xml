@@ -142,10 +142,12 @@
             <field name="model">section.user</field>
             <field name="arch" type="xml">
                 <form string="Section User">
-                    <field name="section_id"/>
-                    <field name="user_id"/>
-                    <field name="maximum_user_leads"/>
-                    <field name="section_user_domain" widget="char_domain" options="{'model': 'crm.lead'}"/>
+                    <group>
+                        <field name="section_id"/>
+                        <field name="user_id"/>
+                        <field name="maximum_user_leads"/>
+                        <field name="section_user_domain" widget="char_domain" options="{'model': 'crm.lead'}"/>
+                    </group>
                 </form>            
             </field>
         </record>
