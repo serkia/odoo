@@ -115,6 +115,10 @@ class TransactionCase(BaseCase):
         self.cr.rollback()
         self.cr.close()
 
+        # at the end of earch test ensure the env is cleaned
+        for env in self.env.all:
+            self.assertDictEqual(env.todo, {})
+        self.env.invalidate_all()
 
 class SingleTransactionCase(BaseCase):
     """
