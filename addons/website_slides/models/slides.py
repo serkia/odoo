@@ -75,7 +75,9 @@ class ir_attachment(osv.osv):
             string='Website Messages',
             help="Website communication history",
         ),
-        'website_description': fields.html('Website Description', tranalate=True)
+        'website_description': fields.html('Website Description', tranalate=True),
+        'likes': fields.integer('Likes'),
+        'dislikes': fields.integer('Dislikes'),
     }
 
     def _get_slide_setting(self, cr, uid, context):
@@ -102,6 +104,9 @@ class ir_attachment(osv.osv):
         cr.execute("""UPDATE ir_attachment SET slide_views = slide_views+1 WHERE id IN %s""", (tuple(ids),))
         return True
 
+    def trim_lines(self, cr, uid, description, *args):
+        return '<br/>'.join(description.split('\n')[0:3])
+         
     def create(self, cr, uid, values, context=None):
         if values.get('is_slide'):
             if values.get('datas_fname'):
