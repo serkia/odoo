@@ -24,7 +24,7 @@ class website_crm_score(models.Model):
         return super(website_crm_score, self).copy(cr, uid, id, default, context=context)
 
     @api.model
-    def score_exists(self, ids, name):  # page_exists(self, cr, uid, ids, name, module='website', context=None):
+    def score_exists(self, ids, name):
         scores = self.search_read(domain=[], fields=['name'])
         exists = False
         name = name.lower()

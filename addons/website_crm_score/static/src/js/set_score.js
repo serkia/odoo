@@ -49,10 +49,11 @@
             var self = this;
             this.$el.modal();
             this.getCurrentScore().then( function(data) {
-                // si ca return $.Deferred().reject(); il se passe quoi ?
+                // todo: si ca return $.Deferred().reject(); il se passe quoi ?
                 if(data[0]["score_id"]) {
                     self.$el.find("#link").select2("data", { id: data[0]["score_id"][0], text: data[0]["score_id"][1] });
                 }
+                // self.$el.find('#link').select2("open");  // not working, opens a dialog in the top left corner that loses focus when typing
             });
             this.$el.find('#link').select2({
                 minimumInputLength: 1,
