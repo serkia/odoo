@@ -90,7 +90,7 @@
             </div>
         </div>
 
-        <div id="wrap" class="container">
+        <div id="wrap" class="container js_forum">
             <div class="row">
                 <div class="col-sm-9">
                     <div t-foreach="notifications or []" t-as="notification" class="alert alert-success alert-dismissable">
