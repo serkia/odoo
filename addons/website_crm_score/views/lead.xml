@@ -69,12 +69,13 @@
             <field name="arch" type="xml">
                 <field name="priority" position="after">
                     <field name="page"  attrs="{'invisible':True}"/>
-                    <field name="score_id"  attrs="{'invisible':[('page','=',False)]}"/>
+                    <!-- <field name="score_id"  attrs="{'invisible':[('page','=',False)]}"/> -->
+                    <field name="track"/>
                 </field>
             </field>
         </record>
 
-        <record model="ir.ui.view" id="view_crm_score_tree">
+<!--         <record model="ir.ui.view" id="view_crm_score_tree">
             <field name="name">Website Crm Score Tree Main</field>
             <field name="model">website.crm.score</field>
             <field name="arch" type="xml">
@@ -83,8 +84,8 @@
                     <field name="score"/>
                 </tree>
             </field>
-        </record>
-
+        </record> -->
+<!-- 
         <record model="ir.ui.view" id="view_crm_score_form">
             <field name="name">Website Crm Score Form Main</field>
             <field name="model">website.crm.score</field>
@@ -115,7 +116,8 @@
                     </sheet>
                 </form>            
             </field>
-        </record>
+        </record> -->
+
 
         <record model="ir.actions.act_window" id="lead_setting_action">
             <field name="name">Views</field>
@@ -126,6 +128,38 @@
 
         <menuitem id="views_menu" name="Views" parent="sublead_menu" action="lead_setting_action" />
 
+        <record model="ir.ui.view" id="view_crm_score_form">
+            <field name="name">Website Crm Score Form</field>
+            <field name="model">website.crm.score</field>
+            <field name="arch" type="xml">
+                <form string="Scores">
+                    <group>
+                        <field name="name"/>
+                        <field name="value"/>
+                        <field name="domain"/>
+                        <field name="running"/>
+                        <!-- <field string="value" position="after"> -->
+                        
+                        <!-- </field> -->
+                        <button name="assign_scores_to_leads" type="object" string="Assign"/>
+                    </group>
+
+                </form>            
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_crm_score_tree">
+            <field name="name">Website Crm Score Tree</field>
+            <field name="model">website.crm.score</field>
+            <field name="arch" type="xml">
+                <tree string="Scores">
+                    <field name="name"/>
+                    <field name="value"/>
+                    <field name="domain"/>
+                    <field name="running"/>
+                </tree>            
+            </field>
+        </record>
 
         <record model="ir.actions.act_window" id="score_setting_action">
             <field name="name">Scores</field>
@@ -137,7 +171,7 @@
         <menuitem id="scores_menu" name="Scores" parent="sublead_menu" action="score_setting_action" />
 
 
-        <record model="ir.ui.view" id="view_crm_score_form">
+        <record model="ir.ui.view" id="view_crm_section_user_form">
             <field name="name">Section User Form</field>
             <field name="model">section.user</field>
             <field name="arch" type="xml">
@@ -152,7 +186,7 @@
             </field>
         </record>
 
-        <record model="ir.ui.view" id="view_crm_score_tree">
+        <record model="ir.ui.view" id="view_crm_section_user_tree">
             <field name="name">Section User Tree</field>
             <field name="model">section.user</field>
             <field name="arch" type="xml">
