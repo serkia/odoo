@@ -24,6 +24,7 @@ import logging
 from openerp import tools
 
 from email.header import decode_header
+from email.utils import formataddr
 from openerp import SUPERUSER_ID, api
 from openerp.osv import osv, orm, fields
 from openerp.tools import html_email_clean
@@ -31,11 +32,6 @@ from openerp.tools.translate import _
 from HTMLParser import HTMLParser
 
 _logger = logging.getLogger(__name__)
-
-try:
-    from mako.template import Template as MakoTemplate
-except ImportError:
-    _logger.warning("payment_acquirer: mako templates not available, payment acquirer will not work!")
 
 
 """ Some tools for parsing / creating email fields """
@@ -130,8 +126,8 @@ class mail_message(osv.Model):
             help="Email address of the sender. This field is set when no matching partner is found for incoming emails."),
         'reply_to': fields.char('Reply-To',
             help='Reply email address. Setting the reply_to bypasses the automatic thread creation.'),
-        'same_thread': fields.boolean('Same thread',
-            help='Redirect answers to the same discussion thread.'),
+        'no_auto_thread': fields.boolean('No threading for answers',
+            help='Answers do not go in the original document\' discussion thread. This has an impact on the generated message-id.'),
         'author_id': fields.many2one('res.partner', 'Author', select=1,
             ondelete='set null',
             help="Author of the message. If not set, email_from may hold an email address that did not match any partner."),
@@ -175,9 +171,9 @@ class mail_message(osv.Model):
     def _get_default_from(self, cr, uid, context=None):
         this = self.pool.get('res.users').browse(cr, SUPERUSER_ID, uid, context=context)
         if this.alias_name and this.alias_domain:
-            return '%s <%s@%s>' % (this.name, this.alias_name, this.alias_domain)
+            return formataddr((this.name, '%s@%s' % (this.alias_name, this.alias_domain)))
         elif this.email:
-            return '%s <%s>' % (this.name, this.email)
+            return formataddr((this.name, this.email))
         raise osv.except_osv(_('Invalid Action!'), _("Unable to send email, please configure the sender's email address or alias."))
 
     def _get_default_author(self, cr, uid, context=None):
@@ -189,7 +185,6 @@ class mail_message(osv.Model):
         'author_id': lambda self, cr, uid, ctx=None: self._get_default_author(cr, uid, ctx),
         'body': '',
         'email_from': lambda self, cr, uid, ctx=None: self._get_default_from(cr, uid, ctx),
-        'same_thread': True,
     }
 
     #------------------------------------------------------
@@ -777,7 +772,7 @@ class mail_message(osv.Model):
         return self.pool['mail.thread'].message_get_reply_to(cr, uid, [res_id], default=email_from, context=ctx)[res_id]
 
     def _get_message_id(self, cr, uid, values, context=None):
-        if values.get('same_thread', True) is False:
+        if values.get('no_auto_thread', False) is True:
             message_id = tools.generate_tracking_message_id('reply_to')
         elif values.get('res_id') and values.get('model'):
             message_id = tools.generate_tracking_message_id('%(res_id)s-%(model)s' % values)
@@ -791,7 +786,7 @@ class mail_message(osv.Model):
 
         if 'email_from' not in values:  # needed to compute reply_to
             values['email_from'] = self._get_default_from(cr, uid, context=context)
-        if 'message_id' not in values:
+        if not values.get('message_id'):
             values['message_id'] = self._get_message_id(cr, uid, values, context=context)
         if 'reply_to' not in values:
             values['reply_to'] = self._get_reply_to(cr, uid, values, context=context)

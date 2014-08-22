@@ -159,7 +159,7 @@
 
 <!-- Display a post -->
 <template id="display_post">
-    <div class="question clearfix">
+    <div class="question row">
         <div class="col-md-2 hidden-xs text-center">
             <div t-attf-class="box #{question.is_correct and 'oe_green' or 'oe_grey'} #{(question.child_count == 0) and 'text-muted' or ''}">
                 <span t-esc="question.child_count"/>
@@ -427,7 +427,7 @@
     <form t-attf-action="/forum/#{ slug(forum) }/post/#{slug(question)}/new" method="post" role="form">
         <input type="hidden" name="karma" t-attf-value="#{user.karma}" id="karma"/>
         <textarea name="content" class="form-control load_editor" required="True"/>
-        <button class="btn btn-primary" id="btn_ask_your_question">Post Your Answer</button>
+        <button class="btn btn-primary mt16" id="btn_ask_your_question">Post Your Answer</button>
     </form>
     <script type="text/javascript">
         CKEDITOR.replace("content");
@@ -455,7 +455,7 @@
 <!-- Specific Post Layout -->
 <template id="post_description_full" name="Question Navigation">
     <t t-call="website_forum.header">
-        <div t-attf-class="question">
+        <div t-attf-class="row question">
             <div class="col-md-2 hidden-xs text-center">
                 <t t-call="website_forum.vote">
                     <t t-set="post" t-value="question"/>
@@ -586,7 +586,7 @@
 
         <div t-foreach="question.child_ids" t-as="answer" class="mt16 mb32">
             <a t-attf-id="answer-#{str(answer.id)}"/>
-            <div t-attf-class="forum_answer" t-attf-id="answer_#{answer.id}" >
+            <div t-attf-class="forum_answer row" t-attf-id="answer_#{answer.id}" >
                 <div class="col-md-2 hidden-xs text-center">
                     <t t-call="website_forum.vote">
                         <t t-set="post" t-value="answer"/>
@@ -853,6 +853,10 @@
             <label class="col-md-2 control-label mb16" for="user.partner_id.website">Website</label>
             <div class="col-md-7 mb16">
                 <input type="text" class="form-control" name="website" t-attf-value="#{user.partner_id.website or ''}"/>
+            </div>
+            <div t-if="email_required" class="alert alert-danger alert-dismissable oe_forum_email_required">
+                <button type="button" class="close" data-dismiss="alert">x</button>
+                <p>Please enter a valid email address in order to receive notifications from answers or comments.</p>
             </div>
             <label class="col-md-4 control-label mb16" for="user.partner_id.email">Email</label>
             <div class="col-md-7 mb16">

@@ -10,7 +10,7 @@ _logger = logging.getLogger(__name__)
 
 class PosController(http.Controller):
 
-    @http.route('/pos/web', type='http', auth='none')
+    @http.route('/pos/web', type='http', auth='user')
     def a(self, debug=False, **k):
 
         if not request.session.uid:
