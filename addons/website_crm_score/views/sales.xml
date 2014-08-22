@@ -5,7 +5,7 @@
     <data>
 
         <!-- Scheduler for Lead Assign-->
-        <record forcecreate="True" id="ir_cron_lead_assign" model="ir.cron">
+<!--         <record forcecreate="True" id="ir_cron_lead_assign" model="ir.cron">
             <field name="name">Lead Assign Cron</field>
             <field eval="True" name="active" />
             <field name="user_id" ref="base.user_root" />
@@ -15,7 +15,7 @@
             <field eval="False" name="doall" />
             <field eval="'crm.case.section'" name="model" />
             <field eval="'assign_leads'" name="function" />
-        </record>
+        </record> -->
 
         <record model="ir.ui.view" id="sales_team_form_view_assign">
             <field name="name">crm.case.section.form.inherit</field>
@@ -23,9 +23,13 @@
             <field name="inherit_id" ref="sales_team.crm_case_section_view_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//notebook[@colspan='4']" position="before">
-                    <field name="section_domain" widget="char_domain" options="{'model': 'crm.lead'}"/>
                     <group>
-                        <field name="maximum_section_leads"/>
+                        <!-- <field name="section_domain"/> -->
+                        <field name="section_domain" widget="char_domain" options="{'model': 'crm.lead'}"/>
+                        <field name="capacity"/>
+                        <field name="leads_count"/>
+                        <field name="assigned_leads"/>
+                        <button name="assign_leads" type="object" string="Assign"/>
                     </group>
                 </xpath>
                 <xpath expr="//page[@string='Team Members']" position="replace">
@@ -50,7 +54,6 @@
                                                             </a></li>
                                                             <!-- widget is uesless because char_domain doesn't exist for kanban view-->
                                                             <li><field name="section_user_domain" widget="char_domain"/></li>
-                                                            <li><field name="maximum_user_leads"/></li>
                                                             <li>
                                                                 <button name="toggle_active" type="object">
                                                                     <t t-if="record.running.raw_value === true">Active</t>
@@ -60,12 +63,13 @@
                                                         </ul>
                                                     </td> 
                                                     <td>
+                                                        <field name="maximum_user_leads" invisible="1"/>
                                                         <!-- todo: edit css -->
-                                                        <field name="percentage_leads" widget="gauge" 
-                                                            style="width:120px; height: 100px; cursor: pointer;"/> 
-                                                        <!-- <field name="leads_count" widget="gauge" 
+                                                       <!--  <field name="percentage_leads" widget="gauge" 
+                                                            style="width:120px; height: 100px; cursor: pointer;"/>  -->
+                                                        <field name="leads_count" widget="gauge" 
                                                             style="width:108px; height: 81px; cursor: pointer;"
-                                                            options="{'max_field': 'maximum_user_leads'}"/>  -->
+                                                            options="{'max_field': 'maximum_user_leads'}"/> 
                                                     </td> 
                                                 </tr>
                                             </table>

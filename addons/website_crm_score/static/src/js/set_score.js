@@ -5,6 +5,7 @@
     var _t = openerp._t;
 
     website.add_template_file('/website_crm_score/static/src/xml/score_edit_create.xml');
+    website.add_template_file('/website_crm_score/static/src/xml/track_page.xml');
 
     website.score = {};
 
@@ -156,5 +157,29 @@
             new website.score.Configurator(this).appendTo($(document.body));
         });
     });
+
+
+    website.seo.Configurator.include({       
+        start: function() {
+            this._super.apply(this, arguments);
+            // todo: the checkbox shouldn't be unchecked by default, need to read the db to know what to put
+        },
+
+        update: function () {
+            // todo: only update if the value changed
+            this.trackPage(this.$el.find('input[type="checkbox"]').is(':checked'));
+            this._super();
+        },
+        trackPage: function(val) {
+            var obj = website.seo.Configurator.prototype.getMainObject();
+            if (!obj) {
+                return $.Deferred().reject();
+            } else {
+                return website.session.model(obj.model).call('write', [[obj.id], { track: val }, website.get_context()]);
+            }
+        },
+
+    });
+
 
 })();

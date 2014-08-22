@@ -22,8 +22,12 @@ class Lead(models.Model):
         # print self.env['res.lang'].search([])
         self.score = 0
         for score_id in self.score_ids:
-            self.score += score_id.score
+            self.score += score_id.value
 
     score = fields.Float(compute='_compute_score')
-    score_ids = fields.Many2many('website.crm.score', 'crm_lead_score_date_rel', 'lead_id', 'score_id', 'Scores')
+    # score_ids = fields.Many2many('website.crm.score', 'crm_lead_score_date_rel', 'lead_id', 'score_id', 'Scores')
+    score_ids = fields.Many2many('website.crm.score', 'crm_lead_score_rel', 'lead_id', 'score_id', string='Score')
+    pageview_ids = fields.One2many('website.crm.pageview', 'lead_id', string='Page Views')
     language = fields.Many2one('res.lang', string='Language')
+    assign_date = fields.Datetime(string='Assign Date')
+
