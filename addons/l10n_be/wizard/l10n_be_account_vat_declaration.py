@@ -41,8 +41,8 @@ class l10n_be_vat_declaration(osv.osv_memory):
 
     _columns = {
         'name': fields.char('File Name'),
-        'start_period_id': fields.many2one('account.period','Period', required=True),
-        'end_period_id': fields.many2one('account.period','Period'),
+        'start_period_id': fields.many2one('account.period','Starting Period', required=True),
+        'end_period_id': fields.many2one('account.period','Ending Period'),
         'tax_code_id': fields.many2one('account.tax.code', 'Tax Code', domain=[('parent_id', '=', False)], required=True),
         'msg': fields.text('File created', readonly=True),
         'file_save': fields.binary('Save File'),
@@ -52,6 +52,36 @@ class l10n_be_vat_declaration(osv.osv_memory):
             'no clients to be included in the client listing.'),
         'comments': fields.text('Comments'),
     }
+
+    def _check_periods_precedence(self, cr, uid, id, context=None):
+        wiz = self.browse(cr, uid, id, context=context)
+        if wiz.end_period_id:
+            if wiz.start_period_id.date_start > wiz.end_period_id.date_start:
+                return False
+        return True
+
+    def _check_periods_size(self, cr, uid, id, context=None):
+        wiz = self.browse(cr, uid, id, context=context)
+        if wiz.end_period_id:
+            if wiz.tax_code_id:
+                obj_company = wiz.tax_code_id.company_id
+            else:
+                obj_company = obj_user.browse(cr, uid, uid, context=context).company_id
+            domain = [('company_id', '=', obj_company.id),
+                      ('date_start', '>=', wiz.start_period_id.date_start),
+                      ('date_start','<=', wiz.end_period_id.date_start)]
+            period_ids = self.pool.get('account.period').search(cr, uid, domain, order='date_start', context=context)
+            if len (period_ids) not in (1,3):
+                return False
+        return True
+
+
+    _constraints = [
+        (_check_periods_precedence, 'Starting period should be before ending period.', ['start_period_id','end_period_id']),
+        (_check_periods_size, 'You should either have 1 or 3 periods in the VAT declaration.', ['start_period_id','end_period_id'])
+    ]
+
+
 
     def _get_tax_code(self, cr, uid, context=None):
         obj_tax_code = self.pool.get('account.tax.code')
@@ -108,7 +138,9 @@ class l10n_be_vat_declaration(osv.osv_memory):
 
         if data['end_period_id']:
             dates = obj_acc_period.read(cr, uid, [data['start_period_id'][0],data['end_period_id'][0]], ['date_start'], context=context)
-            period_ids = obj_acc_period.search(cr, uid, [('date_start', '>=', dates[0]['date_start']),('date_start','<=', dates[1]['date_start'])], order='date_start', context=context)
+            period_ids = obj_acc_period.search(cr, uid, [('company_id', '=', obj_company.id),
+                                                         ('date_start', '>=', dates[0]['date_start']),
+                                                         ('date_start','<=', dates[1]['date_start'])], order='date_start', context=context)
         else:
             period_ids = [data['start_period_id'][0]]
 
