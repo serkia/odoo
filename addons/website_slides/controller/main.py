@@ -76,10 +76,10 @@ class main(http.Controller):
         ids = directory.search(cr, uid, [('website_published','=', True)], context=context)
         
         if len(ids) <= 1:
-            return request.redirect("/channel/%s" % ids[0])
+            return request.redirect("/channel/%s?filters=ppt&amp;sorting=date" % ids[0])
 
         channels = directory.browse(cr, uid, ids, context)
-        return request.website.render('website_slides.channels', {'channels': channels, 'user': user})
+        return request.website.render('website_slides.channels', {'channels': channels, 'user': user, 'is_public_user': user.id == request.website.user_id.id,})
 
 
     @http.route(['/channel/<model("document.directory"):channel>',
@@ -87,19 +87,19 @@ class main(http.Controller):
                  ], type='http', auth="public", website=True)
     def slides(self, channel=0, page=1, filters='all', sorting='creation', search='', tags=''):
         cr, uid, context = request.cr, SUPERUSER_ID, request.context
-        
-        user = request.registry['res.users'].browse(cr, uid, request.uid, context)
 
+        user = request.registry['res.users'].browse(cr, uid, request.uid, context)
         attachment = request.registry['ir.attachment']
-        domain = [("is_slide","=","True")]
+        domain = [('is_slide','=','True'), ('parent_id','=',channel.id)]
+
+        if request.uid == 3:
+            domain += [('website_published', '=', True)]
+        all_count = attachment.search(cr, uid, domain, count=True, context=context)
 
         if channel:
             domain += [('parent_id','=',channel.id)]
         if search:
             domain += [('name', 'ilike', search)]
-
-        if request.uid == 3:
-            domain += [('website_published', '=', True)]
 
         if tags:
             domain += [('tag_ids.name', '=', tags)]
@@ -133,6 +133,7 @@ class main(http.Controller):
             url_args['sorting'] = sorting
         if tags:
             url_args['tags'] = tags
+
         pager = request.website.pager(url=url, total=attachment_count, page=page,
                                       step=self._slides_per_page, scope=self._slides_per_page,
                                       url_args=url_args)
@@ -140,12 +141,11 @@ class main(http.Controller):
         obj_ids = attachment.search(cr, uid, domain, limit=self._slides_per_page, offset=pager['offset'], order=order, context=context)
         attachment_ids = attachment.browse(cr, uid, obj_ids, context=context)
 
-        domain += [('website_published', '=', True)]
-        famous_id = attachment._search(cr, uid, domain, limit=1, offset=0, order="slide_views desc", context=context)
-        famous = attachment.browse(cr, uid, famous_id, context=context)
-
+        famous = request.registry.get('document.directory').get_mostviewed(cr, uid, channel, context)
+        
         values = {
             'attachment_ids': attachment_ids,
+            'all_count':all_count,
             'attachment_count': attachment_count,
             'pager': pager,
             'filters': filters,
@@ -154,8 +154,10 @@ class main(http.Controller):
             'tags':tags,
             'channel': channel,
             'user': user,
-            'famous':famous
+            'famous':famous,
+            'is_public_user': user.id == request.website.user_id.id,
         }
+
         return request.website.render('website_slides.home', values)
 
 
@@ -263,8 +265,7 @@ class main(http.Controller):
         res = []
         for channel in channels:
             res.append({'id': channel[0],
-                        'name': channel[1],
-                        'default': channel[0] == default_channel[0]
+                        'name': channel[1]
                         })
         return res
 
@@ -291,5 +292,4 @@ class main(http.Controller):
             post['slide_type'] = 'ppt'
 
         slide_id = slide_obj.create(cr, uid, post, context=context)
-        slide = slide_obj.browse(cr, uid, slide_id, context=context)
-        return request.redirect("view/%s" % slug(slide))
+        return request.redirect("/channel/%s/view/%s" % (post.get('parent_id'), slide_id))
