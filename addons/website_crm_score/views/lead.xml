@@ -43,6 +43,7 @@
                             readonly="1"
                         />
                         <field name="language" readonly="1"/>
+                        <field name="pageview_ids"/>
                     </group>
                 </xpath>
             </field>
