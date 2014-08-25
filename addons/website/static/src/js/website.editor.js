@@ -3316,14 +3316,6 @@
             'change :input.url-source': 'changed',
             'keyup :input.url': 'onkeyup',
             'keyup :input': 'preview',
-            'mousedown': function (e) {
-                var $target = $(e.target).closest('.list-group-item:has(.url-source)');
-                if (!$target.length || $target.hasClass('active')) {
-                    // clicked outside groups, or clicked in active groups
-                    return;
-                }
-                this.changed($target.find(':input.url-source'));
-            },
             'click button.remove': 'remove_link',
             'change input#link-text': function (e) {
                 this.text = $(e.target).val();
@@ -3341,12 +3333,16 @@
             if(!is_custom){
                 this.editable.focus();
                 this.editor.saveRange(this.editable);
+                this.rng = range.create();
+            } else {
+                this.rng = range.createFromNode(this.editable);
             }
             this.is_custom = is_custom;
+
+            this.bind_data();
         },
         start: function () {
             var self = this;
-            this.linkInfo = self.get_linkinfo();
             var last;
             this.$('#link-page').select2({
                 minimumInputLength: 1,
@@ -3399,57 +3395,65 @@
 
             var done = $.when();
             if ($e.hasClass('email-address') && $e.val().indexOf("@") !== -1) {
-                this.make_link(val, false, this.text || this.linkInfo.text, classes);
+                def.resolve('mailto:' + val, false, label, classes);
             } else if ($e.val() && $e.val().length && $e.hasClass('page')) {
                 var data = $e.select2('data');
                 if (!data.create) {
-                    def.resolve(data.id, false, data.text);
+                    def.resolve(data.id, false, label, classes);
                 } else {
                     // Create the page, get the URL back
                     $.get(_.str.sprintf(
                             '/website/add/%s?noredirect=1', encodeURI(data.id)))
                         .then(function (response) {
-                            def.resolve(response, false, data.id);
+                            def.resolve(response, false, label, classes);
                         });
                 }
             } else {
-                this.make_link(val, this.$('input.window-new').prop('checked') , this.text || this.linkInfo.text, classes);
+                def.resolve(val, this.$('input.window-new').prop('checked'), label, classes);
             }
             return def;
         },
+        save: function () {
+            var self = this;
+            var _super = this._super.bind(this);
+            return this.get_data()
+                .then(function (url, new_window, label, classes) {
+                    self.make_link(url, new_window, label, classes);
+                }).then(_super);
+        },
         make_link : function(url , new_window , label, classes){
             var self =  this;
-            var rng = this.linkInfo.rng;
             var href = url;
+            var $a;
             if (url.indexOf('@') !== -1 && url.indexOf(':') === -1) {
                 href =  'mailto:' + url;
-            } else if (url.indexOf('://') === -1) {
+            } else if (url.indexOf('://') === -1 && url[0] !== "/") {
                 href = 'http://' + url;
             }
             if(this.is_custom) {
-                self.update_link(this.editable, href , new_window , label, classes)
+                $a = this.editable;
             } else {
                 this.editor.restoreRange(this.editable);
-                this.editor.recordUndo(this.editable); 
+                this.editor.recordUndo(this.editable);
 
                 // createLink when range collapsed (IE, Firefox).
                 if ((agent.bMSIE || agent.bFF) && rng.isCollapsed()) {
-                    rng.insertNode($('<A id="linkAnchor">' + label + '</A>')[0]);
-                    var $anchor = $('#linkAnchor').attr('href', href).removeAttr('id');
-                    rng = range.createFromNode($anchor[0]);
-                    rng.select();
+                    $a = $('<a href="'+href+'"/>').text(label);
+                    this.rng.insertNode($a[0]);
+                    this.rng = range.createFromNode($anchor[0]);
+                    this.rng.select();
                 } else {
-                    document.execCommand('createlink', false, href);
+                    document.execCommand('insertHTML', false, '<a href="' + href + '" id="make_link_editor_LinkDialog">make_link_editor_LinkDialog</a>');
+                    $a = $('a#make_link_editor_LinkDialog').removeAttr("id").text(label);
                 }
-                // update link text
-                $.each(rng.nodes(dom.isAnchor), function (idx, elAnchor) {
-                    self.update_link(elAnchor, href , new_window , label, classes)
-                });
             }
+
+            // update link text
+            this.update_link($a, href, new_window, label, classes);
         },
         update_link : function(target , href , new_window , label, classes) {
             $(target).html(label);
-            $(target).attr('href', href)
+            $(target).attr('href', href);
             if (new_window) {
                 $(target).attr('target', '_blank');
             } else {
@@ -3457,18 +3461,21 @@
             }
             $(target).attr("class", classes);
         },
-        bind_data: function (text, href, new_window) {
-            href = this.linkInfo.url;
-            if (new_window === undefined) {
-                new_window = this.linkInfo.new_window;
+        bind_data: function () {
+            if (!this.is_custom) {
+                this.$('input#link-text').val(this.rng.toString());
+                return;
             }
-            if (text === undefined) {
-                text = this.linkInfo.text;
-            }
+
+            var elAnchor = this.editable;
+            var href = $(elAnchor).attr('href');
+            var new_window = $(elAnchor).attr('target') === '_blank';
+            var text = $(elAnchor).text();
+            var classes = $(elAnchor).attr("class");
+
             this.$('input#link-text').val(text);
             this.$('input.window-new').prop('checked', new_window);
 
-            var classes = this.element && this.element.$.className;
             if (classes) {
                 this.$('input[value!=""]').each(function () {
                     var $option = $(this);
@@ -3486,32 +3493,20 @@
                 this.$('input.url').val(href).change();
                 this.$('input.window-new').closest("div").show();
             }
+
+            this.page_exists(href).then(function (exist) {
+                if (exist) {
+                    self.$('#link-page').select2('data', {'id': href, 'text': href});
+                } else {
+                    self.$('input.url').val(href).change();
+                    self.$('input.window-new').closest("div").show();
+                }
+            });
+
             this.preview();
         },
-        get_linkinfo : function() {
-            var rng = range.create();
-            var new_window = true;
-            var url = '';
-            if(this.is_custom){
-                rng = document.createRange();
-                rng.selectNodeContents(this.editable)
-                url = $(this.editable).attr('href')
-                new_window = $(this.editable).attr('target')
-            }
-            else if (rng.isOnAnchor()) {
-                var elAnchor = dom.ancestor(rng.sc, dom.isAnchor);
-                rng = range.createFromNode(elAnchor);
-                new_window = $(elAnchor).attr('target') === '_blank';
-                url = elAnchor.href;
-            }
-            return {
-                text: rng.toString(),
-                url: url,
-                new_window: new_window,
-                rng : rng,
-            };
-        },
-        changed: function ($e) {
+        changed: function (e) {
+            var $e = $(e.target);
             this.$('.url-source').filter(':input').not($e).val('')
                     .filter(function () { return !!$(this).data('select2'); })
                     .select2('data', null);
