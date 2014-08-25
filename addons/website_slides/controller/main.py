@@ -76,16 +76,25 @@ class main(http.Controller):
         ids = directory.search(cr, uid, [('website_published','=', True)], context=context)
         
         if len(ids) <= 1:
-            return request.redirect("/channel/%s?filters=ppt&sorting=date" % ids[0])
+            return request.redirect("/channel/%s/presentation" % ids[0])
 
         channels = directory.browse(cr, uid, ids, context)
-        return request.website.render('website_slides.channels', {'channels': channels, 'user': user, 'is_public_user': user.id == request.website.user_id.id,})
+        vals = {
+            'channels': channels, 
+            'user': user, 
+            'is_public_user': user.id == request.website.user_id.id
+        }
+        return request.website.render('website_slides.channels', vals)
 
 
     @http.route(['/channel/<model("document.directory"):channel>',
-                 '/channel/<model("document.directory"):channel>/page/<int:page>',
-                 ], type='http', auth="public", website=True)
-    def slides(self, channel=0, page=1, filters='all', sorting='creation', search='', tags=''):
+                '/channel/<model("document.directory"):channel>/<types>',
+                '/channel/<model("document.directory"):channel>/<types>/tag/<tags>',
+                '/channel/<model("document.directory"):channel>/page/<int:page>',
+                '/channel/<model("document.directory"):channel>/<types>/page/<int:page>',
+                '/channel/<model("document.directory"):channel>/<types>/tag/<tags>/page/<int:page>',
+                   ], type='http', auth="public", website=True)
+    def slides(self, channel=0, page=1, types='', tags='', sorting='creation', search=''):
         cr, uid, context = request.cr, SUPERUSER_ID, request.context
 
         user = request.registry['res.users'].browse(cr, uid, request.uid, context)
@@ -97,22 +106,17 @@ class main(http.Controller):
         all_count = attachment.search(cr, uid, domain, count=True, context=context)
 
         if channel:
-            domain += [('parent_id','=',channel.id)]
+              domain += [('parent_id','=',channel.id)]
+
         if search:
             domain += [('name', 'ilike', search)]
 
         if tags:
             domain += [('tag_ids.name', '=', tags)]
 
-        if filters == 'ppt':
-            domain += [('slide_type', '=', 'ppt')]
-        elif filters == 'doc':
-            domain += [('slide_type', '=', 'doc')]
-        elif filters == 'video':
-            domain += [('slide_type', '=', 'video')]
-        else:
-            filters = 'all'
-
+        if types:
+            domain += [('slide_type', '=', types)]
+  
         if sorting == 'date':
             order = 'write_date desc'
         elif sorting == 'view':
@@ -122,13 +126,15 @@ class main(http.Controller):
             order = 'create_date desc'
 
         attachment_count = attachment.search(cr, uid, domain, count=True, context=context)
-        url = "/channel/%s" % slug(channel)
+        url = "/channel"
+        if types:
+            url = "/channel/%s" % (types)
 
         url_args = {}
         if search:
             url_args['search'] = search
-        if filters:
-            url_args['filters'] = filters
+        if types:
+            url_args['types'] = types
         if sorting:
             url_args['sorting'] = sorting
         if tags:
@@ -148,26 +154,27 @@ class main(http.Controller):
             'all_count':all_count,
             'attachment_count': attachment_count,
             'pager': pager,
-            'filters': filters,
+            'types': types,
             'sorting': sorting,
             'search': search,
             'tags':tags,
             'channel': channel,
             'user': user,
             'famous':famous,
-            'is_public_user': user.id == request.website.user_id.id,
+            'is_public_user': user.id == request.website.user_id.id
         }
-
         return request.website.render('website_slides.home', values)
 
-
-    @http.route('/channel/<model("document.directory"):channel>/view/<model("ir.attachment"):slideview>', type='http', auth="public", website=True)
-    def slide_view(self, channel, slideview, filters='', sorting='', search='', tags=''):
+    @http.route([
+                '/channel/<model("document.directory"):channel>/<types>/<model("ir.attachment"):slideview>',
+                '/channel/<model("document.directory"):channel>/<types>/tag/<tags>/<model("ir.attachment"):slideview>'
+                ], type='http', auth="public", website=True)
+    def slide_view(self, channel, slideview, types='', sorting='', search='', tags=''):
         cr, uid, context = request.cr, SUPERUSER_ID, request.context
         attachment = request.registry['ir.attachment']
         user = request.registry['res.users'].browse(cr, uid, uid, context=context)
 
-        domain = [("is_slide","=","TRUE")]
+        domain = [('is_slide','=',True)]
         # increment view counter
         attachment.set_viewed(cr, uid, [slideview.id], context=context)
 
@@ -190,6 +197,8 @@ class main(http.Controller):
         shareurl = urldata['urlscheme'] + urldata['urlhost'] + urldata['urlpath']
 
         # create slide embed code
+        embedcode = ""
+
         if slideview.datas:
             embedcode = '<iframe  src="' + urldata['urlscheme'] + urldata['urlhost'] + '/website_slides/static/lib/pdfjs/web/viewer.html?file=' + slideview.url + '#page="></iframe>'
         if slideview.youtube_id:
@@ -204,7 +213,8 @@ class main(http.Controller):
             'shareurl':shareurl,
             'embedcode':embedcode,
             'channel': slideview.parent_id,
-            'user':user
+            'user':user,
+            'types':types
         })
         return request.website.render('website_slides.slide_view', values)
 
@@ -289,7 +299,7 @@ class main(http.Controller):
         if post.get('url') and not post.get('datas', False):
             post['slide_type'] = 'video'
         elif post.get('datas') and not post.get('url', False):
-            post['slide_type'] = 'ppt'
+            post['slide_type'] = 'presentation'
 
         slide_id = slide_obj.create(cr, uid, post, context=context)
-        return request.redirect("/channel/%s/view/%s" % (post.get('parent_id'), slide_id))
+        return request.redirect("/channel/%s/%s/view/%s" % (post.get('parent_id'), post['slide_type'], slide_id))
