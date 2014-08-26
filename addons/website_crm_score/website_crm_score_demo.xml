@@ -6,17 +6,14 @@
         <record model="crm.case.section" id="wcs_team_0">
             <field name="name">Wcs team 0</field>
             <field name="code">T0</field>
-            <field name="maximum_section_leads">250</field>
         </record>
         <record model="crm.case.section" id="wcs_team_1">
             <field name="name">Wcs team 1</field>
             <field name="code">T1</field>
-            <field name="maximum_section_leads">200</field>
         </record>
         <record model="crm.case.section" id="wcs_team_2">
             <field name="name">Wcs team 2</field>
             <field name="code">T2</field>
-            <field name="maximum_section_leads">150</field>
             <field name="section_domain">[['country_id', '=', 'France']]</field>
         </record>
 

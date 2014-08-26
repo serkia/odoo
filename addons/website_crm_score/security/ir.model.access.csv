@@ -5,3 +5,5 @@ access_crm_lead_score_date,access_crm_lead_score_date,model_crm_lead_score_date,
 access_crm_lead_score_date,access_crm_lead_score_date,model_crm_lead_score_date,base.group_system,1,1,1,1
 access_section_user,access_section_user,model_section_user,,1,0,0,0
 access_section_user,access_section_user,model_section_user,base.group_system,1,1,1,1
+access_website_crm_pageview,access_website_crm_pageview,model_website_crm_pageview,,1,0,0,0
+access_website_crm_pageview,access_website_crm_pageview,model_website_crm_pageview,base.group_system,1,1,1,1
