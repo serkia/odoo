@@ -589,7 +589,7 @@ class mrp_production(osv.osv):
         'date_planned': lambda *a: time.strftime('%Y-%m-%d %H:%M:%S'),
         'product_qty': lambda *a: 1.0,
         'user_id': lambda self, cr, uid, c: uid,
-        'name': lambda x, y, z, c: x.pool.get('ir.sequence').get(y, z, 'mrp.production') or '/',
+        'name': lambda obj, cr, uid, context: '/',
         'company_id': lambda self, cr, uid, c: self.pool.get('res.company')._company_default_get(cr, uid, 'mrp.production', context=c),
         'location_src_id': _src_id_default,
         'location_dest_id': _dest_id_default
@@ -628,7 +628,14 @@ class mrp_production(osv.osv):
         if src:
             return {'value': {'location_dest_id': src}}
         return {}
-
+    
+    def create(self, cr, uid, vals, context=None):
+        if context is None:
+            context = {}
+        if vals.get('name', '/') == '/':
+            vals['name'] =  self.pool.get('ir.sequence').get(cr, uid, 'mrp.production') or '/'
+        return super(mrp_production, self).create(cr, uid, vals, context=context)
+    
     def product_id_change(self, cr, uid, ids, product_id, product_qty=0, context=None):
         """ Finds UoM of changed product.
         @param product_id: Id of changed product.
