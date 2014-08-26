@@ -213,7 +213,7 @@ class res_users(osv.Model):
     def _count_new_leads(self):
         now = datetime.datetime.now()
         delta = datetime.timedelta(days=7)
-        self.new_leads_count = self.lead_ids and sum(map(lambda x: 1 if (now - fields.Datetime.from_string(x.create_date)) < delta else 0, self.lead_ids)) or 0   # use timedelta
+        self.new_leads_count = self.lead_ids and sum(map(lambda x: 1 if (now - fields.Datetime.from_string(x.create_date)) < delta else 0, self.lead_ids)) or 0
 
     lead_ids = fields.One2many('crm.lead', 'user_id', string='Leads')
     new_leads_count = fields.Integer(compute='_count_new_leads')

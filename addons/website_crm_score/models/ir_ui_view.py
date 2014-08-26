@@ -1,5 +1,5 @@
 from openerp.osv import osv
-from openerp import fields
+from openerp import fields, api
 
 
 class view(osv.osv):

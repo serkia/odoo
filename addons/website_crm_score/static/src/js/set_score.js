@@ -4,7 +4,7 @@
     var website = openerp.website;
     var _t = openerp._t;
 
-    website.add_template_file('/website_crm_score/static/src/xml/score_edit_create.xml');
+    // website.add_template_file('/website_crm_score/static/src/xml/score_edit_create.xml');
     website.add_template_file('/website_crm_score/static/src/xml/track_page.xml');
 
     website.score = {};
@@ -159,22 +159,52 @@
     });
 
 
-    website.seo.Configurator.include({       
+    website.seo.Configurator.include({ 
         start: function() {
             this._super.apply(this, arguments);
-            // todo: the checkbox shouldn't be unchecked by default, need to read the db to know what to put
-        },
+            var self = this;
+            this.is_tracked().then(function(data){
+                if (data[0]['track']) {
+                    var $add = $('<input type="checkbox" checked="checked" required="required"/>');
+                }
+                else {
+                    var $add = $('<input type="checkbox" required="required"/>');
+                }
+                self.$el.find('h3[class="track-page"]').append($add); 
 
+            });
+        },
+        is_tracked: function(val) {
+            var obj = website.seo.Configurator.prototype.getMainObject();
+            if (!obj) {
+                return $.Deferred().reject();
+            } else {
+                return website.session.model(obj.model).call('read', [[obj.id], ['track'], website.get_context()]);
+            }
+        },
         update: function () {
             // todo: only update if the value changed
-            this.trackPage(this.$el.find('input[type="checkbox"]').is(':checked'));
-            this._super();
+            // var 
+            //var my_super = self._super;
+            // self._super(); // super ne renvoie rien donc pas de then ou done possible
+            var self = this;
+            // self.my_super = this._super;
+            // console.log(self.my_super);
+            // debugger;
+            this.trackPage(this.$el.find('input[type="checkbox"]').is(':checked')).then(function() {
+                self.$el.modal('hide');
+                // super n'existe plus ici, meme en stockant la fonction dans une variable ?
+                // debugger;
+                // self._super(); // self n'a plus de super
+            });
+            
         },
         trackPage: function(val) {
             var obj = website.seo.Configurator.prototype.getMainObject();
             if (!obj) {
                 return $.Deferred().reject();
             } else {
+                console.log(val);
                 return website.session.model(obj.model).call('write', [[obj.id], { track: val }, website.get_context()]);
             }
         },
