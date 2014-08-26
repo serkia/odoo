@@ -9,14 +9,17 @@ class ir_http(models.AbstractModel):
 
     # @api.model
     def _dispatch(self):
-
+        response = super(ir_http, self)._dispatch()
         cr, uid, context = request.cr, request.uid, request.context
-        func, arguments = self._find_handler()
+        
+        first_pass = not hasattr(request, 'website')
+        if first_pass:
+            func, arguments = self._find_handler()
 
-        track = func.routing.get('track', False)
+        # track = func.routing.get('track', False)
         no_lead = False
 
-        response = super(ir_http, self)._dispatch()
+        
         # if track:
         #     do_track = True
         #     if response.qcontext and 'path' in response.qcontext:
