@@ -58,7 +58,6 @@ class ContactController(addons.website_crm.controllers.main.contactus):
             create_new_lead = True  # no lead_id cookie
 
         if create_new_lead:
-            print request.session
             # either no lead_id cookie or the current one is closed, a lead is created
             new_lead_id = super(ContactController, self).create_lead(request, values, kwargs)
             
@@ -67,7 +66,6 @@ class ContactController(addons.website_crm.controllers.main.contactus):
                 pages_viewed = request.session['pages_viewed']
                 for url, date in pages_viewed.iteritems():
                     vals = {'lead_id': new_lead_id, 'partner_id': request.session.get('uid', None), 'url': url, 'create_date': date} 
-                    print "pv"
                     request.registry['website.crm.pageview'].create_pageview(cr, uid, vals, context=context)
                 del request.session['pages_viewed']
 

@@ -10,7 +10,6 @@ class ir_http(models.AbstractModel):
     # @api.model
     def _dispatch(self):
 
-
         cr, uid, context = request.cr, request.uid, request.context
         func, arguments = self._find_handler()
 
@@ -48,12 +47,16 @@ class ir_http(models.AbstractModel):
 
                 if no_lead:
                     url = request.httprequest.url
+
                     if 'pages_viewed' in request.session:
+                        # if not request.session['pages_viewed']:
+                        #     del request.session['pages_viewed']
+                        # else:
                         pages_viewed = request.session['pages_viewed']
                         if not url in pages_viewed.keys():
                             # No refreshing of the date
-                            pages_viewed[url] = fields.Datetime.now()
+                            pages_viewed.update({url: fields.Datetime.now()})
+                            request.session['pages_viewed'] = pages_viewed
                     else:
                         request.session['pages_viewed'] = {url: fields.Datetime.now()}
-
         return response

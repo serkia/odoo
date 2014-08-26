@@ -33,3 +33,4 @@ class pageview(models.Model):
 
         if new_cursor:
             pv_cr.commit()
+            pv_cr.close()

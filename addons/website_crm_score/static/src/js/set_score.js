@@ -188,15 +188,16 @@
             //var my_super = self._super;
             // self._super(); // super ne renvoie rien donc pas de then ou done possible
             var self = this;
+            self._super();
             // self.my_super = this._super;
             // console.log(self.my_super);
             // debugger;
-            this.trackPage(this.$el.find('input[type="checkbox"]').is(':checked')).then(function() {
-                self.$el.modal('hide');
-                // super n'existe plus ici, meme en stockant la fonction dans une variable ?
-                // debugger;
-                // self._super(); // self n'a plus de super
-            });
+            // this.trackPage(this.$el.find('input[type="checkbox"]').is(':checked')).then(function() {
+            //     self.$el.modal('hide');
+            //     // super n'existe plus ici, meme en stockant la fonction dans une variable ?
+            //     // debugger;
+            //     //  // self n'a plus de super
+            // });
             
         },
         trackPage: function(val) {
