@@ -17,8 +17,6 @@ class ir_http(models.AbstractModel):
         track = func.routing.get('track', False)
         no_lead = False
 
-        # print 'func', func.routing
-        # url in request.httprequest.url
         response = super(ir_http, self)._dispatch()
         if track:
             do_track = True
@@ -27,11 +25,9 @@ class ir_http(models.AbstractModel):
                 page = response.qcontext.get('path')
                 view = request.website.get_template(page)
                 if not view.track:
-                    # don't track
                     do_track = False
 
             if do_track:
-                print "track"
                 lead_id = request.httprequest.cookies.get('lead_id')
                 no_lead = False
 
@@ -40,9 +36,8 @@ class ir_http(models.AbstractModel):
                     leadModel = request.registry["crm.lead"]
                     lead_instance = leadModel.search(cr, SUPERUSER_ID, [('id', '=', lead_id)], context=context)
                     if lead_instance:
-                        print "lead instance"
+                        # creation of the pageview for this page, duplication is cheched in create_pageview
                         vals = {'lead_id': lead_id, 'partner_id': request.session.get('uid', None), 'url': request.httprequest.url}
-                        print "create pv"
                         request.registry['website.crm.pageview'].create_pageview(cr, uid, vals, context=context, new_cursor=True)
                     else:
                         # the lead_id in the cookie corresonds to nothing in the db
@@ -60,6 +55,5 @@ class ir_http(models.AbstractModel):
                             pages_viewed[url] = fields.Datetime.now()
                     else:
                         request.session['pages_viewed'] = {url: fields.Datetime.now()}
-                print "session", request.session
 
         return response
