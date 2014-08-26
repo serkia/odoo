@@ -49,12 +49,12 @@ openerp.loyalty = function(instance){
                     }
                     total_sold += line.get_price_with_tax();
                 }
-                total_loyalty += round_pr( line.get_quantity() * line.product.loyalty_points, rounding );
+                // total_loyalty += round_pr( line.get_quantity() * line.product.loyalty_points, rounding );
             }
 
-            total_loyalty += round_pr( total_sold * this.pos.loyalty.currency, rounding );
-            total_loyalty += round_pr( product_sold * this.pos.loyalty.product, rounding );
-            total_loyalty += round_pr( this.pos.loyalty.order, rounding );
+            total_loyalty += round_pr( total_sold * this.pos.loyalty.pp_currency, rounding );
+            total_loyalty += round_pr( product_sold * this.pos.loyalty.pp_product, rounding );
+            total_loyalty += round_pr( this.pos.loyalty.pp_order, rounding );
 
             return total_loyalty;
         },

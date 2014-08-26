@@ -32,37 +32,45 @@ _logger = logging.getLogger(__name__)
 class loyalty_program(osv.osv):
     _name = 'loyalty.program'
     _columns = {
-        'name' : fields.char('Loyalty Program Name', size=32, select=1,
+        'name' :        fields.char('Loyalty Program Name', size=32, select=1,
              required=True, help="An internal identification for the loyalty program configuration"),
-        'currency': fields.float('Points per paid currency',help="How many loyalty points are given to the customer by sold currency"),
-        'product':  fields.float('Points per sold product',help="How many loyalty points are given to the customer by product sold"),
-        'order':    fields.float('Points per order',help="How many loyalty points are given to the customer for each sale or order"),
-        'rounding': fields.float('Rounding', help="The loyalty point amounts are rounded to multiples of this value."),
-        'product_exceptions': fields.one2many('loyalty.product_exception','loyalty_program_id','Product Exceptions'),
-        'rewards': fields.one2many('loyalty.reward','loyalty_program_id','Rewards'),
+        'pp_currency':  fields.float('Points per currency',help="How many loyalty points are given to the customer by sold currency"),
+        'pp_product':   fields.float('Points per product',help="How many loyalty points are given to the customer by product sold"),
+        'pp_order':     fields.float('Points per order',help="How many loyalty points are given to the customer for each sale or order"),
+        'rounding':     fields.float('Points Rounding', help="The loyalty point amounts are rounded to multiples of this value."),
+        'rule_ids':     fields.one2many('loyalty.rule','loyalty_program_id','Rules'),
+        'reward_ids':   fields.one2many('loyalty.reward','loyalty_program_id','Rewards'),
+        
     }
     _defaults = {
         'rounding': 1,
     }
 
-class loyalty_product_exception(osv.osv):
-    _name = 'loyalty.product_exception'
+class loyalty_rule(osv.osv):
+    _name = 'loyalty.rule'
     _columns = {
-        'name': fields.char('Product Exception Rule Name', size=32, select=1, required=True, help="An internal identification for the product exception"),
-        'loyalty_program_id': fields.many2one('loyalty.program', 'Loyalty Program', help='The Loyalty Program this exception belongs to'),
-        'product_id': fields.many2one('product.product','Target Product', help='The product affected by the exception'),
-        'override_default': fields.boolean('Override Defaults', help='The product will ignore the the default loyalty program behaviour'),
-        'points_per_unit': fields.float('Points per unit', help='How many points the product will earn per unit ordered'),
-        'points_per_currency': fields.float('Points per currency', help='How many points the product will earn per value sold'),
+        'name':                 fields.char('Name', size=32, select=1, required=True, help="An internal identification for this loyalty program rule"),
+        'loyalty_program_id':   fields.many2one('loyalty.program', 'Loyalty Program', help='The Loyalty Program this exception belongs to'),
+        'type':                 fields.selection((('product','Product'),('category','Category')),'Type',
+                                    required=True, help="The Type of this loyalty rule"),
+        'product_id':           fields.many2one('product.product','Target Product', help='The product affected by the rule'),
+        'category_id':          fields.many2one('pos.category','Target Category', help='The Category affected by the rule'),
+        'override':             fields.boolean('Override Other Rules',      help='A product targetted by this rule will be ignored by other loyalty rules, including the default one'),
+        'pp_product':           fields.float('Points per product',  help='How many points the product will earn per product ordered'),
+        'pp_currency':          fields.float('Points per currency', help='How many points the product will earn per value sold'),
     }
 
 class loyalty_reward(osv.osv):
     _name = 'loyalty.reward'
     _columns = {
-        'name': fields.char('Loyalty Discount Name', size=32, select=1, required=True, help='An internal identification for this loyalty reward'),
-        'loyalty_program_id': fields.many2one('loyalty.program', 'Loyalty Program', help='The Loyalty Program this reward belongs to'),
-        'product_id': fields.many2one('product.product','Product Reward',help='The product given as a reward'),
-        'point_cost': fields.float('Point Cost'),
+        'name':                 fields.char('Name', size=32, select=1, required=True, help='An internal identification for this loyalty reward'),
+        'loyalty_program_id':   fields.many2one('loyalty.program', 'Loyalty Program', help='The Loyalty Program this reward belongs to'),
+        'minimum_points':       fields.float('Minimum Points', help='The minimum amount of points the customer must have to be eligible for this reward'),
+        'type':                 fields.selection((('gift','Gift'),('discount','Discount')), 'Type', required=True, help='The type of the reward'),
+        'gift_product_id':           fields.many2one('product.product','Gift Product', help='The product given as a reward'),
+        'point_cost':           fields.float('Point Cost', help='The cost of the reward'),
+        'discount_product_id':  fields.many2one('product.product','Discount Product', help='The product used to apply discounts'),
+        'discount':             fields.float('Discount',help='The discount percentage'),
     }
 
 class pos_config(osv.osv):
@@ -76,14 +84,6 @@ class res_partner(osv.osv):
     _inherit = 'res.partner'
     _columns = {
         'loyalty_points': fields.float('Loyalty Points', help='The loyalty points the user won as part of a Loyalty Program')
-    }
-
-class product_template(osv.osv):
-    _inherit = 'product.template'
-
-    _columns = {
-        'loyalty_override': fields.boolean('Ignored By Loyalty Rules', help='This product will not be counted in the loyalty rules'),
-        'loyalty_points': fields.float('Extra Fidelity Points', help='This product will win the buyer an extra amount of Fidelity Point. This amount can be set negative to make the product cost fidelity points'),
     }
 
 class pos_order(osv.osv):
