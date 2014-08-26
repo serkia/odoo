@@ -8,7 +8,7 @@
     Lead scoring""",
     'data': [
         'views/lead.xml',
-        # 'views/website_crm_score.xml',
+        'views/website_crm_score.xml',
         'views/sales.xml',
         # 'views/template.xml',
         'security/ir.model.access.csv',
