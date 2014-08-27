@@ -29,7 +29,6 @@ secret_key = '12345'
 class Lead(models.Model):
     _inherit = 'crm.lead'
 
-    @api.one
     @api.model
     def _compute_score(self):
         # self.score = self.score_ids and sum(map(lambda x: x.id, self.score_ids)) or 0 # why ?

@@ -36,7 +36,6 @@ class crm_case_section(osv.osv):
     lead_ids = fields.One2many('crm.lead', 'section_id', string='Leads')
     leads_count = fields.Integer(compute='_count_leads')
     assigned_leads = fields.Integer(compute='_assigned_leads')
-    # maximum_section_leads = fields.Integer('Maximum leads')
     capacity = fields.Integer(compute='_capacity')
     section_user_ids = fields.One2many('section.user', 'section_id', string='Salemen')
 
@@ -45,7 +44,7 @@ class crm_case_section(osv.osv):
         # this is old api translated to new api
         # benefit could be taken from records I guess
         # and do write operations require a browse right before ?
-        
+
         def add_to_dict(d, k, v):
             if k in d:
                 d[k].append(v)
@@ -393,7 +392,6 @@ class res_users(osv.Model):
 class section_user(models.Model):
     _name = 'section.user'
 
-    @api.one
     @api.model
     def _count_leads(self):
         limit_date = datetime.datetime.now() - datetime.timedelta(days=30)

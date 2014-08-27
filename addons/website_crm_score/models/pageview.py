@@ -1,4 +1,4 @@
-from openerp import fields, models, SUPERUSER_ID, modules
+from openerp import fields, models, SUPERUSER_ID, modules, api
 from openerp.http import request
 
 
