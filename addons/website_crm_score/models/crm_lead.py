@@ -30,4 +30,3 @@ class Lead(models.Model):
     pageview_ids = fields.One2many('website.crm.pageview', 'lead_id', string='Page Views')
     language = fields.Many2one('res.lang', string='Language')
     assign_date = fields.Datetime(string='Assign Date')
-

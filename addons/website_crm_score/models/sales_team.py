@@ -40,7 +40,7 @@ class crm_case_section(osv.osv):
     capacity = fields.Integer(compute='_capacity')
     section_user_ids = fields.One2many('section.user', 'section_id', string='Salemen')
 
-    def assign_leads(self, cr, uid, ids, context=None):
+    def assign_leads(self, cr, uid, ids=[], context=None):
 
         def add_to_dict(d, k, v):
             if k in d:

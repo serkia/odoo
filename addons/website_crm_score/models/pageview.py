@@ -1,4 +1,4 @@
-from openerp import fields, api, models, SUPERUSER_ID, modules
+from openerp import fields, models, SUPERUSER_ID, modules
 from openerp.http import request
 
 
@@ -19,22 +19,21 @@ class pageview(models.Model):
 
         pv_cr = cr
         if new_cursor:
-            # another cursor is needed to avoid the rollback in the case 
+            # another cursor is needed to avoid the rollback in the case
             # of a page of the website triggering this creation
             registry = modules.registry.RegistryManager.get(request.session.db)
             pv_cr = registry.cursor()
-        
+
         pv_cr.execute('''INSERT INTO website_crm_pageview (lead_id, partner_id, url, create_date)
             SELECT %s,%s,%s,%s
-            WHERE NOT EXISTS (SELECT * FROM website_crm_pageview WHERE lead_id=%s AND url=%s) 
+            WHERE NOT EXISTS (SELECT * FROM website_crm_pageview WHERE lead_id=%s AND url=%s)
             RETURNING id;
-            ''', (lead_id, partner_id, url, create_date, 
-                lead_id, url))
+            ''', (lead_id, partner_id, url, create_date, lead_id, url))
 
         fetch = pv_cr.fetchone()
         if fetch:
             body = 'The user visited <br><b>' + url + '</b> <br>on ' + create_date
-            request.registry['crm.lead'].message_post(cr, uid, [lead_id], body=body, subject="Page visited", context=context)
+            request.registry['crm.lead'].message_post(cr, SUPERUSER_ID, [lead_id], body=body, subject="Page visited", context=context)
 
         if new_cursor:
             pv_cr.commit()

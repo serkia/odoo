@@ -181,8 +181,6 @@
         <menuitem id="section_user" name="SectionUser" parent="leads_menu" action="section_user_action" />
 
 
-
-
 <!--         <record id="mt_scoring" model="mail.message.subtype">
             <field name="name">Scoring</field>
             <field name="res_model">crm.lead</field>
