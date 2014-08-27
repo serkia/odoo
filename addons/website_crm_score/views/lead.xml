@@ -7,6 +7,7 @@
         <!-- Scheduler for Lead Scoring -->
         <record forcecreate="True" id="ir_cron_lead_scoring" model="ir.cron">
             <field name="name">Lead Scoring Cron</field>
+            <!-- <field name="args">()</field> -->
             <field eval="True" name="active" />
             <field name="user_id" ref="base.user_root" />
             <field name="interval_number">1</field>

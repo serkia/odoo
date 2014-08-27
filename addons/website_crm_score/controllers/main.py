@@ -1,4 +1,4 @@
-from openerp import addons, http, SUPERUSER_ID, fields
+from openerp import addons, http, SUPERUSER_ID
 from openerp.http import request
 
 
@@ -65,12 +65,12 @@ class ContactController(addons.website_crm.controllers.main.contactus):
         if create_new_lead:
             # either no lead_id cookie or the current one is closed, a lead is created
             new_lead_id = super(ContactController, self).create_lead(request, values, kwargs)
-            
+
             # checking if the session user saw pages before the lead creation
             if 'pages_viewed' in request.session:
                 pages_viewed = request.session['pages_viewed']
                 for url, date in pages_viewed.iteritems():
-                    vals = {'lead_id': new_lead_id, 'partner_id': request.session.get('uid', None), 'url': url, 'create_date': date} 
+                    vals = {'lead_id': new_lead_id, 'partner_id': request.session.get('uid', None), 'url': url, 'create_date': date}
                     request.registry['website.crm.pageview'].create_pageview(cr, uid, vals, context=context)
                 del request.session['pages_viewed']
 

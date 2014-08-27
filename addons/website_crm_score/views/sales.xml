@@ -30,6 +30,7 @@
                         <field name="leads_count"/>
                         <field name="assigned_leads"/>
                         <button name="assign_leads" type="object" string="Assign"/>
+                        <!-- <button name="old_assign_leads" type="object" string="Old Assign"/> -->
                     </group>
                 </xpath>
                 <xpath expr="//page[@string='Team Members']" position="replace">
