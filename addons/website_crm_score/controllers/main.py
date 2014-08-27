@@ -19,8 +19,7 @@ class PageController(addons.website.controllers.main.Website):
 
     @http.route('/page/<page:page>', auth="public", website=True, track=True)
     def page(self, page, **opt):
-        response = super(PageController, self).page(page, **opt)
-        return response
+        return super(PageController, self).page(page, **opt)
 
 
 class ContactController(addons.website_crm.controllers.main.contactus):
@@ -41,11 +40,12 @@ class ContactController(addons.website_crm.controllers.main.contactus):
         cr, uid, context = request.cr, request.uid, request.context
         lead_id = request.httprequest.cookies.get('lead_id')
         create_new_lead = False
+        lead_model = request.registry["crm.lead"]
 
         if lead_id:
             # a lead_id cookie exists
             lead_id = int(lead_id)
-            lead = request.registry["crm.lead"].browse(cr, uid, lead_id, context=context)
+            lead = lead_model.browse(cr, uid, lead_id, context=context)
             if not lead['date_closed']:
                 # the lead is still open
                 for fieldname, fieldvalue in values.items():

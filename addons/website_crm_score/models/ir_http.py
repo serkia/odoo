@@ -33,14 +33,16 @@ class ir_http(models.AbstractModel):
                 if do_track:
                     lead_id = request.httprequest.cookies.get('lead_id')
                     no_lead = False
+                    url = request.httprequest.url
+                    date = fields.Datetime.now()
 
                     if lead_id:
                         lead_id = int(lead_id)
-                        leadModel = request.registry["crm.lead"]
-                        lead_instance = leadModel.search(cr, SUPERUSER_ID, [('id', '=', lead_id)], context=context)
+                        lead_model = request.registry["crm.lead"]
+                        lead_instance = lead_model.search(cr, SUPERUSER_ID, [('id', '=', lead_id)], context=context)
                         if lead_instance:
                             # creation of the pageview for this page, duplication is cheched in create_pageview
-                            vals = {'lead_id': lead_id, 'partner_id': request.session.get('uid', None), 'url': request.httprequest.url}
+                            vals = {'lead_id': lead_id, 'partner_id': request.session.get('uid', None), 'url': url}
                             request.registry['website.crm.pageview'].create_pageview(cr, uid, vals, context=context, new_cursor=True)
                         else:
                             # the lead_id in the cookie corresonds to nothing in the db
@@ -50,7 +52,6 @@ class ir_http(models.AbstractModel):
                         no_lead = True
 
                     if no_lead:
-                        url = request.httprequest.url
 
                         if 'pages_viewed' in request.session:
                             # if not request.session['pages_viewed']:
@@ -59,9 +60,9 @@ class ir_http(models.AbstractModel):
                             pages_viewed = request.session['pages_viewed']
                             if not url in pages_viewed.keys():
                                 # No refreshing of the date
-                                pages_viewed.update({url: fields.Datetime.now()})
+                                pages_viewed.update({url: date})
                                 request.session['pages_viewed'] = pages_viewed
                         else:
-                            request.session['pages_viewed'] = {url: fields.Datetime.now()}
+                            request.session['pages_viewed'] = {url: date}
 
         return response

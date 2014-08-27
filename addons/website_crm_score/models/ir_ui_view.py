@@ -11,5 +11,5 @@ class view(osv.osv):
     # }
 
     # New API
-    score_id = fields.Many2one('website.crm.score', string="Score")
+    # score_id = fields.Many2one('website.crm.score', string="Score")
     track = fields.Boolean(string='Track', default=False)
