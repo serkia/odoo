@@ -263,6 +263,38 @@
             <field name="stage_id" ref="crm.stage_lead1"/>
         </record>
 
+        <!-- Scores -->
+         <record id="wcs_score_0" model="website.crm.score">
+            <field name="name">Wcs score 0</field>
+            <field name="value">8</field>
+            <field name="domain">[['country_id', '=', 'Belgium']]</field>
+        </record>
+        <record id="wcs_score_1" model="website.crm.score">
+            <field name="name">Wcs score 1</field>
+            <field name="value">4</field>
+            <field name="domain">[['language', '=', 'English']]</field>
+        </record>
+        <record id="wcs_score_2" model="website.crm.score">
+            <field name="name">Wcs score 2</field>
+            <field name="value">2</field>
+            <field name="domain">[['country_id', '=', 'France']]</field>
+        </record>
+        <record id="wcs_score_3" model="website.crm.score">
+            <field name="name">Wcs score 3</field>
+            <field name="value">1</field>
+            <field name="domain">[['country_id', '!=', 'China']]</field>
+        </record>
+        <record id="wcs_score_4" model="website.crm.score">
+            <field name="name">Wcs score 4</field>
+            <field name="value">16</field>
+            <field name="domain">[['pageview_ids.url', '=', 'http://localhost:8069/page/homepage']]</field>
+        </record>
+        <record id="wcs_score_5" model="website.crm.score">
+            <field name="name">Wcs score 5</field>
+            <field name="value">32</field>
+            <field name="domain">[['pageview_ids.url', '=', 'http://localhost:8069/page/website.aboutus']]</field>
+        </record>
+
 
     </data>
 </openerp>

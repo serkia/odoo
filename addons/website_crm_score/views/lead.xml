@@ -56,7 +56,8 @@
                             readonly="1"
                         />
                         <field name="language" readonly="1"/>
-                        <field name="pageview_ids">
+                        <!-- todo: title should be above the tree so that there is more space for the urls to be showed -->
+                        <field name="pageview_ids" readonly="1">
                             <tree string="Page Views">
                                 <field name="url"/>
                                 <!-- <field name="score"/> -->

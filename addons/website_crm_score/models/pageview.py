@@ -9,7 +9,6 @@ class pageview(models.Model):
     lead_id = fields.Many2one('crm.lead', string='Lead')
     partner_id = fields.Many2one('res.partner', string='Partner')
     url = fields.Char(string='Url')
-    view_id = fields.Many2one('ir.ui.view', string='View')
 
     def create_pageview(self, cr, uid, vals, context=None, new_cursor=False):
         lead_id = vals.get('lead_id', None)

@@ -32,8 +32,6 @@ class score(models.Model):
                     # todo: isn't there a nice way to do so ?
                     add_to_dict(scores_to_write, lead['id'], (4, score['id']))
 
-        # print scores_to_write
-
         for lead_id, data in scores_to_write.iteritems():
             lead_record = self.pool['crm.lead'].browse(cr, SUPERUSER_ID, lead_id, context=None)
             lead_record.write({'score_ids': data})

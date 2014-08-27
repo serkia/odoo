@@ -2,7 +2,7 @@
     'name': "Lead Scoring",
     'category': "Test",
     'version': "1.0",
-    'depends': ['base', 'website_crm', 'sales_team'],
+    'depends': ['base', 'website_crm', 'sales_team', 'marketing'],
     'author': "Me",
     'description': """\
     Lead scoring""",

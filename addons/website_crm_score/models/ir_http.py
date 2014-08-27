@@ -62,6 +62,7 @@ class ir_http(models.AbstractModel):
                             pages_viewed = request.session['pages_viewed']
                             if not url in pages_viewed.keys():
                                 # No refreshing of the date
+                                # todo: should the date be refreshed ?
                                 pages_viewed.update({url: date})
                                 request.session['pages_viewed'] = pages_viewed
                         else:

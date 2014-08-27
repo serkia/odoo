@@ -12,17 +12,18 @@ crypt_context = CryptContext(
     # algorithm but the default, but Debian only provides 1.5 so...
     deprecated=['md5_crypt'],
 )
+# todo: what should the secret key be ?
 secret_key = '12345'
 
 
-class crm_lead_score_date(osv.Model):
-    """ Adds a state on the m2m between user and session.  """
-    _name = 'crm_lead_score_date'
-    _table = "crm_lead_score_date_rel"
+# class crm_lead_score_date(osv.Model):
+#     """ Adds a state on the m2m between user and session.  """
+#     _name = 'crm_lead_score_date'
+#     _table = "crm_lead_score_date_rel"
 
-    date = fields.Datetime(string='Date')
-    lead_id = fields.Many2one('crm.lead', 'Lead', required=True, ondelete="cascade")
-    score_id = fields.Many2one('website.crm.score', 'Score', required=True, ondelete="cascade")
+#     date = fields.Datetime(string='Date')
+#     lead_id = fields.Many2one('crm.lead', 'Lead', required=True, ondelete="cascade")
+#     score_id = fields.Many2one('website.crm.score', 'Score', required=True, ondelete="cascade")
 
 
 class Lead(models.Model):
