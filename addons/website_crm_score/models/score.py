@@ -15,8 +15,6 @@ class score(models.Model):
     @api.model
     def assign_scores_to_leads(self, ids=[]):
 
-        print "assign"
-
         def add_to_dict(d, k, v):
             if k in d:
                 d[k].append(v)

@@ -45,9 +45,7 @@ class crm_case_section(osv.osv):
         # this is old api translated to new api
         # benefit could be taken from records I guess
         # and do write operations require a browse right before ?
-
-        print "assign leads"
-
+        
         def add_to_dict(d, k, v):
             if k in d:
                 d[k].append(v)
