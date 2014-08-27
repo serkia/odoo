@@ -61,7 +61,6 @@
                         <field name="pageview_ids" readonly="1">
                             <tree string="Page Views">
                                 <field name="url"/>
-                                <!-- <field name="score"/> -->
                             </tree>
                         </field>
                     </group>
