@@ -24,17 +24,19 @@ $(document).ready(function() {
         });
     }
 
-    var content = $("div[enable_chatter_discuss='True']").find('p[data-chatter-id]');
-    if (content) {
-        openerp.jsonRpc("/blog/get_user/", 'call', {}).then(function(data){
-            $('#discussions_wrapper').empty();
-            new openerp.website.blog_discussion({'content' : content, 'public_user':data[0]});
-        });
-    }
+    if ($('.website_blog').length) {
+        var content = $("div[enable_chatter_discuss='True']").find('p[data-chatter-id]');
+        if (content) {
+            openerp.jsonRpc("/blog/get_user/", 'call', {}).then(function(data){
+                $('#discussions_wrapper').empty();
+                new openerp.website.blog_discussion({'content' : content, 'public_user':data[0]});
+            });
+        }
 
-    $('.js_fullheight').css('min-height', $(window).height());
-    $(".js_tweet").share({'author_name':$('#blog_author').text()});
-    $('.cover_footer').on('click',page_transist);
-    $('a[href^="#blog_content"]').on('click', animate);
+        $('.js_fullheight').css('min-height', $(window).height());
+        $(".js_tweet").share({'author_name':$('#blog_author').text()});
+        $('.cover_footer').on('click',page_transist);
+        $('a[href^="#blog_content"]').on('click', animate);
+    }
 
 });
