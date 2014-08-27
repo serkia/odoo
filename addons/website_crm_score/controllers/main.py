@@ -30,20 +30,25 @@ class ContactController(addons.website_crm.controllers.main.contactus):
         if '_values' in response.qcontext:  # contactus error : fields validation not passed
             lead_id = response.qcontext.get('_values').get('lead_id')
             if lead_id:  # a new lead has been created
-                response.set_cookie('lead_id', str(lead_id), max_age=365 * 24 * 60 * 60)  # valid for 1 year
-                # response.delete_cookie('crm_tags')
+                lead_model = request.registry['crm.lead']
+                # sign the lead_id
+                sign = lead_model.signed_lead_id(lead_id)
+                response.set_cookie('lead_id', sign, max_age=365 * 24 * 60 * 60)  # valid for 1 year
             else:
                 pass  # lead_id == None because no lead was created
         return response
 
     def create_lead(self, request, values, kwargs):
         cr, uid, context = request.cr, request.uid, request.context
-        lead_id = request.httprequest.cookies.get('lead_id')
+
         create_new_lead = False
         lead_model = request.registry["crm.lead"]
 
+        cookie_content = request.httprequest.cookies.get('lead_id')
+        lead_id = lead_model.verify_lead_id(cookie_content)
+
         if lead_id:
-            # a lead_id cookie exists
+            # a lead_id cookie exists and it has not been altered
             lead_id = int(lead_id)
             lead = lead_model.browse(cr, uid, lead_id, context=context)
             if not lead['date_closed']:

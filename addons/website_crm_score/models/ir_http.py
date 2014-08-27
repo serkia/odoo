@@ -31,14 +31,16 @@ class ir_http(models.AbstractModel):
                         do_track = False
 
                 if do_track:
-                    lead_id = request.httprequest.cookies.get('lead_id')
+
+                    lead_model = request.registry["crm.lead"]
+                    cookie_content = request.httprequest.cookies.get('lead_id')
+                    lead_id = lead_model.verify_lead_id(cookie_content)
                     no_lead = False
                     url = request.httprequest.url
                     date = fields.Datetime.now()
 
                     if lead_id:
                         lead_id = int(lead_id)
-                        lead_model = request.registry["crm.lead"]
                         lead_instance = lead_model.search(cr, SUPERUSER_ID, [('id', '=', lead_id)], context=context)
                         if lead_instance:
                             # creation of the pageview for this page, duplication is cheched in create_pageview
