@@ -49,16 +49,21 @@ class ContactController(addons.website_crm.controllers.main.contactus):
 
         if lead_id:
             # a lead_id cookie exists and it has not been altered
+
             lead_id = int(lead_id)
-            lead = lead_model.browse(cr, SUPERUSER_ID, lead_id, context=context)
-            if not lead['date_closed']:
-                # the lead is still open
-                for fieldname, fieldvalue in values.items():
-                    if fieldname in lead._all_columns and not lead[fieldname]:  # rem : why this last condition ?
-                        lead[fieldname] = fieldvalue
-                        # TODO: what to do, merge/replace ?
+            lead_instance = lead_model.search(cr, SUPERUSER_ID, [('id', '=', lead_id)], context=context)
+            if lead_instance:
+                lead = lead_model.browse(cr, SUPERUSER_ID, lead_id, context=context)
+                if not lead['date_closed']:
+                    # the lead is still open
+                    for fieldname, fieldvalue in values.items():
+                        if fieldname in lead._all_columns and not lead[fieldname]:  # rem : why this last condition ?
+                            lead[fieldname] = fieldvalue
+                            # TODO: what to do, merge/replace ?
+                else:
+                    create_new_lead = True  # lead is closed
             else:
-                create_new_lead = True  # lead is closed
+                create_new_lead = True  # lead does not exist in db
         else:
             create_new_lead = True  # no lead_id cookie
 

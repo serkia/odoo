@@ -207,7 +207,6 @@ class crm_case_section(osv.osv):
                         #   then it has a maximum_user_leads > 0
                         section_user['probability'] = 1 - section_user['leads_count'] / float(section_user['maximum_user_leads'])
 
-
     def old_assign_leads(self, cr, uid, ids=[], context=None):
 
         print "assign leads"
@@ -368,8 +367,6 @@ class crm_case_section(osv.osv):
                         section_user['probability'] = 1 - section_user['leads_count'] / float(section_user['maximum_user_leads'])
 
 
-
-
 class res_users(osv.Model):
     _inherit = 'res.users'
 
@@ -392,7 +389,8 @@ class res_users(osv.Model):
 class section_user(models.Model):
     _name = 'section.user'
 
-    @api.model
+    # @api.model
+    @api.one
     def _count_leads(self):
         limit_date = datetime.datetime.now() - datetime.timedelta(days=30)
         domain = [('user_id', '=', self.user_id.id),

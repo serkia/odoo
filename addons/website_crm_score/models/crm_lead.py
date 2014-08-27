@@ -1,4 +1,3 @@
-from openerp.osv import osv
 from openerp import api, fields, models
 from passlib.context import CryptContext
 
@@ -29,7 +28,8 @@ secret_key = '12345'
 class Lead(models.Model):
     _inherit = 'crm.lead'
 
-    @api.model
+    # @api.model
+    @api.one
     def _compute_score(self):
         # self.score = self.score_ids and sum(map(lambda x: x.id, self.score_ids)) or 0 # why ?
         # print self.env['res.lang'].search([])
@@ -51,7 +51,7 @@ class Lead(models.Model):
     def verify_lead_id(self, cookie_content):
         if cookie_content:
             lead_id, encrypted_lead_id = cookie_content.split('#', 1)
-            if crypt_context.verify(lead_id+secret_key, encrypted_lead_id):
+            if crypt_context.verify(lead_id + secret_key, encrypted_lead_id):
                 return lead_id
             else:
                 return None
