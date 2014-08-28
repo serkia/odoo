@@ -10,10 +10,11 @@ class ir_http(models.AbstractModel):
     def _dispatch(self):
         response = super(ir_http, self)._dispatch()
 
+        # the following does not work, the first pass is done in super()
         # first_pass = not hasattr(request, 'website')
         # if first_pass:
 
-        # is it ok to do so ?
+        # is it ok to do as such (checking the status code) ?
         if response.status_code == 200:
             cr, uid, context = request.cr, request.uid, request.context
             func, arguments = self._find_handler()
@@ -43,7 +44,7 @@ class ir_http(models.AbstractModel):
                         lead_id = int(lead_id)
                         lead_instance = lead_model.search(cr, SUPERUSER_ID, [('id', '=', lead_id)], context=context)
                         if lead_instance:
-                            # creation of the pageview for this page, duplication is cheched in create_pageview
+                            # creation of the pageview for this page, duplication is checked in create_pageview
                             vals = {'lead_id': lead_id, 'partner_id': request.session.get('uid', None), 'url': url}
                             request.registry['website.crm.pageview'].create_pageview(cr, uid, vals, context=context, new_cursor=True)
                         else:
@@ -51,6 +52,7 @@ class ir_http(models.AbstractModel):
                             response.delete_cookie('lead_id')
                             no_lead = True
                     else:
+                        # the cookie was empty or altered
                         no_lead = True
 
                     if no_lead:

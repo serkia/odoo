@@ -59,16 +59,18 @@ class ContactController(addons.website_crm.controllers.main.contactus):
                     for fieldname, fieldvalue in values.items():
                         if fieldname in lead._all_columns and not lead[fieldname]:  # rem : why this last condition ?
                             lead[fieldname] = fieldvalue
-                            # TODO: what to do, merge/replace ?
+                            # todo: what to do, merge/replace ?
                 else:
+                    # todo: the lead_id cookie should be removed
                     create_new_lead = True  # lead is closed
             else:
+                # todo: the lead_id cookie should be removed
                 create_new_lead = True  # lead does not exist in db
         else:
             create_new_lead = True  # no lead_id cookie
 
         if create_new_lead:
-            # either no lead_id cookie or the current one is closed, a lead is created
+            # either no lead_id cookie OR the lead_id doesn't exist in db OR the current one is closed -> a lead is created
             new_lead_id = super(ContactController, self).create_lead(request, values, kwargs)
 
             # checking if the session user saw pages before the lead creation

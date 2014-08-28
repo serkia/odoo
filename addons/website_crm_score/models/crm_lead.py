@@ -40,4 +40,5 @@ class Lead(models.Model):
             if crypt_context.verify(lead_id + secret_key, encrypted_lead_id):
                 return lead_id
             else:
+                # todo: the lead_id cookie should be removed
                 return None
