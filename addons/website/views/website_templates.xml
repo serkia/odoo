@@ -175,15 +175,12 @@
 </template>
 
 <template id="assets_editor" name="Editor assets">
-    <script type="text/javascript">
-        var CKEDITOR_BASEPATH = '/web/static/lib/ckeditor/';
-    </script>
     <link rel='stylesheet' href='/website/static/src/css/snippets.css'/>
     <link rel='stylesheet' href='/website/static/src/css/editor.css'/>
     <link rel='stylesheet' href="/web/static/lib/jquery.ui/css/smoothness/jquery-ui-1.9.1.custom.css"/>
     <link rel="stylesheet" href="/web/static/lib/select2/select2.css"/>
     <link rel="stylesheet" href="/website/static/lib/select2-bootstrap-css/select2-bootstrap.css"/>
-    <link rel="stylesheet" href="/web/static/lib/summernote/summernote.js"/>
+    <script type="text/javascript" src="/web/static/lib/summernote/summernote.js"></script>
     <link rel="stylesheet" href="/web/static/lib/summernote/summernote.css"/>
 
     <script type="text/javascript" src="/web/static/lib/select2/select2.js"></script>

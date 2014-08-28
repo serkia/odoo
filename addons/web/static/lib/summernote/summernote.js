@@ -4214,30 +4214,6 @@
   var renderer = new Renderer();
   var eventHandler = new EventHandler();
 
-
-  // odoo hack: allow to overwrite the methods
-  $.summernote.objects = {
-    agent:    agent,
-    func:     func,
-    list:     list,
-    dom:      dom,
-    async:    async,
-    key:      key,
-    Style:    Style,
-    range:    range,
-    Table:    Table,
-    Editor:   Editor,
-    History:  History,
-    Button:   Button,
-    Toolbar:  Toolbar,
-    Popover:  Popover,
-    Handle:   Handle,
-    Dialog:   Dialog,
-    EventHandler: EventHandler,
-    Renderer: Renderer
-  };
-
-
   /**
    * extend jquery fn
    */
@@ -4336,37 +4312,28 @@
       return this;
     }
   });
+
+  // odoo hack: allow to overwrite the methods
+  $.summernote.objects = {
+    agent:    agent,
+    func:     func,
+    list:     list,
+    dom:      dom,
+    settings: settings,
+    async:    async,
+    key:      key,
+    Style:    Style,
+    range:    range,
+    Table:    Table,
+    Editor:   Editor,
+    History:  History,
+    Button:   Button,
+    Toolbar:  Toolbar,
+    Popover:  Popover,
+    Handle:   Handle,
+    Dialog:   Dialog,
+    EventHandler: EventHandler,
+    Renderer: Renderer
+  };
+
 }));
-
-
-
-$('header').remove();
-$("body").summernote({
-    onpaste: function(e) {
-        e.preventDefault();
-        var $editable = $(e.currentTarget);
-        var clipboardData = e.originalEvent.clipboardData;
-        var text = clipboardData.getData("text/plain");
-        var tag = e.target.tagName.toLowerCase();
-        if("h1 h2 h3 h4 h5 h6 span".indexOf(tag) === -1) {
-         text = "p";
-        }
-        text = "<"+tag+">"+text.split('\n').join("</"+tag+"><"+tag+">")+"</"+tag+">";
-
-        // var selection = document.getSelection();
-        // var nativeRng = selection.getRangeAt(0);
-        // nativeRng.deleteContents();
-        // nativeRng.insertNode($(text)[0]);
-
-        console.log(document.execCommand('insertHTML', true, "</"+tag+">__summernote__<"+tag+">"));
-        console.log(e.target);
-
-        $(e.target).find("*:contains(__summernote__)").remove();
-        $(e.target).next().remove();
-        $(e.target).after(text);
-
-        //console.log(document.execCommand('insertHTML', true, text));
-
-        //console.log(e.target);
-    }
-});
