@@ -1,25 +1,56 @@
-openerp.loyalty = function(instance){
+openerp.pos_loyalty = function(instance){
+
     var module   = instance.point_of_sale;
     var round_pr = instance.web.round_precision
-    var QWeb = instance.web.qweb;
+    var QWeb     = instance.web.qweb;
 
     QWeb.add_template('/pos_loyalty/static/src/xml/pos.xml');
 
     var models = module.PosModel.prototype.models;
-    for(var i = 0; i < models.length; i++){
+    for (var i = 0; i < models.length; i++) {
         var model = models[i];
-        if(model.model === 'product.product'){
+        if (model.model === 'product.product') {
             model.fields.push('loyalty_points');
             model.fields.push('loyalty_override');
-        }else if(model.model === 'res.partner'){
+        } else if (model.model === 'res.partner') {
             model.fields.push('loyalty_points');
-        }else if(model.model === 'pos.config'){
+        } else if (model.model === 'pos.config') {
             // load loyalty after pos.config
             models.splice(i+1,0,{
                 model: 'loyalty.program',
-                fields: [],
+                condition: function(self){ return !!self.config.loyalty_id[0]; },
+                fields: ['name','pp_currency','pp_product','pp_order','rounding'],
                 domain: function(self){ return [['id','=',self.config.loyalty_id[0]]]; },
                 loaded: function(self,loyalties){ self.loyalty = loyalties[0]; },
+            },{
+                model: 'loyalty.rule',
+                condition: function(self){ return !!self.loyalty; },
+                fields: ['name','type','product_id','category_id','override','pp_product','pp_currency'],
+                domain: function(self){ return [['loyalty_program_id','=',self.loyalty.id]]; },
+                loaded: function(self,rules){ 
+
+                    self.loyalty.rules = rules; 
+                    self.loyalty.rules_by_product_id = {};
+
+                    for (var i = 0; i < rules.length; i++){
+                        var rule = rules[i];
+                        if (!self.loyalty.rules_by_product_id[rule.product_id[0]]) {
+                            self.loyalty.rules_by_product_id[rule.product_id[0]] = [rule];
+                        } else if (rule.override) {
+                            self.loyalty.rules_by_product_id[rule.product_id[0]].unshift(rule);
+                        } else {
+                            self.loyalty.rules_by_product_id[rule.product_id[0]].push(rule);
+                        }
+                    }
+                },
+            },{
+                model: 'loyalty.reward',
+                condition: function(self){ return !!self.loyalty; },
+                fields: ['name','type','minimum_points','gift_product_id','point_cost','discount_product_id','discount'],
+                domain: function(self){ return [['loyalty_program_id','=',self.loyalty.id]]; },
+                loaded: function(self,rewards){
+                    self.loyalty.rewards = rewards; 
+                },
             });
         }
     }
@@ -27,36 +58,44 @@ openerp.loyalty = function(instance){
     var _super = module.Order;
     module.Order = module.Order.extend({
         get_loyalty_points: function(){
-            if(!this.pos.loyalty){
+            if (!this.pos.loyalty) {
                 return 0;
             }
             
             var orderLines = this.get('orderLines').models;
             var rounding   = this.pos.loyalty.rounding;
             
-            var product_sold    = 0;
-            var total_sold      = 0;
-            var total_loyalty   = 0;
+            var product_sold = 0;
+            var total_sold   = 0;
+            var total_points = 0;
 
-            for(var i = 0; i < orderLines.length; i++){
+            for (var i = 0; i < orderLines.length; i++) {
                 var line = orderLines[i];
-                if( !line.product.loyalty_override ){
-                    if( line.get_unit().groupable ){
-                        product_sold += line.get_quantity();
-                    }else{
-                        // a bag of 5Kg of oranges only count as one product sold
-                        product_sold += 1;
+                var product = line.get_product();
+                var rules  = this.pos.loyalty.rules_by_product_id[product.id] || [];
+                var overriden = false;
+                
+                for (var j = 0; j < rules.length; j++) {
+                    var rule = rules[j];
+                    total_points += round_pr(line.get_quantity() * rule.pp_product, rounding);
+                    total_points += round_pr(line.get_price_with_tax() * rule.pp_currency, rounding);
+                    if (rule.override) {
+                        overriden = true;
+                        break;
                     }
-                    total_sold += line.get_price_with_tax();
                 }
-                // total_loyalty += round_pr( line.get_quantity() * line.product.loyalty_points, rounding );
+
+                if (!overriden) {
+                    product_sold += line.get_quantity();
+                    total_sold   += line.get_price_with_tax();
+                }
             }
 
-            total_loyalty += round_pr( total_sold * this.pos.loyalty.pp_currency, rounding );
-            total_loyalty += round_pr( product_sold * this.pos.loyalty.pp_product, rounding );
-            total_loyalty += round_pr( this.pos.loyalty.pp_order, rounding );
+            total_points += round_pr( total_sold * this.pos.loyalty.pp_currency, rounding );
+            total_points += round_pr( product_sold * this.pos.loyalty.pp_product, rounding );
+            total_points += round_pr( this.pos.loyalty.pp_order, rounding );
 
-            return total_loyalty;
+            return total_points;
         },
         validate: function(){
             var client = this.get('client');

@@ -318,12 +318,19 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                     loaded.resolve();
                 }else{
                     var model = self.models[index];
+
+                    var cond   =  typeof model.condition === 'function' ? model.condition(self,tmp) : true;
+                    if( !cond ){
+                        load_model(index+1);
+                        return;
+                    }
+
                     self.pos_widget.loading_message(_t('Loading')+' '+(model.model || ''), progress);
                     var fields =  typeof model.fields === 'function'  ? model.fields(self,tmp)  : model.fields;
                     var domain =  typeof model.domain === 'function'  ? model.domain(self,tmp)  : model.domain;
                     var context = typeof model.context === 'function' ? model.context(self,tmp) : model.context; 
                     progress += progress_step;
-                    
+
                     if( model.model ){
                         new instance.web.Model(model.model).query(fields).filter(domain).context(context).all()
                             .then(function(result){

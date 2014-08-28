@@ -51,11 +51,8 @@ class loyalty_rule(osv.osv):
     _columns = {
         'name':                 fields.char('Name', size=32, select=1, required=True, help="An internal identification for this loyalty program rule"),
         'loyalty_program_id':   fields.many2one('loyalty.program', 'Loyalty Program', help='The Loyalty Program this exception belongs to'),
-        'type':                 fields.selection((('product','Product'),('category','Category')),'Type',
-                                    required=True, help="The Type of this loyalty rule"),
         'product_id':           fields.many2one('product.product','Target Product', help='The product affected by the rule'),
-        'category_id':          fields.many2one('pos.category','Target Category', help='The Category affected by the rule'),
-        'override':             fields.boolean('Override Other Rules',      help='A product targetted by this rule will be ignored by other loyalty rules, including the default one'),
+        'override':             fields.boolean('Override Base Rules',      help='A product targetted by this rule will be ignored by other loyalty rules, including the default one'),
         'pp_product':           fields.float('Points per product',  help='How many points the product will earn per product ordered'),
         'pp_currency':          fields.float('Points per currency', help='How many points the product will earn per value sold'),
     }
@@ -101,8 +98,7 @@ class pos_order(osv.osv):
     def create_from_ui(self, cr, uid, orders, context=None):
         ids = super(pos_order,self).create_from_ui(cr,uid,orders,context=context)
         for order in orders:
-            pp.pprint(order)
-            if order['data']['loyalty_points'] and order['data']['partner_id']:
+            if 'loylaty_points' in order['data'] and order['data']['partner_id']:
                 partner = self.pool.get('res.partner').browse(cr,uid,order['data']['partner_id'], context=context)
                 partner.write({'loyalty_points': partner['loyalty_points'] + order['data']['loyalty_points']})
 
