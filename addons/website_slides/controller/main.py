@@ -33,18 +33,6 @@ class main(http.Controller):
     _slides_per_page = 12
     _slides_per_list = 20
 
-    def _slides_urldata(self):
-        urldata = urlparse(request.httprequest.url)
-        values = {}
-        values.update({
-            'urlscheme':urldata.scheme + '://',
-            'urlhost':urldata.netloc,
-            'urlpath':urldata.path,
-            'urlquery':urldata.query,
-        })
-        return values
-
-
     def _slides_message(self, user, attachment_id=0, **post):
         cr, uid, context = request.cr, request.uid, request.context
         attachment = request.registry['ir.attachment']
@@ -102,8 +90,8 @@ class main(http.Controller):
         attachment = request.registry['ir.attachment']
         domain = [('is_slide','=','True'), ('parent_id','=',channel.id)]
 
-        count_all = count_slide = count_video = count_document = 0
-        attachment_ids = videos = slides = documents = []
+        count_all = count_slide = count_video = count_document = count_infographic = 0
+        attachment_ids = videos = slides = documents = infographics = []
         famous = None
 
         if request.uid == 3: domain += [('website_published', '=', True)]
@@ -184,11 +172,18 @@ class main(http.Controller):
                 documents = attachment.browse(cr, uid, count_ids)
             lens.update({'document':len(count_ids)})
 
+            count_domain = domain + [('slide_type', '=', 'infographic')]
+            count_ids = attachment.search(cr, uid, count_domain, limit=4, offset=0, order='create_date desc', context=context)
+            if count_domain:
+                infographics = attachment.browse(cr, uid, count_ids)
+            lens.update({'infographic':len(count_ids)})
+
             famous = request.registry.get('document.directory').get_mostviewed(cr, uid, channel, context)
             values.update({
                 'videos':videos,
                 'slides':slides,
                 'documents':documents,
+                'infographics': infographics,
                 'famous':famous
             })
 
@@ -228,30 +223,15 @@ class main(http.Controller):
         # get comments
         comments = slideview.website_message_ids
 
-        # get share url
-        urldata = self._slides_urldata()
-        shareurl = urldata['urlscheme'] + urldata['urlhost'] + urldata['urlpath']
-
-        # create slide embed code
-        embedcode = ""
-
-        if slideview.datas:
-            embedcode = '<iframe  src="' + urldata['urlscheme'] + urldata['urlhost'] + '/website_slides/static/lib/pdfjs/web/viewer.html?file=' + slideview.url + '#page="></iframe>'
-        if slideview.youtube_id:
-            embedcode = '<iframe src="//www.youtube.com/embed/' + slideview.youtube_id + '?theme=light"></iframe>'
-
-        values = {}
-        values.update({
+        values= {
             'slideview':slideview,
             'most_viewed_ids':most_viewed_ids,
             'related_ids': related_ids,
             'comments': comments,
-            'shareurl':shareurl,
-            'embedcode':embedcode,
             'channel': slideview.parent_id,
             'user':user,
             'types':types
-        })
+        }
         return request.website.render('website_slides.slide_view', values)
 
 
@@ -315,7 +295,6 @@ class main(http.Controller):
                         })
         return res
 
-
     @http.route(['/slides/add_slide'], type='http', auth="user", methods=['POST'], website=True)
     def create_slide(self, *args, **post):
         cr, uid, context, pool = request.cr, request.uid, request.context, request.registry
@@ -332,19 +311,25 @@ class main(http.Controller):
         post['tag_ids'] = tag_ids
         slide_obj = pool.get('ir.attachment')
 
+        _file_types = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif']
+
+        if post.get('mimetype') in _file_types:
+            post['slide_type'] = 'infographic'
+            post['image'] = post.get('datas')
+        print 'EEE',post.get('datas')
         if post.get('url') and not post.get('datas', False):
             post['slide_type'] = 'video'
-        elif post.get('datas') and not post.get('url', False):
+        elif post.get('mimetype') == 'application/pdf':
             height = post.get('height', 0)
-            del post['height']
-
             width = post.get('width', 0)
-            del post['width']
 
             if height > width:
                 post['slide_type'] = 'document'
             else:
                 post['slide_type'] = 'presentation'
+
+            del post['height']
+            del post['width']
 
         slide_id = slide_obj.create(cr, uid, post, context=context)
         return request.redirect("/channel/%s/%s/%s" % (post.get('parent_id'), post['slide_type'], slide_id))

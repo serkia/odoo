@@ -86,7 +86,7 @@ class ir_attachment(osv.osv):
     _order = "id desc"
     _columns = {
         'is_slide': fields.boolean('Is Slide'),
-        'slide_type': fields.selection([('presentation', 'Presentation'), ('document', 'Document'), ('video', 'Video')], 'Type'),
+        'slide_type': fields.selection([('infographic','Infographic'), ('presentation', 'Presentation'), ('document', 'Document'), ('video', 'Video')], 'Type'),
         'tag_ids': fields.many2many('ir.attachment.tag', 'rel_attachments_tags', 'attachment_id', 'tag_id', 'Tags'),
         'image': fields.binary('Thumb'),
         'slide_views': fields.integer('Number of Views'),
@@ -106,6 +106,22 @@ class ir_attachment(osv.osv):
         'likes': fields.integer('Likes'),
         'dislikes': fields.integer('Dislikes'),
     }
+
+    def _get_share_url(self, cr, uid, slide, context):
+        base_url = self.pool['ir.config_parameter'].get_param(cr, uid, 'web.base.url')
+        shareurl = "%s/%s/%s/%s" % (base_url, slug(slide.parent_id), slide.slide_type, slug(slide))
+        return shareurl
+
+    def _get_embade_code(self, cr, uid, slide, context):
+        base_url = self.pool['ir.config_parameter'].get_param(cr, uid, 'web.base.url')
+
+        embedcode = False
+        if slide.datas and not slide.youtube_id:
+            embedcode = '<iframe  src="%s/website_slides/static/lib/pdfjs/web/viewer.html?file=%s#page="></iframe>' % (base_url, slide.url)
+        if slide.youtube_id:
+            embedcode = '<iframe src="//www.youtube.com/embed/%s?theme=light"></iframe>' % (slide.youtube_id)
+
+        return embedcode
 
     def _get_slide_setting(self, cr, uid, context):
         return context.get('is_slide', False)
@@ -145,14 +161,27 @@ class ir_attachment(osv.osv):
             return False
 
         body = _(
-            '<p>A new presentation <i>%s</i> has been published under %s channel. <a href="%s/channel/%s/%s/view/%s">Click here to access the question.</a></p>' %
+            '<p>A new presentation <i>%s</i> has been published under %s channel. <a href="%s/channel/%s/%s/view/%s">Click here to access the presentation.</a></p>' %
             (slide.name, slide.parent_id.name, base_url, slug(slide.parent_id), slide.slide_type, slug(slide))
         )
         partner_ids = []
         for partner in slide.parent_id.message_follower_ids:
             partner_ids.append(partner.id)
-
         self.pool.get('document.directory').message_post(cr, uid, [slide.parent_id.id], subject=slide.name, body=body, subtype='website_slide.new_slides', partner_ids=partner_ids, context=context)
+
+    def notify_request_to_approve(self, cr, uid, slide_id, context):
+        base_url = self.pool['ir.config_parameter'].get_param(cr, uid, 'web.base.url')
+        slide = self.browse(cr, uid, slide_id, context)
+
+        body = _(
+            '<p>A new presentation <i>%s</i> has been uplodated under %s channel andwaiting for your review. <a href="%s/channel/%s/%s/view/%s">Click here to review the presentation.</a></p>' %
+            (slide.name, slide.parent_id.name, base_url, slug(slide.parent_id), slide.slide_type, slug(slide))
+        )
+        partner_ids = []
+        for partner in slide.parent_id.message_follower_ids:
+            partner_ids.append(partner.id)
+        self.pool.get('document.directory').message_post(cr, uid, [slide.parent_id.id], subject=slide.name, body=body, subtype='website_slide.new_slides_validation', partner_ids=partner_ids, context=context)
+
 
     def write(self, cr, uid, ids, values, context=None):
         if values.get('url'):
@@ -188,7 +217,9 @@ class ir_attachment(osv.osv):
             elif values.get('url'):
                 values = self.update_youtube(cr, uid, values, context)
 
+        values['website_published'] = False
         slide_id = super(ir_attachment, self).create(cr, uid, values, context)
+        self.notify_request_to_approve(cr, uid, slide_id, context)
         self.notify_published(cr, uid, slide_id, context)
         return slide_id
 
