@@ -4,8 +4,6 @@ openerp.pos_loyalty = function(instance){
     var round_pr = instance.web.round_precision
     var QWeb     = instance.web.qweb;
 
-    QWeb.add_template('/pos_loyalty/static/src/xml/pos.xml');
-
     var models = module.PosModel.prototype.models;
     for (var i = 0; i < models.length; i++) {
         var model = models[i];

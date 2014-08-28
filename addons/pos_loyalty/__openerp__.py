@@ -41,8 +41,7 @@ and get rewards.
         'views/views.xml',
         'views/templates.xml'
     ],
-    'test': [
-    ],
+    'qweb': ['static/src/xml/loyalty.xml'],
     'installable': True,
     'auto_install': False,
 }
