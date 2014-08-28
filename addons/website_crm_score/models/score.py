@@ -25,11 +25,10 @@ class score(models.Model):
         scores_to_write = {}
         for score in scores:
             domain = safe_eval(score['domain'])
-            domain.extend([('user_id', '=', False)])
+            domain.extend([('user_id', '=', False), ('date_closed', '=', False)])
             leads = self.env['crm.lead'].search_read(domain=domain, fields=['name', 'country_id', 'language', 'score_ids'])
             for lead in leads:
                 if not score['id'] in lead['score_ids']:
-                    # todo: isn't there a nice way to do so ?
                     add_to_dict(scores_to_write, lead['id'], (4, score['id']))
 
         for lead_id, data in scores_to_write.iteritems():
