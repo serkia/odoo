@@ -34,7 +34,7 @@ class ir_http(models.AbstractModel):
 
                     lead_model = request.registry["crm.lead"]
                     cookie_content = request.httprequest.cookies.get('lead_id')
-                    lead_id = lead_model.get_lead_id(cookie_content, response)
+                    lead_id = lead_model.get_lead_id(request, response)
                     no_lead = False
                     url = request.httprequest.url
                     date = fields.Datetime.now()
