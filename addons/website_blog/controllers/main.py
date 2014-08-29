@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import re
+from feedgen.feed import FeedGenerator
 import datetime
+import pytz
 import werkzeug
 
 from openerp import tools
@@ -87,8 +90,9 @@ class WebsiteBlog(http.Controller):
         '/blog/<model("blog.blog"):blog>/page/<int:page>',
         '/blog/<model("blog.blog"):blog>/tag/<model("blog.tag"):tag>',
         '/blog/<model("blog.blog"):blog>/tag/<model("blog.tag"):tag>/page/<int:page>',
+        '/blog/<model("blog.blog"):blog>/<any(atom,rss):feed_type>',
     ], type='http', auth="public", website=True)
-    def blog(self, blog=None, tag=None, page=1, **opt):
+    def blog(self, blog=None, tag=None, page=1, feed_type=None, **opt):
         """ Prepare all values to display the blog.
 
         :return dict values: values for the templates, containing
@@ -151,7 +155,74 @@ class WebsiteBlog(http.Controller):
             'post_url': post_url,
             'date': date_begin,
         }
-        response = request.website.render("website_blog.blog_post_short", values)
+
+        if feed_type in ['atom','rss']:
+            response = self._blog_feed(blog, blog_post_ids, feed_type, **opt)
+        else:
+            response = request.website.render("website_blog.blog_post_short", values)
+        return response
+
+    def _blog_feed(self, blog, blog_post_ids, feed_type, **opt):
+        cr, uid, context = request.cr, request.uid, request.context
+
+        base_url = request.registry.get('ir.config_parameter').get_param(cr, uid, 'web.base.url')
+        blog_post_obj = request.registry['blog.post']
+
+        timezone_format = '%a, %d %b %Y %H:%M:%S %z'
+        blog_url = '%s/blog/%s' % (base_url,slug(blog))
+
+        fg = FeedGenerator()
+        fg.id(blog_url)
+        fg.title(blog.name)
+        fg.link(href='%s/blog/%s/atom' % (base_url,slug(blog)), type='application/atom+xml', rel='self')
+        fg.link(href=blog_url ,rel='alternate')
+        fg.description(blog.description or blog.name)
+        fg.language(context.get('lang'))
+
+        timezone = pytz.timezone(context.get('tz') or 'UTC')
+        blog_write_date = datetime.datetime.strptime(blog.write_date,tools.DEFAULT_SERVER_DATETIME_FORMAT).replace(tzinfo=pytz.utc).astimezone(timezone)
+
+        #This will set both atom:updated and rss:lastBuildDate.
+        fg.lastBuildDate(blog_write_date.strftime(timezone_format))
+
+        for post in blog_post_obj.browse(cr, SUPERUSER_ID, blog_post_ids, context=context):
+            fe = fg.add_entry()
+            blog_post_url = '%s/blog/%s/post/%s' % (base_url,slug(blog),slug(post))
+
+            fe.id(blog_post_url),
+            fe.title(post.name),
+            fe.link(href=blog_post_url),
+            fe.author({'name':post.author_id.name ,'email':post.author_id.email}),
+            fe.description(post.subtitle),
+
+            post_create_date = datetime.datetime.strptime(post.create_date,tools.DEFAULT_SERVER_DATETIME_FORMAT).replace(tzinfo=pytz.utc).astimezone(timezone)
+            post_write_date = datetime.datetime.strptime(post.write_date,tools.DEFAULT_SERVER_DATETIME_FORMAT).replace(tzinfo=pytz.utc).astimezone(timezone)
+
+            fe.updated(post_write_date.strftime(timezone_format)), #atom
+            fe.pubdate(post_create_date.strftime(timezone_format)), #rss
+            fe.published(post_create_date.strftime(timezone_format)), #atom
+
+            post_content=""
+            if post.content:
+                # Find pattern in post.content and replace
+                content = re.compile(' src="/')
+                post_content = content.sub(' src="%s/' % base_url , post.content)
+
+                content = re.compile('href="')
+                post_content = content.sub('href="%s' % base_url , post_content)
+
+                regex = re.compile('[^<div*?](?#\S)data-src=\"?\'?([^\\"\'>]*)',re.M|re.U)
+                urlfind = regex.findall(post_content)
+                content = re.compile('<div class="media_iframe_video"(.*?)>')
+
+                for url in urlfind:
+                    post_content = re.sub(content, '<iframe src="%s"></iframe>' % url, post_content, 1)
+            fe.content(post_content or u' '),
+
+        if feed_type == 'rss':
+            response = request.make_response(fg.rss_str(pretty=True),[('Content-Type', 'text/xml')])
+        else:
+            response = request.make_response(fg.atom_str(pretty=True),[('Content-Type', 'text/xml')])
         return response
 
     @http.route([
