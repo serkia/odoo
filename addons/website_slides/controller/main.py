@@ -143,7 +143,7 @@ class main(http.Controller):
             
             values.update({
                 'attachment_ids': attachment_ids,
-                'all_count': len(attachment_ids),
+                'all_count': pager_count,
                 'pager': pager,
                 'types': types,
                 'sorting': sorting,
@@ -189,8 +189,10 @@ class main(http.Controller):
             countvals = {}
             for count in counts:
                 countvals['count_'+count.get('slide_type')] = count.get('slide_type_count') - lens.get(count.get('slide_type'))
+                count_all += count.get('slide_type_count')
 
             values.update(countvals)
+            values.update({'count_all':count_all})
 
         return request.website.render('website_slides.home', values)
 
@@ -249,10 +251,8 @@ class main(http.Controller):
     def slide_thumb(self, document_id=0, **post):
         cr, uid, context = request.cr, SUPERUSER_ID, request.context
         response = werkzeug.wrappers.Response()
-        Files = request.registry['ir.attachment']
         Website = request.registry['website']
-        user = Files.browse(cr, uid, document_id, context=context)
-        return Website._image(cr, uid, 'ir.attachment', user.id, 'image', response)
+        return Website._image(cr, uid, 'ir.attachment', document_id, 'image', response)
 
 
     @http.route('/slides/get_tags', type='http', auth="public", methods=['GET'], website=True)
