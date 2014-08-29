@@ -34,11 +34,14 @@ class Lead(models.Model):
         encrypted_lead_id = crypt_context.encrypt(str(lead_id) + secret_key)
         return str(lead_id) + '#' + encrypted_lead_id
 
-    def verify_lead_id(self, cookie_content):
+    def get_lead_id(self, request, response=None):
+        cookie_content = request.httprequest.cookies.get('lead_id')
         if cookie_content:
             lead_id, encrypted_lead_id = cookie_content.split('#', 1)
             if crypt_context.verify(lead_id + secret_key, encrypted_lead_id):
                 return lead_id
             else:
-                # todo: the lead_id cookie should be removed
+                if response:
+                    # the cookie is removed because it is useless
+                    response.delete_cookie('lead_id')
                 return None

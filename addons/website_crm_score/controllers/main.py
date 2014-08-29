@@ -44,8 +44,8 @@ class ContactController(addons.website_crm.controllers.main.contactus):
         create_new_lead = False
         lead_model = request.registry["crm.lead"]
 
-        cookie_content = request.httprequest.cookies.get('lead_id')
-        lead_id = lead_model.verify_lead_id(cookie_content)
+        # cookie_content = request.httprequest.cookies.get('lead_id')
+        lead_id = lead_model.get_lead_id(request)
 
         if lead_id:
             # a lead_id cookie exists and it has not been altered
@@ -61,13 +61,13 @@ class ContactController(addons.website_crm.controllers.main.contactus):
                             lead[fieldname] = fieldvalue
                             # todo: what to do, merge/replace ?
                 else:
-                    # todo: the lead_id cookie should be removed
                     create_new_lead = True  # lead is closed
             else:
-                # todo: the lead_id cookie should be removed
                 create_new_lead = True  # lead does not exist in db
         else:
             create_new_lead = True  # no lead_id cookie
+        # when create_new_lead, it may mean that the cookie is either useless or altered
+        # it should be removed, but it is unnecessary for a new one will be written
 
         if create_new_lead:
             # either no lead_id cookie OR the lead_id doesn't exist in db OR the current one is closed -> a lead is created
