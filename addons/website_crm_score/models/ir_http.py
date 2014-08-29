@@ -20,7 +20,6 @@ class ir_http(models.AbstractModel):
             func, arguments = self._find_handler()
 
             track = func.routing.get('track', False)
-            no_lead = False
 
             if track:
                 do_track = True
@@ -35,7 +34,7 @@ class ir_http(models.AbstractModel):
 
                     lead_model = request.registry["crm.lead"]
                     cookie_content = request.httprequest.cookies.get('lead_id')
-                    lead_id = lead_model.verify_lead_id(cookie_content)
+                    lead_id = lead_model.get_lead_id(cookie_content, response)
                     no_lead = False
                     url = request.httprequest.url
                     date = fields.Datetime.now()
@@ -58,9 +57,6 @@ class ir_http(models.AbstractModel):
                     if no_lead:
 
                         if 'pages_viewed' in request.session:
-                            # if not request.session['pages_viewed']:
-                            #     del request.session['pages_viewed']
-                            # else:
                             pages_viewed = request.session['pages_viewed']
                             if not url in pages_viewed.keys():
                                 # No refreshing of the date
