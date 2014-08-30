@@ -185,6 +185,7 @@ class ir_attachment(osv.osv):
             '<p>A new presentation <i>%s</i> has been uplodated under %s channel andwaiting for your review. <a href="%s/channel/%s/%s/view/%s">Click here to review the presentation.</a></p>' %
             (slide.name, slide.parent_id.name, base_url, slug(slide.parent_id), slide.slide_type, slug(slide))
         )
+        #Todo: fix me, search only people subscribe for new_slides_validation
         partner_ids = []
         for partner in slide.parent_id.message_follower_ids:
             partner_ids.append(partner.id)
@@ -202,9 +203,11 @@ class ir_attachment(osv.osv):
         return success
 
     def update_youtube(self, cr, uid, values, context=None):
+        print 'XXXXXXXX : values', values
         values["youtube_id"] = self.extract_youtube_id(values['url'].strip())
         statistics = self.youtube_statistics(values["youtube_id"])
         if statistics:
+            print 'XXXXXXXXXXX : statistics ', statistics
             if statistics['items'][0].get('snippet') :
                 if statistics['items'][0]['snippet'].get('thumbnails'):
                     image_url = statistics['items'][0]['snippet']['thumbnails']['medium']['url']
