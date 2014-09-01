@@ -26,7 +26,6 @@
             <data>
                 <xpath expr="//div[@class='oe_clear']" position="after">
                     <!-- <group> -->
-                        <!-- <field name="section_domain" widget="char_domain" options="{'model': 'crm.lead'}"/> -->
                         <!-- TODO how do I make this nice, does label work ? -->
                         <field name="capacity"/>
                         <field name="leads_count"/>
@@ -44,7 +43,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//group[@name='left']" position="after">
                     <group name="right">
-                        <field name="section_domain" widget="char_domain" options="{'model': 'crm.lead'}"/>
+                        <field name="score_section_domain" widget="char_domain" options="{'model': 'crm.lead'}"/>
                         <field name="capacity"/>
                         <field name="leads_count"/>
                         <field name="assigned_leads"/>

@@ -57,7 +57,6 @@ class ContactController(addons.website_crm.controllers.main.contactus):
         if lead_instance:
             # a lead_id cookie exists and it has not been altered and the lead is not closed
             lead = lead_model.browse(cr, SUPERUSER_ID, lead_id, context=context)
-            print "values", values
             # print "desc", lead["description"]
             for fieldname, fieldvalue in values.items():
                 pass

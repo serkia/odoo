@@ -9,22 +9,23 @@ from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 class crm_case_section(osv.osv):
     _inherit = "crm.case.section"
 
-
     # faire du beau python
     @api.one
     def _count_leads(self):
-        self.leads_count = self.lead_ids and sum(map(lambda x: 1, self.lead_ids)) or 0
+        self.leads_count = len(self.lead_ids)
 
     @api.one
     def _assigned_leads(self):
-        self.assigned_leads = self.section_user_ids and sum(map(lambda x: x.leads_count, self.section_user_ids)) or 0
+        # self.assigned_leads = self.section_user_ids and sum(map(lambda x: x.leads_count, self.section_user_ids)) or 0
+        self.assigned_leads = self.env['crm.lead'].search_count([('section_id', '=', self.id), ('user_id', '!=', False)])
 
     @api.one
     def _capacity(self):
-        self.capacity = self.section_user_ids and sum(map(lambda x: x.maximum_user_leads, self.section_user_ids)) or 0
+        # self.capacity = self.section_user_ids and sum(map(lambda x: x.maximum_user_leads, self.section_user_ids)) or 0
+        self.capacity = sum(s.maximum_user_leads for s in self.section_user_ids) or 0
 
     ratio = fields.Float(string='Ratio')
-    section_domain = fields.Char('Domain')
+    score_section_domain = fields.Char('Domain')
     lead_ids = fields.One2many('crm.lead', 'section_id', string='Leads')
     leads_count = fields.Integer(compute='_count_leads')
     assigned_leads = fields.Integer(compute='_assigned_leads')
@@ -60,7 +61,7 @@ class crm_case_section(osv.osv):
 
         """ Getting all the useful data from the db
         """
-        salesteams_fields = ['section_domain',
+        salesteams_fields = ['score_section_domain',
                              'assigned_leads',
                              'capacity',
                              'name'
@@ -102,7 +103,7 @@ class crm_case_section(osv.osv):
         """
         potential_salesteams_for_leads = {}
         for _, salesteam in all_salesteams.iteritems():
-            domain = salesteam['section_domain']
+            domain = salesteam['score_section_domain']
             if domain:
                 domain = safe_eval(domain)
             else:
