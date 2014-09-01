@@ -92,13 +92,13 @@ class pos_order(osv.osv):
 
     def _order_fields(self, cr, uid, ui_order, context=None):
         fields = super(pos_order,self)._order_fields(cr,uid,ui_order,context)
-        fields['loyalty_points'] = ui_order['loyalty_points']
+        fields['loyalty_points'] = ui_order.get('loyalty_points',0)
         return fields
 
     def create_from_ui(self, cr, uid, orders, context=None):
         ids = super(pos_order,self).create_from_ui(cr,uid,orders,context=context)
         for order in orders:
-            if 'loylaty_points' in order['data'] and order['data']['partner_id']:
+            if order['data']['loyalty_points'] != 0 and order['data']['partner_id']:
                 partner = self.pool.get('res.partner').browse(cr,uid,order['data']['partner_id'], context=context)
                 partner.write({'loyalty_points': partner['loyalty_points'] + order['data']['loyalty_points']})
 

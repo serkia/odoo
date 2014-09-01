@@ -3,12 +3,26 @@
     
     <t t-name="LoyaltyPoints">
         <div class='loyalty-points'>
-            <span class="won">
-                <span class='value'><t t-esc='wonpoints'/></span> Points. 
-            </span>
-            <span class='total'>
-                Total:&amp;nbsp;<span class='value'><t t-esc='totalpoints' /></span>
-            </span>
+            <div class='loyalty-points-title'>Points</div>
+            <t t-if='points_won'>
+                <div class="loyalty-points-won">
+                    <span class='value'>+<t t-esc='widget.format_pr(points_won,rounding)'/></span>  
+                </div>
+            </t>
+            <t t-if='points_spent'>
+                <div class="loyalty-points-spent">
+                    <span class='value'>-<t t-esc='widget.format_pr(points_spent,rounding)'/></span> 
+                </div>
+            </t>
+            <div class='loyalty-points-total'>
+                <span class='value'><t t-esc='widget.format_pr(points_total,rounding)' /></span>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="LoyaltyButton">
+        <div class='control-button'>
+            Loyalty Rewards
         </div>
     </t>
 

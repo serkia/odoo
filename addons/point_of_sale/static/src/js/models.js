@@ -912,6 +912,12 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 line.set_discount(options.discount);
             }
 
+            if(options.extras !== undefined){
+                for (prop in options.extras) { 
+                    line[prop] = options.extras[prop];
+                }
+            }
+
             var last_orderline = this.getLastOrderline();
             if( last_orderline && last_orderline.can_be_merged_with(line) && options.merge !== false){
                 last_orderline.merge(line);
@@ -919,6 +925,7 @@ function openerp_pos_models(instance, module){ //module is instance.point_of_sal
                 this.get('orderLines').add(line);
             }
             this.selectLine(this.getLastOrderline());
+            return line;
         },
         removeOrderline: function( line ){
             this.get('orderLines').remove(line);

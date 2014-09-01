@@ -587,7 +587,6 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             }
 
             this.$('.client-list-contents').delegate('.client-line','click',function(event){
-                console.log('uh');
                 self.line_select(event,$(this),parseInt($(this).data('id')));
             });
 
