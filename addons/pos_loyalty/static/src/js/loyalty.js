@@ -238,13 +238,11 @@ openerp.pos_loyalty = function(instance){
         export_for_printing: function(){
             var json = _super.prototype.export_for_printing.apply(this,arguments);
             json.loyalty_points = this.get_new_points();
-            console.log(json.loyalty_points);
             return json;
         },
         export_as_JSON: function(){
             var json = _super.prototype.export_as_JSON.apply(this,arguments);
             json.loyalty_points = this.get_new_points();
-            console.log(json.loyalty_points);
             return json;
         },
     });
