@@ -21,12 +21,11 @@ class Lead(models.Model):
     # language = fields.Many2one('res.lang', string='Language')  # todo : move to crm lead
     assign_date = fields.Datetime(string='Assign Date')
 
-    def signed_lead_id(self, lead_id):
+    def encode(self, lead_id):
         encrypted_lead_id = md5.new(str(lead_id) + secret_key).hexdigest()
-        # encrypted_lead_id = crypt_context.encrypt(str(lead_id) + secret_key)
         return str(lead_id) + '-' + encrypted_lead_id
 
-    def get_lead_id(self, request):  # , response=None):  # is useful if the cookie is to be removed if corrupted
+    def decode(self, request):
         # opens the cookie, verifies the signature of the lead_id
         # returns lead_id if the verification passes and None otherwise
         cookie_content = request.httprequest.cookies.get('lead_id')
@@ -36,8 +35,4 @@ class Lead(models.Model):
             if encrypted_lead_id == expected_encryped_lead_id:
                 return int(lead_id)
             else:
-                # should be done but is a bit too specific
-                # if response:
-                #     # the cookie is removed because it is useless
-                #     response.delete_cookie('lead_id')
                 return None

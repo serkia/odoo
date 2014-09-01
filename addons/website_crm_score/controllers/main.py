@@ -27,12 +27,13 @@ class ContactController(addons.website_crm.controllers.main.contactus):
     @http.route(['/crm/contactus'], type='http', auth="public", website=True)
     def contactus(self, **kwargs):
         response = super(ContactController, self).contactus(**kwargs)
+        # the cookie is written here because the response is not available in the create_lead function
         if '_values' in response.qcontext:  # contactus error : fields validation not passed
             lead_id = response.qcontext.get('_values').get('lead_id')
             if lead_id:  # a new lead has been created
                 lead_model = request.registry['crm.lead']
                 # sign the lead_id
-                sign = lead_model.signed_lead_id(lead_id)
+                sign = lead_model.encode(lead_id)
                 response.set_cookie('lead_id', sign, max_age=365 * 24 * 60 * 60)  # valid for 1 year
             else:
                 pass  # lead_id == None because no lead was created
@@ -43,7 +44,7 @@ class ContactController(addons.website_crm.controllers.main.contactus):
 
         create_new_lead = False
         lead_model = request.registry["crm.lead"]
-        lead_id = lead_model.get_lead_id(request)
+        lead_id = lead_model.decode(request)
 
         # NOT [ (proba = 0 OR proba = 100) AND fold AND seq > 1 ]
         # modified to
@@ -97,5 +98,7 @@ class ContactController(addons.website_crm.controllers.main.contactus):
 
             # ecrire le cookie ici et ne pas overrider l'autre controller
             # comment ecrire le cookie ici car response pas disponible donc pas possible de set_cookie
+
+            import pdb; pdb.set_trace()
 
             return new_lead_id

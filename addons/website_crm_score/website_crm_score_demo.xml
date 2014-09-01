@@ -98,7 +98,7 @@
             <field name="user_id" ref="wcs_user_0"/>
             <field name="section_id" ref="wcs_team_0"/>
             <field name="maximum_user_leads">2</field>
-            <field name="section_user_domain">[['language', '=', 'English']]</field>
+            <field name="section_user_domain">[['lang_id', '=', 'English']]</field>
         </record>
         <record id="wcs_section_user_1" model="section.user">
             <field name="user_id" ref="wcs_user_2"/>
@@ -122,7 +122,7 @@
             <field name="user_id" ref="wcs_user_3"/>
             <field name="section_id" ref="wcs_team_1"/>
             <field name="maximum_user_leads">2</field>
-            <field name="section_user_domain">[['language', '=', 'English'], ['country_id', '=', 'Belgium']]</field>
+            <field name="section_user_domain">[['lang_id', '=', 'English'], ['country_id', '=', 'Belgium']]</field>
         </record>
 
         <!-- Team 3 -->
@@ -150,7 +150,7 @@
             <field name="priority">2</field>
             <field name="section_id" ref=""/>
             <field name="user_id" ref=""/>
-            <field name="language" ref="base.lang_en"/>
+            <field name="lang_id" ref="base.lang_en"/>
             <field name="stage_id" ref="crm.stage_lead1"/>
         </record>
         <record id="wcs_lead_1" model="crm.lead">
@@ -163,7 +163,7 @@
             <field name="priority">2</field>
             <field name="section_id" ref=""/>
             <field name="user_id" ref=""/>
-            <field name="language" ref="base.lang_en"/>
+            <field name="lang_id" ref="base.lang_en"/>
             <field name="stage_id" ref="crm.stage_lead1"/>
         </record>
         <record id="wcs_lead_2" model="crm.lead">
@@ -272,7 +272,7 @@
         <record id="wcs_score_1" model="website.crm.score">
             <field name="name">Wcs score 1</field>
             <field name="value">4</field>
-            <field name="domain">[['language', '=', 'English']]</field>
+            <field name="domain">[['lang_id', '=', 'English']]</field>
         </record>
         <record id="wcs_score_2" model="website.crm.score">
             <field name="name">Wcs score 2</field>
