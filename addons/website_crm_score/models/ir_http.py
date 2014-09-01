@@ -34,7 +34,6 @@ class ir_http(models.AbstractModel):
                         else:
                             pages_viewed[url] = date
                             request.session['pages_viewed'] = pages_viewed
-
                     else:
                         request.session['pages_viewed'] = {url: date}
 

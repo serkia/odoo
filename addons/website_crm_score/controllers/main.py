@@ -102,8 +102,10 @@ class ContactController(addons.website_crm.controllers.main.contactus):
                 del request.session['pages_viewed']
                 values['score_pageview_ids'] = score_pageview_ids
                 # message informing of all the pages that were seen
-                urls = '</b>,<br/><b>'.join(url_list)
-                body = 'The user visited <br/><b>' + urls + '</b>'
+                urls = ''
+                for url in url_list:
+                    urls += '<br/><a href="' + url + '"><b>' + url + '</b></a>'
+                body = 'The user visited ' + urls
 
             new_lead_id = super(ContactController, self).create_lead(request, values, kwargs)
 

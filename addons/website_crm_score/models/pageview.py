@@ -29,6 +29,7 @@ class pageview(models.Model):
                 return True
             else:
                 # update failed
+                # creating a pageview is then tried
                 try:
                     pv_cr.execute('''
                         INSERT INTO website_crm_pageview (lead_id, partner_id, url, create_date)
@@ -38,7 +39,8 @@ class pageview(models.Model):
                     ''', (lead_id, partner_id, url, create_date, lead_id, url))
                     fetch = pv_cr.fetchone()
                     if fetch:
-                        body = 'The user visited <br/><b>' + url + '</b>'
+                        # a new pageview has been created, a message is posted
+                        body = 'The user visited <br/><a href="' + url + '"><b>' + url + '</b></a>'
                         request.registry['crm.lead'].message_post(cr, SUPERUSER_ID, [lead_id], body=body, subject="Page visited", context=context)
                         return True
                 except IntegrityError:
