@@ -82,7 +82,7 @@ class main(http.Controller):
                 '/channel/<model("document.directory"):channel>/<types>/page/<int:page>',
                 '/channel/<model("document.directory"):channel>/<types>/tag/<tags>/page/<int:page>',
                    ], type='http', auth="public", website=True)
-    def slides(self, channel=0, page=1, types='', tags='', sorting='creation', search=''):
+    def slides(self, channel=0, page=1, types='', tags='', sorting='date', search=''):
         cr, uid, context = request.cr, SUPERUSER_ID, request.context
 
         user = request.registry['res.users'].browse(cr, uid, request.uid, context)
@@ -117,6 +117,8 @@ class main(http.Controller):
                 order = 'write_date desc'
             elif sorting == 'view':
                 order = 'slide_views desc'
+            elif sorting == 'vote':
+                order = 'likes desc'
             else:
                 sorting = 'creation'
                 order = 'create_date desc'
@@ -265,18 +267,16 @@ class main(http.Controller):
     def slide_like(self, channel, slideview, **post):
         cr, uid, context, pool = request.cr, request.uid, request.context, request.registry
         slide_obj = pool['ir.attachment']
-        likes = slideview.likes + 1
-        if slide_obj.write(cr, uid, [slideview.id], {'likes':likes}, context):
-            return likes
+        if slide_obj.set_like(cr, uid, [slideview.id], context=context):
+            return slideview.likes
         return {'error': 'Error on wirte Data'}
 
     @http.route('/channel/<model("document.directory"):channel>/view/<model("ir.attachment"):slideview>/dislike', type='json', auth="public", website=True)
     def slide_dislike(self, channel, slideview, **post):
         cr, uid, context, pool = request.cr, request.uid, request.context, request.registry
         slide_obj = pool['ir.attachment']
-        dislikes = slideview.dislikes + 1
-        if slide_obj.write(cr, uid, [slideview.id], {'dislikes':dislikes}, context):
-            return dislikes
+        if slide_obj.set_dislike(cr, uid, [slideview.id], context=context):
+            return slideview.dislikes
         return {'error': 'Error on wirte Data'}
 
     @http.route('/slides/get_channel', type='json', auth="public", website=True)
