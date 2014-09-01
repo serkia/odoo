@@ -24,7 +24,7 @@
             <field name="inherit_id" ref="crm.view_crm_case_leads_filter" />
             <field name="arch" type="xml">
                 <field name="country_id" position="after">
-                    <field name="language"/>
+                    <field name="lang_id"/>
                 </field>
             </field>
         </record>
@@ -58,9 +58,9 @@
                             context="{'object_name': 'crm.lead'}"
                             readonly="1"
                         />
-                        <field name="language" readonly="1"/>
+                        <field name="lang_id" readonly="1"/>
                         <!-- todo: title should be above the tree so that there is more space for the urls to be showed -->
-                        <field name="pageview_ids" readonly="1">
+                        <field name="score_pageview_ids" readonly="1">
                             <tree string="Page Views">
                                 <field name="url"/>
                             </tree>
@@ -79,7 +79,7 @@
 
         <!-- <menuitem id="main_scoring_menu" name="Lead scoring" /> -->
 
-        <menuitem id="leads_menu" name="website_crm_score" parent="base.marketing_menu" />
+        <menuitem id="leads_menu" name="website_crm_score" parent="base.menu_base_partner" />
 
         <!-- <menuitem id="sublead_menu" name="Leads" parent="leads_menu" action="lead_list_action" /> -->
 
@@ -90,7 +90,20 @@
             <field name="inherit_id" ref="base.view_view_form" />
             <field name="arch" type="xml">
                 <field name="priority" position="after">
-                    <field name="page"  attrs="{'invisible':True}"/>
+                    <!-- <field name="page"  attrs="{'invisible':True}"/> -->
+                    <!-- <field name="score_id"  attrs="{'invisible':[('page','=',False)]}"/> -->
+                    <field name="track"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_track_tree">
+            <field name="name">ir.ui.view.inherit.track</field>
+            <field name="model">ir.ui.view</field>
+            <field name="inherit_id" ref="base.view_view_tree" />
+            <field name="arch" type="xml">
+                <field name="priority" position="after">
+                    <!-- <field name="page"  attrs="{'invisible':True}"/> -->
                     <!-- <field name="score_id"  attrs="{'invisible':[('page','=',False)]}"/> -->
                     <field name="track"/>
                 </field>

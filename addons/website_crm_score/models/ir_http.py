@@ -19,10 +19,19 @@ class ir_http(models.AbstractModel):
             cr, uid, context = request.cr, request.uid, request.context
             func, arguments = self._find_handler()
 
+            # todo: bof de rappeler find handler, donc donc passer func dans la request
             track = func.routing.get('track', False)
+            # request.endpoint.get('track...')
 
             if track:
+                # get lead id
+                # pageviewcreated = create_pageview
+
+                # si marche pas, on log dans la session
+                # utiliser set default pour creer un dico vide dans la session si
+
                 do_track = True
+                # ca, c'est a faire a la main dans page
                 if response.qcontext and 'path' in response.qcontext:
                     # there is a view, we want to know if we have to track it
                     page = response.qcontext.get('path')
@@ -33,8 +42,7 @@ class ir_http(models.AbstractModel):
                 if do_track:
 
                     lead_model = request.registry["crm.lead"]
-                    cookie_content = request.httprequest.cookies.get('lead_id')
-                    lead_id = lead_model.get_lead_id(request, response)
+                    lead_id = lead_model.get_lead_id(request)
                     no_lead = False
                     url = request.httprequest.url
                     date = fields.Datetime.now()

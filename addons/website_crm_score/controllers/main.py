@@ -43,45 +43,60 @@ class ContactController(addons.website_crm.controllers.main.contactus):
 
         create_new_lead = False
         lead_model = request.registry["crm.lead"]
-
-        # cookie_content = request.httprequest.cookies.get('lead_id')
         lead_id = lead_model.get_lead_id(request)
 
-        if lead_id:
-            # a lead_id cookie exists and it has not been altered
+        # NOT [ (proba = 0 OR proba = 100) AND fold AND seq > 1 ]
+        # modified to
+        # proba != 0 AND proba != 100 OR !fold OR seq <= 1
+        # the condition on the lead_id is prepended
+        domain = [('id', '=', lead_id),
+                  '|', '&', ('stage_id.probability', '!=', 0.0), ('stage_id.probability', '!=', 100.0),
+                       '|', ('stage_id.fold', '!=', True), ('stage_id.sequence', '<=', 1)]
+        lead_instance = lead_model.search(cr, SUPERUSER_ID, domain, context=context)
 
-            lead_id = int(lead_id)
-            lead_instance = lead_model.search(cr, SUPERUSER_ID, [('id', '=', lead_id)], context=context)
-            if lead_instance:
-                lead = lead_model.browse(cr, SUPERUSER_ID, lead_id, context=context)
-                if not lead['date_closed']:
-                    # the lead is still open
-                    for fieldname, fieldvalue in values.items():
-                        if fieldname in lead._all_columns and not lead[fieldname]:  # rem : why this last condition ?
-                            lead[fieldname] = fieldvalue
-                            # todo: what to do, merge/replace ?
-                else:
-                    create_new_lead = True  # lead is closed
-            else:
-                create_new_lead = True  # lead does not exist in db
+        if lead_instance:
+            # a lead_id cookie exists and it has not been altered and the lead is not closed
+            lead = lead_model.browse(cr, SUPERUSER_ID, lead_id, context=context)
+            print "values", values
+            # print "desc", lead["description"]
+            for fieldname, fieldvalue in values.items():
+                pass
+                # TODO, FIXME : broken for now, should be dealt with when the form works as planned
+                # if fieldname in lead._all_columns and fieldvalue: # and not lead[fieldname]:  # rem : why this last condition ?
+                #     print "leafi", fieldname, 'and',  lead[fieldname]
+                #     lead[fieldname] = fieldvalue
+                #     # todo: what to do, merge/replace ? pas ecraser, mais poster un message pour dire les nouveaux champs
+
         else:
-            create_new_lead = True  # no lead_id cookie
-        # when create_new_lead, it may mean that the cookie is either useless or altered
-        # it should be removed, but it is unnecessary for a new one will be written
-
-        if create_new_lead:
             # either no lead_id cookie OR the lead_id doesn't exist in db OR the current one is closed -> a lead is created
-            new_lead_id = super(ContactController, self).create_lead(request, values, kwargs)
 
-            # checking if the session user saw pages before the lead creation
-            if 'pages_viewed' in request.session:
-                pages_viewed = request.session['pages_viewed']
-                for url, date in pages_viewed.iteritems():
-                    vals = {'lead_id': new_lead_id, 'partner_id': request.session.get('uid', None), 'url': url, 'create_date': date}
-                    request.registry['website.crm.pageview'].create_pageview(cr, uid, vals, context=context)
-                del request.session['pages_viewed']
-
+            # adding the language to the lead
             lang = context.get('lang', False)
             lang_id = request.registry["res.lang"].search(cr, SUPERUSER_ID, [('code', '=', lang)], context=context)[0]
-            request.registry["crm.lead"].write(cr, SUPERUSER_ID, new_lead_id, {'language': lang_id}, context=context)
+            values['lang_id'] = lang_id
+
+            # checking if the session user saw pages before the creation of the lead and adding them to values for lead creation
+            if 'pages_viewed' in request.session:
+                score_pageview_ids = []
+                url_list = []
+                pages_viewed = request.session['pages_viewed']
+                for url, date in pages_viewed.iteritems():
+                    vals = {'partner_id': request.session.get('uid', None), 'url': url, 'create_date': date}
+                    score_pageview_ids.append((0, 0, vals))
+                    url_list.append(url)
+                del request.session['pages_viewed']
+                values['score_pageview_ids'] = score_pageview_ids
+                # message informing of all the pages that were seen
+                urls = '</b>,<br/><b>'.join(url_list)
+                body = 'The user visited <br/><b>' + urls + '</b>'
+
+            new_lead_id = super(ContactController, self).create_lead(request, values, kwargs)
+
+            # if pages were seen, a message is posted
+            if body:
+                request.registry['crm.lead'].message_post(cr, SUPERUSER_ID, [new_lead_id], body=body, subject="Pages visited", context=context)
+
+            # ecrire le cookie ici et ne pas overrider l'autre controller
+            # comment ecrire le cookie ici car response pas disponible donc pas possible de set_cookie
+
             return new_lead_id

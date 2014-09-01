@@ -287,12 +287,12 @@
         <record id="wcs_score_4" model="website.crm.score">
             <field name="name">Wcs score 4</field>
             <field name="value">16</field>
-            <field name="domain">[['pageview_ids.url', '=', 'http://localhost:8069/page/homepage']]</field>
+            <field name="domain">[['score_pageview_ids.url', '=', 'http://localhost:8069/page/homepage']]</field>
         </record>
         <record id="wcs_score_5" model="website.crm.score">
             <field name="name">Wcs score 5</field>
             <field name="value">32</field>
-            <field name="domain">[['pageview_ids.url', '=', 'http://localhost:8069/page/website.aboutus']]</field>
+            <field name="domain">[['score_pageview_ids.url', '=', 'http://localhost:8069/page/website.aboutus']]</field>
         </record>
 
 

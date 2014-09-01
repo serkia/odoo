@@ -26,7 +26,7 @@ class score(models.Model):
         for score in scores:
             domain = safe_eval(score['domain'])
             domain.extend([('user_id', '=', False), ('date_closed', '=', False)])
-            leads = self.env['crm.lead'].search_read(domain=domain, fields=['name', 'country_id', 'language', 'score_ids'])
+            leads = self.env['crm.lead'].search_read(domain=domain, fields=['name', 'country_id', 'lang_id', 'score_ids'])
             for lead in leads:
                 if not score['id'] in lead['score_ids']:
                     add_to_dict(scores_to_write, lead['id'], (4, score['id']))

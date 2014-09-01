@@ -270,6 +270,7 @@ class crm_lead(format_address, osv.osv):
                             domain="[('section_id','=',section_id)]"),
         'planned_cost': fields.float('Planned Costs'),
         'meeting_count': fields.function(_meeting_count, string='# Meetings', type='integer'),
+        'lang_id': fields.many2one('res.lang', string='Language'),
     }
 
     _defaults = {
@@ -896,6 +897,7 @@ class crm_lead(format_address, osv.osv):
         # stage change: update date_last_stage_update
         if 'stage_id' in vals:
             vals['date_last_stage_update'] = fields.datetime.now()
+        # todo same idea as the two lines above for vals userid and assign date
         # stage change with new stage: update probability
         if vals.get('stage_id') and not vals.get('probability'):
             onchange_stage_values = self.onchange_stage_id(cr, uid, ids, vals.get('stage_id'), context=context)['value']
