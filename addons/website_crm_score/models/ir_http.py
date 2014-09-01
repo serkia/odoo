@@ -9,7 +9,7 @@ class ir_http(models.AbstractModel):
     def _dispatch(self):
         response = super(ir_http, self)._dispatch()
 
-        if response.status_code == 200:
+        if response.status_code == 200:  # may not be needed because find_handler not used anymore
 
             if request.endpoint.routing.get('track', False):
                 cr, uid, context = request.cr, request.uid, request.context
@@ -17,7 +17,7 @@ class ir_http(models.AbstractModel):
                 url = request.httprequest.url
                 date = fields.Datetime.now()
                 vals = {'lead_id': lead_id, 'partner_id': request.session.get('uid', None), 'url': url}
-                if not request.registry['website.crm.pageview'].create_pageview(cr, uid, vals, context=context):
+                if request.registry['website.crm.pageview'].create_pageview(cr, uid, vals, context=context):
                     # create_pageview was successful
                     pass
                 else:

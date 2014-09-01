@@ -9,7 +9,6 @@ from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 class crm_case_section(osv.osv):
     _inherit = "crm.case.section"
 
-    # faire du beau python
     @api.one
     def _count_leads(self):
         self.leads_count = len(self.lead_ids)

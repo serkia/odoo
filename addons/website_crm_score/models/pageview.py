@@ -42,5 +42,5 @@ class pageview(models.Model):
                         request.registry['crm.lead'].message_post(cr, SUPERUSER_ID, [lead_id], body=body, subject="Page visited", context=context)
                         return True
                 except IntegrityError:
-                    # how do I know if it is a lead_id error of partner_id error ?
+                    # todo: how do I know if it is a lead_id error of partner_id error ?
                     return False

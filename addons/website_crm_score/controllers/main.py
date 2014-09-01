@@ -1,25 +1,30 @@
-from openerp import addons, http, SUPERUSER_ID
+from openerp import addons, http, SUPERUSER_ID, fields
 from openerp.http import request
-
-
-# def write_score(cr, uid, score_id, lead_id, model, context=None):
-#     # add the new score to the lead
-#     model.write(cr, SUPERUSER_ID, lead_id, {'score_ids': [(4, score_id)]}, context=context)
-#     # write the date in the relational table
-#     domain = [('lead_id', '=', lead_id), ('score_id', '=', score_id)]
-#     ids = request.registry['crm_lead_score_date'].search(cr, SUPERUSER_ID, domain, context=context)
-#     request.registry['crm_lead_score_date'].write(cr, SUPERUSER_ID, ids, {'date': fields.Datetime.now()}, context=context)
-#     # writing a note in the log of the lead
-#     name = request.registry['website.crm.score'].read(cr, SUPERUSER_ID, score_id, fields=['name'], context=context)
-#     body = 'This lead was granted the score <b>' + str(name['name']) + '</b>'
-#     model.message_post(cr, uid, [lead_id], body=body, subject="Score granted", context=context)
 
 
 class PageController(addons.website.controllers.main.Website):
 
-    @http.route('/page/<page:page>', auth="public", website=True, track=True)
+    @http.route('/page/<page:page>', auth="public", website=True)
     def page(self, page, **opt):
-        return super(PageController, self).page(page, **opt)
+        response = super(PageController, self).page(page, **opt)
+        # duplication of ir_http.py
+        view = request.website.get_template(page)
+
+        if view.track:
+            cr, uid, context = request.cr, request.uid, request.context
+            lead_id = request.registry["crm.lead"].decode(request)
+            url = request.httprequest.url
+            date = fields.Datetime.now()
+            vals = {'lead_id': lead_id, 'partner_id': request.session.get('uid', None), 'url': url}
+
+            if request.registry['website.crm.pageview'].create_pageview(cr, uid, vals, context=context):
+                # create_pageview was successful
+                pass
+            else:
+                response.delete_cookie('lead_id')
+                request.session.setdefault('pages_viewed', {})[url] = date
+
+        return response
 
 
 class ContactController(addons.website_crm.controllers.main.contactus):
@@ -74,7 +79,7 @@ class ContactController(addons.website_crm.controllers.main.contactus):
             lang = context.get('lang', False)
             lang_id = request.registry["res.lang"].search(cr, SUPERUSER_ID, [('code', '=', lang)], context=context)[0]
             values['lang_id'] = lang_id
-
+            body = None
             # checking if the session user saw pages before the creation of the lead and adding them to values for lead creation
             if 'pages_viewed' in request.session:
                 score_pageview_ids = []
@@ -98,7 +103,5 @@ class ContactController(addons.website_crm.controllers.main.contactus):
 
             # ecrire le cookie ici et ne pas overrider l'autre controller
             # comment ecrire le cookie ici car response pas disponible donc pas possible de set_cookie
-
-            import pdb; pdb.set_trace()
 
             return new_lead_id
