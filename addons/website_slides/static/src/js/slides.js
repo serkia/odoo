@@ -196,9 +196,9 @@
                 self.render_page();
             });
         },
-        render_page: function(page_number){
+        render_page: function(){
             var self = this;
-            var page_num = page_number || self.page_number;
+            var page_num = self.page_number;
             this.file_content.getPage(page_num).then(function(page){
                 var viewport = page.getViewport(self.scale);
                 self.canvas.width = viewport.width;
@@ -216,37 +216,69 @@
                 });
             }); 
         },
+        toggle_fullscreen: function() {
+            var elem = document.getElementById("PDFViewer");
+            if (!elem.fullscreenElement && !elem.mozFullScreenElement && !elem.webkitFullscreenElement && !elem.msFullscreenElement ) {
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen();
+                } else if (elem.msRequestFullscreen) {
+                    elem.msRequestFullscreen();
+                } else if (elem.mozRequestFullScreen) {
+                    elem.mozRequestFullScreen();
+                } else if (elem.webkitRequestFullscreen) {
+                    elem.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+                }
+            } else {
+                if (elem.exitFullscreen) {
+                  elem.exitFullscreen();
+                } else if (elem.msExitFullscreen) {
+                  elem.msExitFullscreen();
+                } else if (elem.mozCancelFullScreen) {
+                  elem.mozCancelFullScreen();
+                } else if (elem.webkitExitFullscreen) {
+                  elem.webkitExitFullscreen();
+                }
+            }
+        },
 
         next: function(ev){
             ev.preventDefault();
-            this.page_number += 1;
+            this.page_number = (this.page_number <= this.page_count) ? this.page_number+1 : this.page_count;
             if(!this.rendering){
                 this.render_page();
             }
         },
         previous: function(ev){
             ev.preventDefault();
-            this.page_number -= 1;
+            this.page_number = (this.page_number > 0) ? this.page_number-1 : 1;
             if(!this.rendering){
                 this.render_page();
             }
         },
         first: function(ev){
             ev.preventDefault();
-            this.render_page(1);
+            this.page_number = 1;
+            if(!this.rendering){
+                this.render_page();
+            }
         },
         last: function(ev){
             ev.preventDefault();
-            this.render_page(this.page_count);
+            this.page_number = this.page_count;
+            if(!this.rendering){
+                this.render_page();
+            }
         },
         fullscreen: function(ev){
             ev.preventDefault();
-            console.log('Fulll Screen');
+            this.toggle_fullscreen();
         },
         change_page_number: function(ev){
             var page_asked = parseInt(ev.target.value, 10);
-            var page_num = page_asked <= this.page_count ? page_asked : this.page_count;
-            this.render_page(page_num);
+            this.page_number = (page_asked > 0 && page_asked <= this.page_count) ? page_asked : this.page_count;
+            if(!this.rendering){
+                this.render_page();
+            }
         }
 
      });
@@ -268,10 +300,13 @@ jQuery(document).ready(function() {
 
     $('.slide-like, .slide-unlike').on('click' ,function(ev){
         ev.preventDefault();
-        var $link = $(ev.currentTarget);
-        openerp.jsonRpc($link.data('href'), 'call', {}).then(function(data){
-                $($link.data('count-el')).text(data);
-        });
+        if(!localStorage['vote']){
+            var $link = $(ev.currentTarget);
+            openerp.jsonRpc($link.data('href'), 'call', {}).then(function(data){
+                    $($link.data('count-el')).text(data);
+            });
+            localStorage['vote'] = true;
+        }
     });
     $('.upload').on('click' ,function(ev){
         var channel_id = $(this).attr('channel_id');
@@ -299,7 +334,7 @@ jQuery(document).ready(function() {
         fieldName = jQuery(this).attr('field');
         var currentVal = parseInt(jQuery('input[name='+fieldName+']').val());
         if (!isNaN(currentVal)) {
-            if(currentVal < jQuery('#pdf_page_count').val()){
+            if(currentVal < jQuery('#page_count').html()){
                 jQuery('input[name='+fieldName+']').val(currentVal + 1);
                 jQuery.modifyembedcode(currentVal + 1)
             }else{
@@ -323,6 +358,13 @@ jQuery(document).ready(function() {
             jQuery('input[name='+fieldName+']').val(1);
             jQuery.modifyembedcode(1)
         }
+    });
+
+    // toggle option on pdfview 
+    $('.toggleSlideOption').click(function () {
+        //$('.slide-option-toggle').hide();
+        var toggleDiv = $(this).data('slide-option-toggle-id');
+        $(toggleDiv).slideToggle();
     });
 
 });
