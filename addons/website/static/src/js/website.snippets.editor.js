@@ -1482,8 +1482,7 @@
         },
         edition: function (type, value) {
             if(type !== "click") return;
-            this.element = new CKEDITOR.dom.element(this.$target[0]);
-            new website.editor.MediaDialog(this, this.element).appendTo(document.body);
+            new website.editor.MediaDialog(this, this.$target[0]).appendTo(document.body);
         },
         on_focus : function () {
             var self = this;

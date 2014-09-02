@@ -25,6 +25,441 @@
     var Renderer = $.summernote.objects.Renderer;
 
 
+    dom.orderClass = function (node) {
+        if (!node.className) return;
+        var className = node.className.replace(/^\s+|\s+$/g, '').replace(/[\s\n\r]+/g, ' ').split(" ");
+        if (!className.length) {
+            node.removeAttribute("class");
+            return;
+        }
+        className.sort();
+        node.className = className.join(" ");
+    };
+    dom.isEqual = function (prev, cur) {
+        if (prev.tagName !== cur.tagName) {
+            return false;
+        }
+        if (prev.attributes.length !== cur.attributes.length) {
+            return false;
+        }
+        var att, att2;
+        loop_prev:
+        for(var a in prev.attributes) {
+            att = prev.attributes[a];
+            for(var b in cur.attributes) {
+                att2 = cur.attributes[b];
+                if (att.name === att2.name && att.value === att2.value) {
+                    continue loop_prev;
+                }
+            }
+            return false;
+        }
+        return true;
+    };
+    dom.mergeFilter = function (prev, cur) {
+        if (!cur.tagName && !cur.textContent.match(/\S/)) {
+            return true;
+        }
+        if (prev && dom.isEqual(prev, cur) &&
+            ((prev.tagName && "inline".indexOf(window.getComputedStyle(prev).display) !== -1 &&
+              cur.tagName && "inline".indexOf(window.getComputedStyle(cur).display) !== -1))) {
+            return true;
+        }
+        if (cur.tagName === "SPAN" && !prev.tagName && !cur.className && cur.childNodes.length <= 1) {
+            return true;
+        }
+    };
+    dom.merge = function (node, begin, so, end, eo, mergeFilter, all) {
+        mergeFilter = mergeFilter || this.mergeFilter;
+        var _merged = false;
+        var afterBegin = false;
+        var afterEnd = false;
+        var add = all || false;
+
+        if (!begin) {
+            begin = node;
+            while(begin.firstChild) {begin = begin.firstChild;}
+            so = 0;
+        }
+        if (!end) {
+            end = node;
+            while(end.lastChild) {end = end.lastChild;}
+            eo = end.textContent.length-1;
+        }
+
+        while (begin && begin.tagName && begin.firstChild) {begin = begin.firstChild;}
+        while (end && end.tagName && begin.firstChild) {end = end.firstChild;}
+
+        (function __merge (node) {
+            var merged = false;
+            var prev;
+            for (var k=0; k<node.childNodes.length; k++) {
+                var cur = node.childNodes[k];
+
+                if (cur === begin) {
+                    afterBegin = true;
+                    if (!all) add = true;
+                }
+                
+                __merge(cur);
+                dom.orderClass(cur);
+
+                if (!add || !cur) continue;
+                if (cur === end) {
+                    afterEnd = true;
+                    if (!all) add = false;
+                }
+
+                // create the first prev value
+                if (!prev) {
+                    prev = cur;
+                    continue;
+                }
+
+                // merge text nodes
+                if (!prev.tagName && !cur.tagName) {
+                    merged = true;
+                    if (!afterBegin || cur === begin) so += prev.textContent.length;
+                    if (!afterEnd || cur === end) eo += prev.textContent.length;
+                    prev.appendData(cur.textContent);
+                    if (cur === begin) begin = prev;
+                    if (cur === end) end = prev;
+                    cur.parentNode.removeChild(cur);
+                    k--;
+                    continue;
+                }
+
+                // merge nodes
+                if (mergeFilter.call(dom, prev, cur)) {
+                    merged = true;
+                    if (prev.tagName) {
+                        if (cur.tagName) {
+                            for (var i=0; i<cur.childNodes.length; i++) {
+                                prev.appendChild(cur.childNodes[i]);
+                            }
+                        } else {
+                            prev.appendChild(cur);
+                        }
+                        if (cur === begin ) {
+                            begin = prev;
+                            while (begin.tagName && begin.lastChild) {begin = begin.lastChild;}
+                        }
+                        if (cur === end) {
+                            end = prev;
+                            while (end.tagName && begin.lastChild) {end = end.lastChild;}
+                        }
+                    } else {
+                        var deep = cur;
+                        while (deep.tagName && deep.lastChild) {deep = deep.lastChild;}
+                        if (!afterBegin || deep === begin) so += prev.textContent.length;
+                        if (!afterEnd || deep === end) eo += prev.textContent.length;
+                        prev.appendData(deep.textContent);
+                        if (deep === begin) begin = prev;
+                        if (deep === end) end = prev;
+                    }
+                    cur.parentNode.removeChild(cur);
+                    k--;
+                    continue;
+                }
+
+                prev = cur;
+            }
+
+            // an other loop to merge the new shibbing nodes
+            if (merged) {
+                _merged = true;
+                __merge(node);
+            }
+        })(node);
+
+        return {
+            merged: _merged,
+            sc: begin,
+            ec: end,
+            so: so,
+            eo: eo
+        };
+    };
+    dom.removeSpace = function (node, begin, so, end, eo) {
+        var removed = false;
+        var offsetEnd = end && (end.textContent.length - eo);
+        var add = node === begin;
+
+        (function __remove_space (node) {
+            for (var k=0; k<node.childNodes.length; k++) {
+                var cur = node.childNodes[k];
+
+                if (cur === begin) add = true;
+
+                if (cur.tagName && cur.tagName !== "SCRIPT" && window.getComputedStyle(cur).whiteSpace !== "pre") {
+                    __remove_space(cur);
+                }
+
+                if (!add) continue;
+                if (cur === end) add = false;
+
+                // remove begin empty text node
+                if (node.childNodes.length > 1 && !cur.tagName && !cur.textContent.match(/\S/)) {
+                    removed = true;
+                    if (cur === begin) {
+                        so -= cur.textContent.length;
+                        begin = cur.parentNode;
+                        while (begin.tagName) {begin = begin.lastChild;}
+                    }
+                    if (cur === end) {
+                        offsetEnd = 0;
+                        end = cur.parentNode;
+                        while (end.tagName) {end = end.lastChild;}
+                    }
+                    cur.parentNode.removeChild(cur);
+                    k--;
+                    continue;
+                }
+
+                // convert HTML space
+                if (!cur.tagName) {
+                    var text;
+                    var exp1 = /[\t\n\r ]+/g;
+                    var exp2 = /(?![ ]|^)\u00A0(?![ ]|$)/g;
+                    if (cur === begin) {
+                        var temp = cur.textContent.substr(0, so);
+                        var _temp = temp.replace(exp1, ' ').replace(exp2, ' ');
+                        so -= temp.length - _temp.length;
+                    }
+                    if (cur === end) {
+                        var temp = cur.textContent.substr(-offsetEnd, cur.textContent.length);
+                        var _temp = temp.replace(exp1, ' ').replace(exp2, ' ');
+                        offsetEnd -= temp.length - _temp.length;
+                    }
+                    var text = cur.textContent.replace(exp1, ' ').replace(exp2, ' ');
+                    removed = removed || cur.textContent.length !== text.length;
+                    cur.textContent = text;
+                }
+            }
+        })(node);
+
+        return {
+            removed: removed,
+            sc: begin,
+            ec: end,
+            so: so > 0 ? so : 0,
+            eo: end && end.textContent.length > offsetEnd ? end.textContent.length - offsetEnd : 0
+        };
+    };
+    dom.pasteText = function (textNode, offset, text, isOnlyText) {
+        var node = textNode.parentNode;
+        while(!node.tagName) {node = node.parentNode;}
+        var $parent = $(node).parent();
+        // clean the node
+        var data = dom.merge($parent[0], textNode, offset, textNode, offset, null, true);
+        // Break the text node up
+        data.sc.splitText(data.so);
+        node = data.sc.parentNode;
+        var parts = node.childNodes;
+        var first = parts[0];
+        var last = parts[1];
+
+        isOnlyText = isOnlyText || !text.match('\n');
+        
+        if (!isOnlyText) {
+            // tag to close and open
+            var tag = node.tagName.toLowerCase();
+            if("h1 h2 h3 h4 h5 h6".indexOf(tag) === -1) {
+                text = "<p>"+text.split('\n').join("</p><p>")+"</p>";
+            } else {
+                text = "<"+tag+">"+text.split('\n').join("</"+tag+"><"+tag+">")+"</"+tag+">";
+            }
+
+            var $text = $(text);
+
+            // split parent node and insert text
+            if("h1 h2 h3 h4 h5 h6 p b bold i u code sup strong small".indexOf(tag) !== -1) {
+                var $next = $(node).clone().empty();
+                $next.append( last );
+                $(node).after( $next );
+                $(node).after( $text );
+            } else {
+                $(data.sc).after( $text );
+            }
+        } else {
+            first.appendData( text );
+        }
+
+        // clean the dom content
+        data = dom.merge($parent[0], last, 0, last, 0, null, true);
+        data = dom.removeSpace($parent[0], data.sc, data.so, data.ec, data.eo);
+
+        // move caret
+        range.create(data.sc, data.so, data.ec, data.eo).select();
+    };
+    var fn_rc = range.create;
+    range.create = function () {
+        var wrappedRange = fn_rc.apply(this, arguments);
+        if (!wrappedRange) return;
+        wrappedRange.clean = function (mergeFilter) {
+            var node = this.sc === this.ec ? this.sc : this.commonAncestor();
+            if (node.childNodes.length <=1) {
+                return this;
+            }
+
+            var merge = dom.merge(node, this.sc, this.so, this.ec, this.eo, mergeFilter);
+            var rem = dom.removeSpace(node, this.sc, merge.so, this.ec, merge.eo);
+
+            if (merge.merged || rem.removed) {
+                var r = range.create(rem.sc, rem.so, merge.ec, rem.eo);
+                return r;
+            }
+            return this;
+        };
+        return wrappedRange;
+    };
+
+    function bind($summer) {
+        $summer.on("paste", function (event) {
+            // keep norma feature if copy a picture
+            var clipboardData = event.originalEvent.clipboardData;
+            if (clipboardData && clipboardData.items && clipboardData.items.length) {
+                return true;
+            }
+
+            event.preventDefault();
+            var r = range.create();
+            dom.pasteText(r.sc, r.so, clipboardData.getData("text/plain"));
+            return false;
+        });
+        $summer.on("keydown", function (event) {
+            // backspace
+            function clean (field) {
+                setTimeout(function () {
+                    var r = range.create();
+                    var node = r[field];
+                    while (!node.tagName) {node = node.parentNode;}
+                    node = node.parentNode;
+                    var data = dom.merge(node, r.sc, r.so, r.ec, r.eo, null, true);
+                    data = dom.removeSpace(node, data.sc, data.so, data.sc, data.so);
+
+                    range.create(data.sc, data.so, data.sc, data.so).select();
+                },0);
+            }
+            switch (event.keyCode) {
+                case 8: // backspace
+                    var r = range.create();
+                    // normal feature if same tag and not the begin
+                    if (r.sc===r.ec && r.so || r.eo) return true;
+                    // merge with the previous text node
+                    if (r.sc.previousSibling && !r.sc.previousSibling.tagName) return true;
+
+                    if (r.sc===r.ec && !r.so && !r.eo && ['P', 'SPAN'].indexOf(r.sc.parentNode.tagName) !== -1) {
+                        clean("sc");
+                        return true;
+                    }
+                    // empty tag
+                    if (r.sc===r.ec && !r.sc.textContent.length) {
+                        var prev = r.sc.previousElementSibling;
+                        r.sc.parentNode.removeChild(r.sc);
+                        range.createFromNode(prev.lastChild, prev.lastChild.length, prev.lastChild, prev.lastChild.length).select();
+                    }
+                    break;
+
+                case 46: // delete
+                    var r = range.create();
+                    // normal feature if same tag and not the end
+                    if (r.sc===r.ec && r.eo!==r.ec.length) return true;
+                    // merge with the next text node
+                    if (r.ec.nextSibling && !r.ec.nextSibling.tagName) return true;
+
+                    if (r.sc===r.ec && !r.so && !r.eo && ['P', 'SPAN'].indexOf(r.ec.parentNode.tagName) !== -1) {
+                        clean("ec");
+                        return true;
+                    }
+                    // empty tag
+                    if (r.sc===r.ec && !r.sc.textContent.length) {
+                        var next = r.ec.nextElementSibling;
+                        r.ec.parentNode.removeChild(r.ec);
+                        range.createFromNode(next.firstChild, 0, next.firstChild, 0).select();
+                    }
+                    break;
+
+                default:
+                    return true;
+            }
+
+            console.log(r);
+
+            event.preventDefault();
+
+
+            // var sc = r.sc;
+            // while (!sc.previousSibling) {sc = sc.parentNode;}
+            // sc = sc.previousSibling;
+            // while (sc.tagName) {sc = sc.lastChild;}
+
+            // var newr = $.summernote.objects.range.create(sc, 0, r.ec, r.eo);
+
+            // newr.merge(function (prev, cur) {
+            //     if (dom.mergeFilter(prev, cur)) {
+            //         return true;
+            //     }
+            //     if (prev && (prev.tagName === "P" && cur.tagName === "P")) {
+            //         return true;
+            //     }
+            // });
+
+            return false;
+        });
+    }
+
+    setTimeout(function () {
+        var $summer = $("#wrapwrap").wrap("<div>").parent().summernote({airMode: true});
+        // console.log("summernote");
+        // $("#wrapwrap").on("mouseup", function () {
+        //     var r = $.summernote.objects.range.create();
+        //     if (r) r.merge();
+        // });
+
+        bind($summer);
+    }, 500);
+
+
+// .note-air-popover : z-index: 1040;
+
+// var $div = $("#wrapwrap").wrap("<div>").parent();
+// var $summernote = $div.summernote({
+//     airMode: true,
+//     onpaste: function(e) {
+//         e.preventDefault();
+
+//         console.log($summernote.data());
+//         console.log(range.create());
+
+//         var $editable = $(e.currentTarget);
+//         var clipboardData = e.originalEvent.clipboardData;
+//         var text = clipboardData.getData("text/plain");
+//         var tag = e.target.tagName.toLowerCase();
+//         if("h1 h2 h3 h4 h5 h6 span".indexOf(tag) === -1) {
+//          text = "p";
+//         }
+//         text = "<"+tag+">"+text.split('\n').join("</"+tag+"><"+tag+">")+"</"+tag+">";
+
+//         // var selection = document.getSelection();
+//         // var nativeRng = selection.getRangeAt(0);
+//         // nativeRng.deleteContents();
+//         // nativeRng.insertNode($(text)[0]);
+
+//         console.log(document.execCommand('insertHTML', true, "</"+tag+">__summernote__<"+tag+">"));
+//         console.log(e.target);
+
+//         $(e.target).find("*:contains(__summernote__)").remove();
+//         $(e.target).next().remove();
+//         $(e.target).after(text);
+
+//         //console.log(document.execCommand('insertHTML', true, text));
+
+//         //console.log(e.target);
+//     }
+// });
+
+
     var tplButtonInfo = {
         picture: function (lang) {
             return {
@@ -401,8 +836,8 @@
             this.$el.show();
             this.$('#website-top-edit').show();
             $('.css_non_editable_mode_hidden').removeClass("css_non_editable_mode_hidden");
-
-            this.rte.start_edition();
+            
+            //this.rte.start_edition();
             this.trigger('rte:called');
         },
         rte_changed: function () {
@@ -891,7 +1326,8 @@
                     self.toolbar.update(oLayoutInfo.toolbar(), oStyle);
                 }
                 self.popover.update(oLayoutInfo.popover(), oStyle, isAirMode);
-                self.handle.update(oLayoutInfo.handle(), oStyle);
+                self.handle.update(oLayoutInfo.handle(), oStyle, isAirMode);
+                oLayoutInfo.handle().find('.note-control-selection').hide();
             }, 0);
         },
         hScroll : function (event) {
@@ -922,31 +1358,6 @@
                 event.preventDefault();
                 event.stopPropagation();
 
-                var oLayoutInfo = self.makeLayoutInfo(event.target),
-                    $handle = oLayoutInfo.handle(), $popover = oLayoutInfo.popover(),
-                    $editable = oLayoutInfo.editable();
-
-                var elTarget = $handle.find('.note-control-selection').data('target'),
-                    $target = $(elTarget), posStart = $target.offset(),
-                    scrollTop = $document.scrollTop();
-
-                $document.on('mousemove', function (event) {
-                  self.editor.resizeTo({
-                    x: event.clientX - posStart.left,
-                    y: event.clientY - (posStart.top - scrollTop)
-                  }, $target, !event.shiftKey);
-
-                  self.handle.update($handle, {image: elTarget});
-                  self.popover.update($popover, {image: elTarget});
-                }).one('mouseup', function () {
-                  $document.off('mousemove');
-                });
-
-                if (!$target.data('ratio')) { // original ratio.
-                  $target.data('ratio', $target.height() / $target.width());
-                }
-
-                self.editor.recordUndo($editable);
             }
         },
         hToolbarAndPopoverMousedown : function (event) {
@@ -1129,7 +1540,7 @@
             oLayoutInfo.editable.on('scroll', self.hScroll.bind(self));
             oLayoutInfo.editable.on('paste', self.hPasteClipboardImage.bind(self));
             // handler for handle and popover
-            oLayoutInfo.handle.on('mousedown', self.hHandleMousedown.bind(self));
+            //oLayoutInfo.handle.on('mousedown', self.hHandleMousedown.bind(self));
             oLayoutInfo.popover.on('click', self.hToolbarAndPopoverClick.bind(self));
             oLayoutInfo.popover.on('mousedown', self.hToolbarAndPopoverMousedown.bind(self));
             oLayoutInfo.editable.on('mouseover' , self.hMouseover.bind(self));
@@ -1679,15 +2090,15 @@
             });
 
             if (this.media) {
-                if (this.media.$.nodeName === "IMG") {
+                if (this.media.nodeName === "IMG") {
                     this.$('[href="#editor-media-image"]').tab('show');
-                } else if (this.media.$.className.match(/(^|\s)media_iframe_video($|\s)/)) {
+                } else if (this.media.className.match(/(^|\s)media_iframe_video($|\s)/)) {
                     this.$('[href="#editor-media-video"]').tab('show');
-                } else if (this.media.$.className.match(/(^|\s)fa($|\s)/)) {
+                } else if (this.media.className.match(/(^|\s)fa($|\s)/)) {
                     this.$('[href="#editor-media-icon"]').tab('show');
                 }
 
-                if ($(this.media.$).parent().data("oe-field") === "image") {
+                if ($(this.media).parent().data("oe-field") === "image") {
                     this.$('[href="#editor-media-video"], [href="#editor-media-icon"]').addClass('hidden');
                 }
             }
@@ -1696,7 +2107,7 @@
         save: function () {
             var self = this;
             if (self.media) {
-                this.media.$.innerHTML = "";
+                this.media.innerHTML = "";
                 if (this.active !== this.imageDialog) {
                     this.imageDialog.clear();
                 }
@@ -1718,7 +2129,7 @@
             }
             var $el = $(self.active.media.$);
             this.active.save();
-            //this.media.$.className = this.media.$.className.replace(/\s+/g, ' ');
+            //this.media.className = this.media.className.replace(/\s+/g, ' ');
             setTimeout(function () {
                 $el.trigger("saved", self.active.media.$);
                 $(document.body).trigger("media-saved", [$el[0], self.active.media.$]);
@@ -1807,7 +2218,7 @@
             return this._super();
         },
         clear: function () {
-            this.media.$.className = this.media.$.className.replace(/(^|\s)(img(\s|$)|img-[^\s]*)/g, ' ');
+            this.media.className = this.media.className.replace(/(^|\s)(img(\s|$)|img-[^\s]*)/g, ' ');
         },
         cancel: function () {
             this.trigger('cancel');
@@ -2051,15 +2462,15 @@
                 rng.insertNode($image[0]);
                 $('.popover').hide();
             } else {
-                var style = this.media.$.attributes.style ? this.media.$.attributes.style.textContent : '';
-                var classes = (this.media.$.className||"").split(/\s+/);
+                var style = this.media.attributes.style ? this.media.attributes.style.textContent : '';
+                var classes = (this.media.className||"").split(/\s+/);
                 var non_fa_classes = _.reject(classes, function (cls) {
                     return cls === 'fa' || /^fa-/.test(cls);
                 });
                 var final_classes = non_fa_classes.concat(this.get_fa_classes());
-                this.media.$.className = final_classes.join(' ');
+                this.media.className = final_classes.join(' ');
                 this.media.renameNode("span");
-                this.media.$.attributes.style.textContent = style;
+                this.media.attributes.style.textContent = style;
             }
             this._super();
         },
@@ -2071,7 +2482,7 @@
          * which may not match the visual look of the element.
          */
         load_data: function () {
-            var classes = (this.media&&this.media.$.className||"").split(/\s+/);
+            var classes = (this.media&&this.media.className||"").split(/\s+/);
             for (var i = 0; i < classes.length; i++) {
                 var cls = classes[i];
                 switch(cls) {
@@ -2134,7 +2545,7 @@
             }
         },
         clear: function () {
-            this.media.$.className = this.media.$.className.replace(/(^|\s)(fa(\s|$)|fa-[^\s]*)/g, ' ');
+            this.media.className = this.media.className.replace(/(^|\s)(fa(\s|$)|fa-[^\s]*)/g, ' ');
         },
     });
 
@@ -2233,12 +2644,13 @@
                     '<iframe src="'+this.get_url()+'" frameborder="0" allowfullscreen="allowfullscreen"></iframe>'+
                 '</div>');
             $('.insert-media').replaceWith($iframe);
-            this.media.$ = $iframe[0];
+            $(this.media).replaceWith($iframe);
+            this.media = $iframe[0];
             this._super();
         },
         clear: function () {
-            delete this.media.$.dataset.src;
-            this.media.$.className = this.media.$.className.replace(/(^|\s)media_iframe_video(\s|$)/g, ' ');
+            delete this.media.dataset.src;
+            this.media.className = this.media.className.replace(/(^|\s)media_iframe_video(\s|$)/g, ' ');
         },
     });
 
@@ -2380,3 +2792,38 @@
         }
     }
 })();
+
+
+
+
+
+// $('header').remove();
+// $("body").summernote({
+//     onpaste: function(e) {
+//         e.preventDefault();
+//         var $editable = $(e.currentTarget);
+//         var clipboardData = e.originalEvent.clipboardData;
+//         var text = clipboardData.getData("text/plain");
+//         var tag = e.target.tagName.toLowerCase();
+//         if("h1 h2 h3 h4 h5 h6 span".indexOf(tag) === -1) {
+//          text = "p";
+//         }
+//         text = "<"+tag+">"+text.split('\n').join("</"+tag+"><"+tag+">")+"</"+tag+">";
+
+//         // var selection = document.getSelection();
+//         // var nativeRng = selection.getRangeAt(0);
+//         // nativeRng.deleteContents();
+//         // nativeRng.insertNode($(text)[0]);
+
+//         console.log(document.execCommand('insertHTML', true, "</"+tag+">__summernote__<"+tag+">"));
+//         console.log(e.target);
+
+//         $(e.target).find("*:contains(__summernote__)").remove();
+//         $(e.target).next().remove();
+//         $(e.target).after(text);
+
+//         //console.log(document.execCommand('insertHTML', true, text));
+
+//         //console.log(e.target);
+//     }
+// });
