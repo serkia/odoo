@@ -36,7 +36,7 @@ class pageview(models.Model):
                         SELECT %s,%s,%s,%s
                         WHERE NOT EXISTS (SELECT * FROM website_crm_pageview WHERE lead_id=%s AND url=%s)
                         RETURNING id;
-                    ''', (lead_id, partner_id, url, create_date, lead_id, url))
+                        ''', (lead_id, partner_id, url, create_date, lead_id, url))
                     fetch = pv_cr.fetchone()
                     if fetch:
                         # a new pageview has been created, a message is posted

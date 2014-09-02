@@ -71,11 +71,11 @@
                         />
                         <field name="lang_id" readonly="1"/>
                         <!-- todo: title should be above the tree so that there is more space for the urls to be showed -->
-                        <!-- <field name="score_pageview_ids" readonly="1">
+                        <field name="score_pageview_ids" readonly="1">
                             <tree string="Page Views">
                                 <field name="url"/>
                             </tree>
-                        </field> -->
+                        </field>
                     </group>
                 </xpath>
             </field>
@@ -86,9 +86,6 @@
         <!-- <menuitem id="main_scoring_menu" name="Lead scoring" /> -->
 
         <menuitem id="leads_menu" name="website_crm_score" parent="base.menu_base_partner" />
-
-        <!-- <menuitem id="sublead_menu" name="Leads" parent="leads_menu" action="lead_list_action" /> -->
-
 
         <record model="ir.ui.view" id="view_score_form">
             <field name="name">ir.ui.view.inherit.score</field>
@@ -203,7 +200,7 @@
         <menuitem id="section_user" name="SectionUser" parent="leads_menu" action="section_user_action" />
 
 
-        <record model="ir.ui.view" id="website_crm_pageview_tree">
+<!--         <record model="ir.ui.view" id="website_crm_pageview_tree">
             <field name="name">Page Views Tree</field>
             <field name="model">website.crm.pageview</field>
             <field name="arch" type="xml">
@@ -217,19 +214,14 @@
         </record>
 
         <record model="ir.actions.act_window" id="website_crm_score_pageviews">
-            <!-- todo: how do I make the filters work ? -->
             <field name="name">Page Views</field>
             <field name="model">website.crm.pageview</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-            <!-- <field name="view_id" ref="crm_case_inbound_phone_tree_view"/> -->
-            <!-- <field name="domain">[]</field> -->
-            <!-- <field name="context">{'search_default_state': 'done', 'default_state': 'done'}</field> -->
-            <!-- <field name="search_view_id" ref="crm.view_crm_case_phonecalls_filter"/> -->
         </record>
 
 
-        <menuitem id="pageview_menu" name="PageViews" parent="leads_menu" action="website_crm_score_pageviews" />
+        <menuitem id="pageview_menu" name="PageViews" parent="leads_menu" action="website_crm_score_pageviews" /> -->
 
 <!--         <record id="mt_scoring" model="mail.message.subtype">
             <field name="name">Scoring</field>
