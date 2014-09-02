@@ -74,13 +74,21 @@ class ContactController(addons.website_crm.controllers.main.contactus):
         if lead_instance:
             # a lead_id cookie exists and it has not been altered and the lead is not closed
             lead = lead_model.browse(cr, SUPERUSER_ID, lead_id, context=context)
+
+            # NOTE: the following should be changed when dynamic forms exist
+            changed_values = {}
             for fieldname, fieldvalue in values.items():
-                pass
-                # TODO, FIXME : broken for now, should be dealt with when the form works as planned
-                # if fieldname in lead._all_columns and fieldvalue: # and not lead[fieldname]:  # rem : why this last condition ?
-                #     print "leafi", fieldname, 'and',  lead[fieldname]
-                #     lead[fieldname] = fieldvalue
-                #     # todo: what to do, merge/replace ? pas ecraser, mais poster un message pour dire les nouveaux champs
+                if fieldname in lead._all_columns and fieldvalue: # and not lead[fieldname]:  # rem : why this last condition ?
+                    if lead[fieldname] and lead[fieldname] != fieldvalue:
+                        changed_values[fieldname] = fieldvalue
+                    else:
+                        lead[fieldname] = fieldvalue
+            # Post a message to indicate the updated field (if any)
+            if changed_values:
+                body = 'Other value given for field '
+                for fieldname in changed_values.keys():
+                    body += '<br/><b>' + fieldname + '</b>: <b>' + changed_values[fieldname] + '</b>'
+                request.registry['crm.lead'].message_post(cr, SUPERUSER_ID, [lead_id], body=body, subject="Field value changed", context=context)
 
         else:
             # either no lead_id cookie OR the lead_id doesn't exist in db OR the current one is closed -> a lead is created
@@ -104,7 +112,7 @@ class ContactController(addons.website_crm.controllers.main.contactus):
                 # message informing of all the pages that were seen
                 urls = ''
                 for url in url_list:
-                    urls += '<br/><a href="' + url + '"><b>' + url + '</b></a>'
+                    urls += '<br/><a href="' + url + '" target="_blank"><b>' + url + '</b></a>'
                 body = 'The user visited ' + urls
 
             new_lead_id = super(ContactController, self).create_lead(request, values, kwargs)

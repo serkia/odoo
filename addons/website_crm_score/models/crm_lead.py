@@ -11,7 +11,7 @@ class Lead(models.Model):
 
     @api.one
     def _count_pageviews(self):
-        self.pageviews_count = len(self.score_pageview_ids) 
+        self.pageviews_count = len(self.score_pageview_ids)
 
     @api.one
     def _compute_score(self):

@@ -31,7 +31,7 @@ class crm_case_section(osv.osv):
 
     @api.model
     def assign_leads(self, ids=[]):
-        # this is old api translated to new api
+        # note: this is old api translated to new api
         # benefit could be taken from records I guess
         # and do write operations require a browse right before ?
 
@@ -217,13 +217,11 @@ class res_users(osv.Model):
     lead_ids = fields.One2many('crm.lead', 'user_id', string='Leads')
     new_leads_count = fields.Integer(compute='_count_new_leads')
     leads_count = fields.Integer(compute='_count_leads')
-    # running = fields.Boolean(string='Running', default=True)
 
 
 class section_user(models.Model):
     _name = 'section.user'
 
-    # @api.model
     @api.one
     def _count_leads(self):
         limit_date = datetime.datetime.now() - datetime.timedelta(days=30)
@@ -243,7 +241,6 @@ class section_user(models.Model):
     section_id = fields.Many2one('crm.case.section', string='SaleTeam', required=True)
     user_id = fields.Many2one('res.users', string='Saleman', required=True)
     user_name = fields.Char(related='user_id.partner_id.display_name')
-    # running = fields.Boolean(related='user_id.running')
     running = fields.Boolean(string='Running', default=True)
     section_user_domain = fields.Char('Domain')
     maximum_user_leads = fields.Integer('Maximum leads')
