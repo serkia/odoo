@@ -222,6 +222,8 @@ def load_module_graph(cr, graph, status=None, perform_checks=True, skip_modules=
                 if hasattr(package, kind):
                     delattr(package, kind)
 
+            openerp.api.Environment._local.environments = set()
+
         registry._init_modules.add(package.name)
         cr.commit()
 

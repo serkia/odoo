@@ -685,7 +685,7 @@ class Environment(object):
             yield
         else:
             try:
-                cls._local.environments = WeakSet()
+                cls._local.environments = set()
                 yield
             finally:
                 release_local(cls._local)
