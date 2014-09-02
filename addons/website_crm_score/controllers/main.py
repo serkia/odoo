@@ -87,7 +87,7 @@ class ContactController(addons.website_crm.controllers.main.contactus):
             if changed_values:
                 body = 'Other value given for field '
                 for fieldname in changed_values.keys():
-                    body += '<br/><b>' + fieldname + '</b>: <b>' + changed_values[fieldname] + '</b>'
+                    body += '<br/>' + fieldname + ': <b>' + changed_values[fieldname] + '</b>'
                 request.registry['crm.lead'].message_post(cr, SUPERUSER_ID, [lead_id], body=body, subject="Field value changed", context=context)
 
         else:

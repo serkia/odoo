@@ -21,6 +21,7 @@ class ir_http(models.AbstractModel):
                     # create_pageview was successful
                     pass
                 else:
+                    # create_pageview failed, the lead_id cookie is deleted and the tracking is done in the session
                     response.delete_cookie('lead_id')
                     # the following line doesn't work is pages_viewed already exists
                     # request.session.setdefault('pages_viewed', {})[url] = date
