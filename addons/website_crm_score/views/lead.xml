@@ -20,33 +20,9 @@
         <!-- Score Menu Item -->
         <menuitem id="leads_menu" name="website_crm_score" parent="base.menu_base_partner" />
 
-        <!-- Crm Lead Search Filter - Language added -->
-        <record model="ir.ui.view" id="view_crm_case_leads_filter_inherit">
-            <field name="name">crm.lead.search.inherit</field>
-            <field name="model">crm.lead</field>
-            <field name="inherit_id" ref="crm.view_crm_case_leads_filter" />
-            <field name="arch" type="xml">
-                <field name="country_id" position="after">
-                    <field name="lang_id"/>
-                </field>
-            </field>
-        </record>
-
-        <!-- Crm Lead Tree View - Score and Salesman added -->
-        <record model="ir.ui.view" id="lead_tree_view">
-            <field name="name">crm.lead.tree.inherit</field>
-            <field name="model">crm.lead</field>
-            <field name="inherit_id" ref="crm.crm_case_tree_view_leads" />
-            <field name="arch" type="xml">
-                <field name="phone" position="after">
-                    <field name="score" />
-                </field>
-                <field name="section_id" position="after">
-                    <field name="user_id" />
-                </field>
-            </field>
-        </record>
-
+        <!-- 
+        PAGEVIEW
+        -->
         <!-- PageView Search Filter on lead_id -->
          <record id="crm_score_pageview_filter" model="ir.ui.view">
             <field name="name">Website crm score pageviews</field>
@@ -96,6 +72,36 @@
         <!-- PageView Menu Item -->
         <menuitem id="pageview_menu" name="PageViews" parent="leads_menu" action="website_crm_score_pageviews" />
 
+        <!-- 
+        LEADS
+         -->
+        <!-- Crm Lead Search Filter - Language added -->
+        <record model="ir.ui.view" id="view_crm_case_leads_filter_inherit">
+            <field name="name">crm.lead.search.inherit</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.view_crm_case_leads_filter" />
+            <field name="arch" type="xml">
+                <field name="country_id" position="after">
+                    <field name="lang_id"/>
+                </field>
+            </field>
+        </record>
+
+        <!-- Crm Lead Tree View - Score and Salesman added -->
+        <record model="ir.ui.view" id="lead_tree_view">
+            <field name="name">crm.lead.tree.inherit</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_case_tree_view_leads" />
+            <field name="arch" type="xml">
+                <field name="phone" position="after">
+                    <field name="score" />
+                </field>
+                <field name="section_id" position="after">
+                    <field name="user_id" />
+                </field>
+            </field>
+        </record>
+
         <!-- Crm Lead From View - PageViews, Score and Language added -->
         <record model="ir.ui.view" id="lead_score_form">
             <field name="name">crm.lead.form.inherit</field>
@@ -128,6 +134,9 @@
             </field>
         </record>
 
+        <!-- 
+        VIEWS
+         -->
         <!-- View Form View - Track added -->
         <record model="ir.ui.view" id="view_score_form">
             <field name="name">ir.ui.view.inherit.score</field>
@@ -153,7 +162,7 @@
         </record>
 
         <!-- View Action - tree - form -->
-        <record model="ir.actions.act_window" id="lead_setting_action">
+        <record model="ir.actions.act_window" id="crm_score_views_action">
             <field name="name">Views</field>
             <field name="res_model">ir.ui.view</field>
             <field name="view_type">form</field>
@@ -161,8 +170,11 @@
         </record>
 
         <!-- Views Menu Item -->
-        <menuitem id="views_menu" name="Views" parent="leads_menu" action="lead_setting_action" />
+        <menuitem id="views_menu" name="Views" parent="leads_menu" action="crm_score_views_action" />
 
+        <!-- 
+        SCORE
+         -->
         <!-- Score From View -->
         <record model="ir.ui.view" id="view_crm_score_form">
             <field name="name">Website Crm Score Form</field>
@@ -195,7 +207,7 @@
         </record>
 
         <!-- Score Action - tree - form -->
-        <record model="ir.actions.act_window" id="score_setting_action">
+        <record model="ir.actions.act_window" id="score_action">
             <field name="name">Scores</field>
             <field name="res_model">website.crm.score</field>
             <field name="view_type">form</field>
@@ -203,8 +215,11 @@
         </record>
 
         <!-- Score Menu Item -->
-        <menuitem id="scores_menu" name="Scores" parent="leads_menu" action="score_setting_action" />
+        <menuitem id="scores_menu" name="Scores" parent="leads_menu" action="score_action" />
 
+        <!-- 
+        SECTION USER
+         -->
         <!-- Section User From View -->
         <record model="ir.ui.view" id="view_crm_section_user_form">
             <field name="name">Section User Form</field>
