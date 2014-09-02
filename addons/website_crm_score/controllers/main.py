@@ -61,6 +61,7 @@ class ContactController(addons.website_crm.controllers.main.contactus):
         lead_model = request.registry["crm.lead"]
         lead_id = lead_model.decode(request)
 
+        # domain: leads that are still open:
         # NOT [ (proba = 0 OR proba = 100) AND fold AND seq > 1 ]
         # modified to
         # proba != 0 AND proba != 100 OR !fold OR seq <= 1
@@ -73,7 +74,6 @@ class ContactController(addons.website_crm.controllers.main.contactus):
         if lead_instance:
             # a lead_id cookie exists and it has not been altered and the lead is not closed
             lead = lead_model.browse(cr, SUPERUSER_ID, lead_id, context=context)
-            # print "desc", lead["description"]
             for fieldname, fieldvalue in values.items():
                 pass
                 # TODO, FIXME : broken for now, should be dealt with when the form works as planned

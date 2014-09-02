@@ -22,7 +22,6 @@ class Lead(models.Model):
     score = fields.Float(compute='_compute_score')
     score_ids = fields.Many2many('website.crm.score', 'crm_lead_score_rel', 'lead_id', 'score_id', string='Score')
     score_pageview_ids = fields.One2many('website.crm.pageview', 'lead_id', string='Page Views')
-    # language = fields.Many2one('res.lang', string='Language')  # todo : move to crm lead
     assign_date = fields.Datetime(string='Assign Date')
     pageviews_count = fields.Integer(compute='_count_pageviews')
 

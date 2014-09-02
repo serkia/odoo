@@ -15,12 +15,10 @@ class crm_case_section(osv.osv):
 
     @api.one
     def _assigned_leads(self):
-        # self.assigned_leads = self.section_user_ids and sum(map(lambda x: x.leads_count, self.section_user_ids)) or 0
         self.assigned_leads = self.env['crm.lead'].search_count([('section_id', '=', self.id), ('user_id', '!=', False)])
 
     @api.one
     def _capacity(self):
-        # self.capacity = self.section_user_ids and sum(map(lambda x: x.maximum_user_leads, self.section_user_ids)) or 0
         self.capacity = sum(s.maximum_user_leads for s in self.section_user_ids) or 0
 
     ratio = fields.Float(string='Ratio')
