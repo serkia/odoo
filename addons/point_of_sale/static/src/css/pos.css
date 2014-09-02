@@ -532,6 +532,16 @@ td {
     color: white;
     background: #7f82ac;
 }
+.pos .popup.popup-selection .selection {
+    overflow-y: auto;
+    max-height: 270px;
+}
+.pos .popup.popup-selection .selection .button {
+    float: none;
+    display: block;
+    width: auto;
+    margin: 8px;
+}
 
 /*  ********* The Numpad ********* */
 

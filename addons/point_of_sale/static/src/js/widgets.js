@@ -1086,6 +1086,9 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
             this.confirm_popup = new module.ConfirmPopupWidget(this,{});
             this.confirm_popup.appendTo(this.$el);
 
+            this.selection_popup = new module.SelectionPopupWidget(this,{});
+            this.selection_popup.appendTo(this.$el);
+
             // --------  Misc ---------
 
             this.close_button = new module.HeaderButtonWidget(this,{
@@ -1141,6 +1144,7 @@ function openerp_pos_widgets(instance, module){ //module is instance.point_of_sa
                     'error-no-client': this.error_no_client_popup,
                     'error-invoice-transfer': this.error_invoice_transfer_popup,
                     'confirm': this.confirm_popup,
+                    'selection': this.selection_popup,
                 },
                 default_screen: 'products',
                 default_mode: 'cashier',
