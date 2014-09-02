@@ -268,9 +268,19 @@ openerp.pos_loyalty = function(instance){
                 order.apply_reward(rewards[0]);
                 return;
             } else { 
-                this.screen_selector.show_popup('confirm',{
-                    'message': 'Please Select The Reward',
-                    'comment': 'What Reward do you want ?',
+                var list = [];
+                for (var i = 0; i < rewards.length; i++) {
+                    list.push({
+                        label: rewards[i].name,
+                        item:  rewards[i],
+                    });
+                }
+                this.screen_selector.show_popup('selection',{
+                    'message': 'Please select a reward',
+                    'list': list,
+                    'confirm': function(reward){
+                        order.apply_reward(reward);
+                    },
                 });
             }
         },
