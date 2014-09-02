@@ -34,22 +34,6 @@
             </field>
         </record>
 
-        <!-- PageView Form View -->
-        <record model="ir.ui.view" id="crm_score_pageview_form">
-            <field name="name">website.crm.pageview.form</field>
-            <field name="model">website.crm.pageview</field>
-            <field name="arch" type="xml">
-                <form string="Section User">
-                    <group>
-                        <field name="lead_id"/>
-                        <field name="partner_id"/>
-                        <field name="url"/>
-                        <field name="create_date"/>    
-                    </group>
-                </form>
-            </field>
-        </record>
-
         <!-- PageView Graph View -->
         <record model="ir.ui.view" id="crm_score_pageview_graph">
             <field name="name">website.crm.pageview.graph</field>
