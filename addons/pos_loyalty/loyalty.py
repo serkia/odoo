@@ -70,6 +70,27 @@ class loyalty_reward(osv.osv):
         'discount':             fields.float('Discount',help='The discount percentage'),
     }
 
+    def _check_gift_product(self, cr, uid, ids, context=None):
+        for reward in self.browse(cr, uid, ids, context=context):
+            print reward.type
+            if reward.type == 'gift':
+                return bool(reward.gift_product_id)
+            else:
+                return True
+
+    def _check_discount_product(self, cr, uid, ids, context=None):
+        for reward in self.browse(cr, uid, ids, context=context):
+            print reward.type
+            if reward.type == 'discount':
+                return bool(reward.discount_product_id)
+            else:
+                return True
+
+    _constraints = [
+        (_check_gift_product,     "The gift product field is mandatory for gift rewards",         ["type","gift_product_id"]),
+        (_check_discount_product, "The discount product field is mandatory for discount rewards", ["type","discount_product_id"]),
+    ]
+
 class pos_config(osv.osv):
     _inherit = 'pos.config' 
     _columns = {

@@ -114,13 +114,15 @@
                         <label class="oe_edit_only" for="name" string="Reward Name"/>
                         <h1><field name="name" class="oe_inline"/></h1>
                     </div>
-                    <group col="4">
+                    <group>
                         <field name="type" />
-                        <field name="gift_product_id"       attrs="{ 'invisible':[('type','!=','gift')] }" />
-                        <field name="discount"              attrs="{ 'invisible':[('type','!=','discount')] }"/>
-                        <field name="discount_product_id"   attrs="{ 'invisible':[('type','!=','discount')] }"/>
                     </group>
-                    <group col="4">
+                    <group >
+                        <field name="gift_product_id"       attrs="{ 'invisible':[('type','!=','gift')], 'required':[('type','==','gift')]}" />
+                        <field name="discount"              attrs="{ 'invisible':[('type','!=','discount')] }"/>
+                        <field name="discount_product_id"   attrs="{ 'invisible':[('type','!=','discount')], 'required':[('type','==','discount')] }"/>
+                    </group>
+                    <group>
                         <field name="minimum_points" />
                         <field name="point_cost" />
                     </group>
