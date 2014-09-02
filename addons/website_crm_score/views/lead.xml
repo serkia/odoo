@@ -50,13 +50,13 @@
             <field name="inherit_id" ref="crm.crm_case_form_view_leads" />
             <field name="arch" type="xml">
                 <!-- TODO: Context does not work -->
-               <!--  <xpath expr="//button[@class='oe_inline oe_stat_button']" position="after">
+                <xpath expr="//button[@class='oe_inline oe_stat_button']" position="after">
                     <button class="oe_inline oe_stat_button" type="action" 
                             name="%(website_crm_score_pageviews)d" icon="fa-tags"
                             context="{'lead_id': active_id}">
                             <div>Page Views</div>
                     </button>
-                </xpath> -->
+                </xpath>
                 <field name="priority" position="after">
                     <field name="score" />
                 </field>
@@ -71,11 +71,11 @@
                         />
                         <field name="lang_id" readonly="1"/>
                         <!-- todo: title should be above the tree so that there is more space for the urls to be showed -->
-                        <field name="score_pageview_ids" readonly="1">
+                       <!--  <field name="score_pageview_ids" readonly="1">
                             <tree string="Page Views">
                                 <field name="url"/>
                             </tree>
-                        </field>
+                        </field> -->
                     </group>
                 </xpath>
             </field>
@@ -199,8 +199,8 @@
 
         <menuitem id="section_user" name="SectionUser" parent="leads_menu" action="section_user_action" />
 
-
-<!--         <record model="ir.ui.view" id="website_crm_pageview_tree">
+<!-- 
+        <record model="ir.ui.view" id="website_crm_pageview_tree">
             <field name="name">Page Views Tree</field>
             <field name="model">website.crm.pageview</field>
             <field name="arch" type="xml">
@@ -211,17 +211,17 @@
                     <field name="create_date"/>
                 </tree>            
             </field>
-        </record>
+        </record> -->
 
         <record model="ir.actions.act_window" id="website_crm_score_pageviews">
             <field name="name">Page Views</field>
-            <field name="model">website.crm.pageview</field>
+            <field name="res_model">website.crm.pageview</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
         </record>
 
 
-        <menuitem id="pageview_menu" name="PageViews" parent="leads_menu" action="website_crm_score_pageviews" /> -->
+        <menuitem id="pageview_menu" name="PageViews" parent="leads_menu" action="website_crm_score_pageviews" />
 
 <!--         <record id="mt_scoring" model="mail.message.subtype">
             <field name="name">Scoring</field>

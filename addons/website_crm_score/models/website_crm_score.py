@@ -2,7 +2,7 @@ from openerp import fields, models, api
 from openerp.tools.safe_eval import safe_eval
 
 
-class score(models.Model):
+class website_crm_score(models.Model):
     _name = 'website.crm.score'
 
     # New API
