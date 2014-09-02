@@ -119,8 +119,12 @@
                 // merge text nodes
                 if (!prev.tagName && !cur.tagName) {
                     merged = true;
-                    if (!afterBegin || cur === begin) so += prev.textContent.length;
-                    if (!afterEnd || cur === end) eo += prev.textContent.length;
+                    if ((!afterBegin && begin.parentNode === cur.parentNode) || cur === begin) {
+                        so += prev.textContent.length;
+                    }
+                    if ((!afterEnd && begin.parentNode === cur.parentNode) || cur === end) {
+                        eo += prev.textContent.length;
+                    }
                     prev.appendData(cur.textContent);
                     if (cur === begin) begin = prev;
                     if (cur === end) end = prev;
@@ -137,16 +141,11 @@
                             for (var i=0; i<cur.childNodes.length; i++) {
                                 prev.appendChild(cur.childNodes[i]);
                             }
+                            if (cur === begin) begin = prev;
+                            if (cur === end) end = prev;
+                            cur.parentNode.removeChild(cur);
                         } else {
                             prev.appendChild(cur);
-                        }
-                        if (cur === begin ) {
-                            begin = prev;
-                            while (begin.tagName && begin.lastChild) {begin = begin.lastChild;}
-                        }
-                        if (cur === end) {
-                            end = prev;
-                            while (end.tagName && begin.lastChild) {end = end.lastChild;}
                         }
                     } else {
                         var deep = cur;
@@ -156,8 +155,8 @@
                         prev.appendData(deep.textContent);
                         if (deep === begin) begin = prev;
                         if (deep === end) end = prev;
+                        cur.parentNode.removeChild(cur);
                     }
-                    cur.parentNode.removeChild(cur);
                     k--;
                     continue;
                 }
@@ -318,7 +317,9 @@
         $summer.on("paste", function (event) {
             // keep norma feature if copy a picture
             var clipboardData = event.originalEvent.clipboardData;
-            if (clipboardData && clipboardData.items && clipboardData.items.length) {
+            var item = list.last(clipboardData.items);
+            var isClipboardImage = item.kind === 'file' && item.type.indexOf('image/') !== -1;
+            if (isClipboardImage) {
                 return true;
             }
 
