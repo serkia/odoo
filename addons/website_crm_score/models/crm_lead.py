@@ -10,6 +10,10 @@ class Lead(models.Model):
     _inherit = 'crm.lead'
 
     @api.one
+    def _count_pageviews(self):
+        self.pageviews_count = len(self.score_pageview_ids) 
+
+    @api.one
     def _compute_score(self):
         self.score = 0
         for score_id in self.score_ids:
@@ -20,6 +24,7 @@ class Lead(models.Model):
     score_pageview_ids = fields.One2many('website.crm.pageview', 'lead_id', string='Page Views')
     # language = fields.Many2one('res.lang', string='Language')  # todo : move to crm lead
     assign_date = fields.Datetime(string='Assign Date')
+    pageviews_count = fields.Integer(compute='_count_pageviews')
 
     def encode(self, lead_id):
         encrypted_lead_id = md5.new(str(lead_id) + secret_key).hexdigest()

@@ -54,7 +54,7 @@
                     <button class="oe_inline oe_stat_button" type="action" 
                             name="%(website_crm_score_pageviews)d" icon="fa-tags"
                             context="{'lead_id': active_id}">
-                            <div>Page Views</div>
+                            <div>Page Views<br/>(<field name="pageviews_count"/>)</div>
                     </button>
                 </xpath>
                 <field name="priority" position="after">
@@ -186,7 +186,7 @@
                     <field name="user_id"/>
                     <field name="maximum_user_leads"/>
                     <field name="leads_count"/>
-                </tree>            
+                </tree>
             </field>
         </record>
 
@@ -199,7 +199,7 @@
 
         <menuitem id="section_user" name="SectionUser" parent="leads_menu" action="section_user_action" />
 
-<!-- 
+
         <record model="ir.ui.view" id="website_crm_pageview_tree">
             <field name="name">Page Views Tree</field>
             <field name="model">website.crm.pageview</field>
@@ -211,7 +211,7 @@
                     <field name="create_date"/>
                 </tree>            
             </field>
-        </record> -->
+        </record>
 
         <record model="ir.actions.act_window" id="website_crm_score_pageviews">
             <field name="name">Page Views</field>
