@@ -57,7 +57,7 @@
         return true;
     };
     dom.mergeFilter = function (prev, cur) {
-        if (!cur.tagName && !cur.textContent.match(/\S/)) {
+        if (!cur.tagName && !cur.textContent.match(/\S/) && (!prev.tagName || prev.textContent.match(/\S/))) {
             return true;
         }
         if (prev && dom.isEqual(prev, cur) &&
@@ -190,7 +190,7 @@
 
                 if (cur === begin) add = true;
 
-                if (cur.tagName && cur.tagName !== "SCRIPT" && window.getComputedStyle(cur).whiteSpace !== "pre") {
+                if (cur.tagName && cur.tagName !== "SCRIPT" && cur.tagName !== "STYLE" && window.getComputedStyle(cur).whiteSpace !== "pre") {
                     __remove_space(cur);
                 }
 
@@ -203,14 +203,14 @@
                     if (cur === begin) {
                         so -= cur.textContent.length;
                         begin = cur.parentNode;
-                        while (begin.tagName) {begin = begin.lastChild;}
                     }
                     if (cur === end) {
                         offsetEnd = 0;
                         end = cur.parentNode;
-                        while (end.tagName) {end = end.lastChild;}
                     }
                     cur.parentNode.removeChild(cur);
+                    while (begin.tagName && begin.lastChild) {begin = begin.lastChild;}
+                    while (end.tagName && end.lastChild) {end = end.lastChild;}
                     k--;
                     continue;
                 }
@@ -305,8 +305,7 @@
             var rem = dom.removeSpace(node, this.sc, merge.so, this.ec, merge.eo);
 
             if (merge.merged || rem.removed) {
-                var r = range.create(rem.sc, rem.so, merge.ec, rem.eo);
-                return r;
+                return range.create(rem.sc, rem.so, merge.ec, rem.eo);
             }
             return this;
         };
@@ -1049,50 +1048,61 @@
                         range.create(data.sc, data.so, data.sc, data.so).select();
                     },0);
                 }
-                switch (event.keyCode) {
-                    case 8: // backspace
-                        var r = range.create();
-                        // normal feature if same tag and not the begin
-                        if (r.sc===r.ec && r.so || r.eo) return true;
-                        // merge with the previous text node
-                        if (r.sc.previousSibling && !r.sc.previousSibling.tagName) return true;
 
-                        if (r.sc===r.ec && !r.so && !r.eo && ['P', 'SPAN'].indexOf(r.sc.parentNode.tagName) !== -1) {
+                if (event.keyCode === 8 || event.keyCode === 46) {
+                    var r = range.create();
+                    var node = event.keyCode === 8 ? r.sc : r.ec;
+                    while (!node.nextSibling && !node.previousSibling) {node = node.parentNode;}
+                    
+                    if (event.keyCode === 8) { // backspace
+
+                        // empty tag
+                        if (r.sc===r.ec && !r.sc.textContent.length && node.previousSibling) {
+                            var next = node.previousSibling;
+                            while (next.tagName && next.lastChild) {next = next.lastChild;}
+                            node.parentNode.removeChild(node);
+                            range.create(next, next.textContent.length, next, next.textContent.length).select();
+                        }
+                        // normal feature if same tag and not the begin
+                        else if (r.sc===r.ec && r.so || r.eo) return true;
+                        // merge with the previous text node
+                        else if (r.sc.previousSibling && !r.sc.previousSibling.tagName) return true;
+
+                        else if (r.sc===r.ec && r.so===r.eo && !r.eo && ['P', 'SPAN'].indexOf(r.sc.parentNode.tagName) !== -1) {
                             clean("sc");
                             return true;
                         }
+
+                    } else { // delete
+
                         // empty tag
-                        if (r.sc===r.ec && !r.sc.textContent.length) {
-                            var prev = r.sc.previousElementSibling;
-                            r.sc.parentNode.removeChild(r.sc);
-                            range.createFromNode(prev.lastChild, prev.lastChild.length, prev.lastChild, prev.lastChild.length).select();
+                        if (r.sc===r.ec && !r.sc.textContent.length && node.nextSibling) {
+                            var next = node.nextSibling;
+                            while (next.tagName && next.firstChild) {next = next.firstChild;}
+                            node.parentNode.removeChild(node);
+                            range.create(next, 0, next, 0).select();
                         }
-                        break;
-
-                    case 46: // delete
-                        var r = range.create();
                         // normal feature if same tag and not the end
-                        if (r.sc===r.ec && r.eo!==r.ec.length) return true;
+                        else if (r.sc===r.ec && r.eo!==r.ec.length && r.ec.textContent.match(/\S/)) return true;
                         // merge with the next text node
-                        if (r.ec.nextSibling && !r.ec.nextSibling.tagName) return true;
+                        else if (r.ec.nextSibling && !r.ec.nextSibling.tagName) return true;
 
-                        if (r.sc===r.ec && !r.so && !r.eo && ['P', 'SPAN'].indexOf(r.ec.parentNode.tagName) !== -1) {
+                        else if (r.sc===r.ec && r.so===r.eo && r.eo===r.eo.length && ['P', 'SPAN'].indexOf(r.ec.parentNode.tagName) !== -1) {
                             clean("ec");
                             return true;
                         }
-                        // empty tag
-                        if (r.sc===r.ec && !r.sc.textContent.length) {
-                            var next = r.ec.nextElementSibling;
-                            r.ec.parentNode.removeChild(r.ec);
-                            range.createFromNode(next.firstChild, 0, next.firstChild, 0).select();
-                        }
-                        break;
+                    }
 
-                    default:
-                        return true;
+                    setTimeout(function () {
+                        var r = range.create();
+                        r = dom.merge(r.sc.parentElement, r.sc, r.so, r.sc, r.so, null, true);
+                        //r = dom.removeSpace(r.sc.parentElement, r.sc, r.so, r.sc, r.so);
+                        range.create(r.sc, r.so, r.ec, r.eo).select();
+                    },0);
+
+                    event.preventDefault();
+                    return false;
                 }
-                event.preventDefault();
-                return false;
             });
 
             $(root).on('dragstart', 'img', function (e) {
