@@ -34,12 +34,32 @@
             </field>
         </record>
 
+        <!-- PageView Form View -->
+        <record model="ir.ui.view" id="crm_score_pageview_form">
+            <field name="name">website.crm.pageview.form</field>
+            <field name="model">website.crm.pageview</field>
+            <field name="arch" type="xml">
+                <form string="Page Views">
+                    <sheet>
+                        <h1>
+                            <field name="url"/>
+                        </h1>
+                        <group>
+                            <field name="lead_id"/>
+                            <field name="partner_id"/>
+                            <field name="create_date"/>    
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
         <!-- PageView Graph View -->
         <record model="ir.ui.view" id="crm_score_pageview_graph">
             <field name="name">website.crm.pageview.graph</field>
             <field name="model">website.crm.pageview</field>
             <field name="arch" type="xml">
-                <graph string="PageViews" type="bar">
+                <graph string="Page Views" type="bar">
                     <field name="url"/>
                     <!-- <field name="create_date"/> -->
                 </graph>
@@ -102,7 +122,7 @@
             </field>
         </record>
 
-        <!-- Crm Lead From View - PageViews, Score and Language added -->
+        <!-- Crm Lead Form View - PageViews, Score and Language added -->
         <record model="ir.ui.view" id="lead_score_form">
             <field name="name">crm.lead.form.inherit</field>
             <field name="model">crm.lead</field>
@@ -175,19 +195,23 @@
         <!-- 
         SCORE
          -->
-        <!-- Score From View -->
+        <!-- Score Form View -->
         <record model="ir.ui.view" id="view_crm_score_form">
             <field name="name">Website Crm Score Form</field>
             <field name="model">website.crm.score</field>
             <field name="arch" type="xml">
                 <form string="Scores">
-                    <group>
-                        <field name="name"/>
-                        <field name="value"/>
-                        <field name="domain"/>
-                        <field name="running"/>
+                    <sheet>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                        <group>
+                            <field name="value"/>
+                            <field name="domain"/>
+                            <field name="running"/>
+                        </group>
                         <button name="assign_scores_to_leads" type="object" string="Assign"/>
-                    </group>
+                    </sheet>
                 </form>
             </field>
         </record>
@@ -226,12 +250,17 @@
             <field name="model">section.user</field>
             <field name="arch" type="xml">
                 <form string="Section User">
-                    <group>
-                        <field name="section_id"/>
-                        <field name="user_id"/>
-                        <field name="maximum_user_leads"/>
-                        <field name="section_user_domain" widget="char_domain" options="{'model': 'crm.lead'}"/>
-                    </group>
+                    <sheet>
+                        <h1>
+                            <field name="user_id"/>
+                        </h1>
+                        <group>
+                            <field name="section_id"/>
+                            <!-- <field name="user_id"/> -->
+                            <field name="maximum_user_leads"/>
+                            <field name="section_user_domain" widget="char_domain" options="{'model': 'crm.lead'}"/>
+                        </group>
+                    </sheet>
                 </form>
             </field>
         </record>
