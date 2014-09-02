@@ -313,153 +313,7 @@
         return wrappedRange;
     };
 
-    function bind($summer) {
-        $summer.on("paste", function (event) {
-            // keep norma feature if copy a picture
-            var clipboardData = event.originalEvent.clipboardData;
-            var item = list.last(clipboardData.items);
-            var isClipboardImage = item.kind === 'file' && item.type.indexOf('image/') !== -1;
-            if (isClipboardImage) {
-                return true;
-            }
-
-            event.preventDefault();
-            var r = range.create();
-            dom.pasteText(r.sc, r.so, clipboardData.getData("text/plain"));
-            return false;
-        });
-        $summer.on("keydown", function (event) {
-            // backspace
-            function clean (field) {
-                setTimeout(function () {
-                    var r = range.create();
-                    var node = r[field];
-                    while (!node.tagName) {node = node.parentNode;}
-                    node = node.parentNode;
-                    var data = dom.merge(node, r.sc, r.so, r.ec, r.eo, null, true);
-                    data = dom.removeSpace(node, data.sc, data.so, data.sc, data.so);
-
-                    range.create(data.sc, data.so, data.sc, data.so).select();
-                },0);
-            }
-            switch (event.keyCode) {
-                case 8: // backspace
-                    var r = range.create();
-                    // normal feature if same tag and not the begin
-                    if (r.sc===r.ec && r.so || r.eo) return true;
-                    // merge with the previous text node
-                    if (r.sc.previousSibling && !r.sc.previousSibling.tagName) return true;
-
-                    if (r.sc===r.ec && !r.so && !r.eo && ['P', 'SPAN'].indexOf(r.sc.parentNode.tagName) !== -1) {
-                        clean("sc");
-                        return true;
-                    }
-                    // empty tag
-                    if (r.sc===r.ec && !r.sc.textContent.length) {
-                        var prev = r.sc.previousElementSibling;
-                        r.sc.parentNode.removeChild(r.sc);
-                        range.createFromNode(prev.lastChild, prev.lastChild.length, prev.lastChild, prev.lastChild.length).select();
-                    }
-                    break;
-
-                case 46: // delete
-                    var r = range.create();
-                    // normal feature if same tag and not the end
-                    if (r.sc===r.ec && r.eo!==r.ec.length) return true;
-                    // merge with the next text node
-                    if (r.ec.nextSibling && !r.ec.nextSibling.tagName) return true;
-
-                    if (r.sc===r.ec && !r.so && !r.eo && ['P', 'SPAN'].indexOf(r.ec.parentNode.tagName) !== -1) {
-                        clean("ec");
-                        return true;
-                    }
-                    // empty tag
-                    if (r.sc===r.ec && !r.sc.textContent.length) {
-                        var next = r.ec.nextElementSibling;
-                        r.ec.parentNode.removeChild(r.ec);
-                        range.createFromNode(next.firstChild, 0, next.firstChild, 0).select();
-                    }
-                    break;
-
-                default:
-                    return true;
-            }
-
-            console.log(r);
-
-            event.preventDefault();
-
-
-            // var sc = r.sc;
-            // while (!sc.previousSibling) {sc = sc.parentNode;}
-            // sc = sc.previousSibling;
-            // while (sc.tagName) {sc = sc.lastChild;}
-
-            // var newr = $.summernote.objects.range.create(sc, 0, r.ec, r.eo);
-
-            // newr.merge(function (prev, cur) {
-            //     if (dom.mergeFilter(prev, cur)) {
-            //         return true;
-            //     }
-            //     if (prev && (prev.tagName === "P" && cur.tagName === "P")) {
-            //         return true;
-            //     }
-            // });
-
-            return false;
-        });
-    }
-
-    setTimeout(function () {
-        var $summer = $("#wrapwrap").wrap("<div>").parent().summernote({airMode: true});
-        // console.log("summernote");
-        // $("#wrapwrap").on("mouseup", function () {
-        //     var r = $.summernote.objects.range.create();
-        //     if (r) r.merge();
-        // });
-
-        bind($summer);
-    }, 500);
-
-
 // .note-air-popover : z-index: 1040;
-
-// var $div = $("#wrapwrap").wrap("<div>").parent();
-// var $summernote = $div.summernote({
-//     airMode: true,
-//     onpaste: function(e) {
-//         e.preventDefault();
-
-//         console.log($summernote.data());
-//         console.log(range.create());
-
-//         var $editable = $(e.currentTarget);
-//         var clipboardData = e.originalEvent.clipboardData;
-//         var text = clipboardData.getData("text/plain");
-//         var tag = e.target.tagName.toLowerCase();
-//         if("h1 h2 h3 h4 h5 h6 span".indexOf(tag) === -1) {
-//          text = "p";
-//         }
-//         text = "<"+tag+">"+text.split('\n').join("</"+tag+"><"+tag+">")+"</"+tag+">";
-
-//         // var selection = document.getSelection();
-//         // var nativeRng = selection.getRangeAt(0);
-//         // nativeRng.deleteContents();
-//         // nativeRng.insertNode($(text)[0]);
-
-//         console.log(document.execCommand('insertHTML', true, "</"+tag+">__summernote__<"+tag+">"));
-//         console.log(e.target);
-
-//         $(e.target).find("*:contains(__summernote__)").remove();
-//         $(e.target).next().remove();
-//         $(e.target).after(text);
-
-//         //console.log(document.execCommand('insertHTML', true, text));
-
-//         //console.log(e.target);
-//     }
-// });
-
 
     var tplButtonInfo = {
         picture: function (lang) {
@@ -838,7 +692,7 @@
             this.$('#website-top-edit').show();
             $('.css_non_editable_mode_hidden').removeClass("css_non_editable_mode_hidden");
             
-            //this.rte.start_edition();
+            this.rte.start_edition();
             this.trigger('rte:called');
         },
         rte_changed: function () {
@@ -1157,15 +1011,93 @@
             var self = this;
             // create a single editor for the whole page
             var root = document.getElementById('wrapwrap');
-            if (!restart) {
-                $(root).on('dragstart', 'img', function (e) {
-                    e.preventDefault();
-                });
-                this.tableNavigation(root);
-            }
             var def = $.Deferred();
             this.editor = new openerp.website.summernote(self._config(root, def));
+            if (!restart) {
+                this.bind_event(root);
+                this.tableNavigation(root);
+            }
             return def;
+        },
+        bind_event: function (root) {
+
+            $(root).on("paste", function (event) {
+                // keep norma feature if copy a picture
+                var clipboardData = event.originalEvent.clipboardData;
+                var item = list.last(clipboardData.items);
+                var isClipboardImage = item.kind === 'file' && item.type.indexOf('image/') !== -1;
+                if (isClipboardImage) {
+                    return true;
+                }
+
+                event.preventDefault();
+                var r = range.create();
+                dom.pasteText(r.sc, r.so, clipboardData.getData("text/plain"));
+                return false;
+            });
+            $(root).on("keydown", function (event) {
+                // backspace
+                function clean (field) {
+                    setTimeout(function () {
+                        var r = range.create();
+                        var node = r[field];
+                        while (!node.tagName) {node = node.parentNode;}
+                        node = node.parentNode;
+                        var data = dom.merge(node, r.sc, r.so, r.ec, r.eo, null, true);
+                        data = dom.removeSpace(node, data.sc, data.so, data.sc, data.so);
+
+                        range.create(data.sc, data.so, data.sc, data.so).select();
+                    },0);
+                }
+                switch (event.keyCode) {
+                    case 8: // backspace
+                        var r = range.create();
+                        // normal feature if same tag and not the begin
+                        if (r.sc===r.ec && r.so || r.eo) return true;
+                        // merge with the previous text node
+                        if (r.sc.previousSibling && !r.sc.previousSibling.tagName) return true;
+
+                        if (r.sc===r.ec && !r.so && !r.eo && ['P', 'SPAN'].indexOf(r.sc.parentNode.tagName) !== -1) {
+                            clean("sc");
+                            return true;
+                        }
+                        // empty tag
+                        if (r.sc===r.ec && !r.sc.textContent.length) {
+                            var prev = r.sc.previousElementSibling;
+                            r.sc.parentNode.removeChild(r.sc);
+                            range.createFromNode(prev.lastChild, prev.lastChild.length, prev.lastChild, prev.lastChild.length).select();
+                        }
+                        break;
+
+                    case 46: // delete
+                        var r = range.create();
+                        // normal feature if same tag and not the end
+                        if (r.sc===r.ec && r.eo!==r.ec.length) return true;
+                        // merge with the next text node
+                        if (r.ec.nextSibling && !r.ec.nextSibling.tagName) return true;
+
+                        if (r.sc===r.ec && !r.so && !r.eo && ['P', 'SPAN'].indexOf(r.ec.parentNode.tagName) !== -1) {
+                            clean("ec");
+                            return true;
+                        }
+                        // empty tag
+                        if (r.sc===r.ec && !r.sc.textContent.length) {
+                            var next = r.ec.nextElementSibling;
+                            r.ec.parentNode.removeChild(r.ec);
+                            range.createFromNode(next.firstChild, 0, next.firstChild, 0).select();
+                        }
+                        break;
+
+                    default:
+                        return true;
+                }
+                event.preventDefault();
+                return false;
+            });
+
+            $(root).on('dragstart', 'img', function (e) {
+                e.preventDefault();
+            });
         },
         setup_editables: function (root) {
             // selection of editable sub-items was previously in
@@ -1206,7 +1138,7 @@
         _config: function (root, def) {
             var self = this;
              return {
-                content : $('#wrapwrap'),
+                content : $('#wrapwrap'), //.wrap("<div>").parent(),
                 airMode : true,
                 airPopover: [
                     ['style', ['style']],
@@ -1223,13 +1155,8 @@
                   def.resolve();
                 },
                 styleWithSpan: false,
-                inlinemedia : ['p'],
-                onpaste: function(e) {
-                    e.preventDefault();
-                    var text = (e.originalEvent || e).clipboardData.getData('text/plain') || prompt('Paste something..');
-                    document.execCommand('insertText', false, text);
-                },
-             }
+                inlinemedia : ['p']
+             };
         }
     });
 
