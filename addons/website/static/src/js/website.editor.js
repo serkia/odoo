@@ -4,6 +4,9 @@
     var website = openerp.website;
     var _t = openerp._t;
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /* Summernote Lib (neek hack to make accessible: method and object) */
+
     var agent = $.summernote.objects.agent;
     var func = $.summernote.objects.func;
     var list = $.summernote.objects.list;
@@ -23,7 +26,22 @@
     var Dialog = $.summernote.objects.Dialog;
     var EventHandler = $.summernote.objects.EventHandler;
     var Renderer = $.summernote.objects.Renderer;
+    var eventHandler = $.summernote.objects.eventHandler;
+    var renderer = $.summernote.objects.renderer;
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /* Add method to Summernote
+    * merge:
+    *  - for every node (text or not) when mergeFilter return true by default mergeFilter is dom.mergeFilter
+    *  - return {merged, sc, so, ec, eo}
+    * removeSpace:
+    *  - remove space but keep html space char (&nbsp;) ans all space in 'script' tag and node with 'pre' style
+    *  - return {merged, sc, so, ec, eo}
+    * pasteText:
+    *  - paste text and convert into different 'p' tag .
+    *  - Close the dom.pasteTextClose list for the parent node of the caret
+    *  - All line are converted as 'p' tag by default or by parent node of the caret if the tag is a dom.pasteTextKeepTag
+    */
 
     dom.orderClass = function (node) {
         if (!node.className) return;
@@ -245,6 +263,8 @@
             eo: end && end.textContent.length > offsetEnd ? end.textContent.length - offsetEnd : 0
         };
     };
+    dom.pasteTextKeepTag = "h1 h2 h3 h4 h5 h6".split();
+    dom.pasteTextClose = "h1 h2 h3 h4 h5 h6 p b bold i u code sup strong small".split();
     dom.pasteText = function (textNode, offset, text, isOnlyText) {
         var node = textNode.parentNode;
         while(!node.tagName) {node = node.parentNode;}
@@ -263,7 +283,7 @@
         if (!isOnlyText) {
             // tag to close and open
             var tag = node.tagName.toLowerCase();
-            if("h1 h2 h3 h4 h5 h6".indexOf(tag) === -1) {
+            if(dom.pasteTextKeepTag.indexOf(tag) === -1) {
                 text = "<p>"+text.split('\n').join("</p><p>")+"</p>";
             } else {
                 text = "<"+tag+">"+text.split('\n').join("</"+tag+"><"+tag+">")+"</"+tag+">";
@@ -272,7 +292,7 @@
             var $text = $(text);
 
             // split parent node and insert text
-            if("h1 h2 h3 h4 h5 h6 p b bold i u code sup strong small".indexOf(tag) !== -1) {
+            if(dom.pasteTextClose.indexOf(tag) !== -1) {
                 var $next = $(node).clone().empty();
                 $next.append( last );
                 $(node).after( $next );
@@ -292,7 +312,7 @@
         range.create(data.sc, data.so, data.ec, data.eo).select();
     };
     var fn_rc = range.create;
-    range.create = function () {
+    range.create = function (sc, so, ec, eo) {
         var wrappedRange = fn_rc.apply(this, arguments);
         if (!wrappedRange) return;
         wrappedRange.clean = function (mergeFilter) {
@@ -312,7 +332,126 @@
         return wrappedRange;
     };
 
-// .note-air-popover : z-index: 1040;
+    /* attach event to Summernote
+    * paste:
+    *  - change the default feature of contentEditable
+    * keydown: 
+    *  - change the default feature of contentEditable for backspace and delete
+    */
+
+    var fn_attach = eventHandler.attach;
+    function summernote_paste (event) {
+        // keep norma feature if copy a picture
+        var clipboardData = event.originalEvent.clipboardData;
+        var item = list.last(clipboardData.items);
+        var isClipboardImage = item.kind === 'file' && item.type.indexOf('image/') !== -1;
+        if (isClipboardImage) {
+            return true;
+        }
+
+        var $editable = $(event.currentTarget);
+        $editable.data('NoteHistory').recordUndo($editable);
+
+        event.preventDefault();
+        var r = range.create();
+        dom.pasteText(r.sc, r.so, clipboardData.getData("text/plain"));
+        return false;
+    }
+    function summernote_keydown_clean (field) {
+        setTimeout(function () {
+            var r = range.create();
+            var node = r[field];
+            while (!node.tagName) {node = node.parentNode;}
+            node = node.parentNode;
+            var data = dom.merge(node, r.sc, r.so, r.ec, r.eo, null, true);
+            data = dom.removeSpace(node, data.sc, data.so, data.sc, data.so);
+
+            range.create(data.sc, data.so, data.sc, data.so).select();
+        },0);
+    }
+    function summernote_keydown (event) {
+        if (event.keyCode !== 8 && event.keyCode !== 46) {
+            return true;
+        }
+
+        var $editable = $(event.currentTarget);
+        $editable.data('NoteHistory').recordUndo($editable);
+
+        var r = range.create();
+        var node = event.keyCode === 8 ? r.sc : r.ec;
+        while (!node.nextSibling && !node.previousSibling) {node = node.parentNode;}
+        
+        if (event.keyCode === 8) { // backspace
+
+            // empty tag
+            if (r.sc===r.ec && !r.sc.textContent.length && node.previousSibling) {
+                var next = node.previousSibling;
+                while (next.tagName && next.lastChild) {next = next.lastChild;}
+                node.parentNode.removeChild(node);
+                range.create(next, next.textContent.length, next, next.textContent.length).select();
+            }
+            // normal feature if same tag and not the begin
+            else if (r.sc===r.ec && r.so || r.eo) return true;
+            // merge with the previous text node
+            else if (r.sc.previousSibling && !r.sc.previousSibling.tagName) return true;
+
+            else if (r.sc===r.ec && r.so===r.eo && !r.eo && ['P', 'SPAN'].indexOf(r.sc.parentNode.tagName) !== -1) {
+                summernote_keydown_clean("sc");
+                return true;
+            }
+
+        }
+
+        if (event.keyCode === 46) { // delete
+
+            // empty tag
+            if (r.sc===r.ec && !r.sc.textContent.length && node.nextSibling) {
+                var next = node.nextSibling;
+                while (next.tagName && next.firstChild) {next = next.firstChild;}
+                node.parentNode.removeChild(node);
+                range.create(next, 0, next, 0).select();
+            }
+            // normal feature if same tag and not the end
+            else if (r.sc===r.ec && r.eo!==r.ec.length && r.ec.textContent.match(/\S/)) return true;
+            // merge with the next text node
+            else if (r.ec.nextSibling && !r.ec.nextSibling.tagName) return true;
+
+            else if (r.sc===r.ec && r.so===r.eo && r.eo===r.eo.length && ['P', 'SPAN'].indexOf(r.ec.parentNode.tagName) !== -1) {
+                summernote_keydown_clean("ec");
+                return true;
+            }
+        }
+
+        setTimeout(function () {
+            var r = range.create();
+            r = dom.merge(r.sc.parentElement, r.sc, r.so, r.sc, r.so, null, true);
+            //r = dom.removeSpace(r.sc.parentElement, r.sc, r.so, r.sc, r.so);
+            range.create(r.sc, r.so, r.ec, r.eo).select();
+        },0);
+
+        event.preventDefault();
+        return false;
+    }
+    eventHandler.attach = function (oLayoutInfo, options) {
+        fn_attach.call(this, oLayoutInfo, options);
+        oLayoutInfo.editor.on("paste", summernote_paste);
+        oLayoutInfo.editor.on("keydown", summernote_keydown);
+        oLayoutInfo.editor.on('dragstart', 'img', function (e) {
+            e.preventDefault();
+        });
+    };
+    var fn_dettach = eventHandler.dettach;
+    eventHandler.dettach = function (oLayoutInfo, options) {
+        fn_dettach.call(this, oLayoutInfo, options);
+        oLayoutInfo.editor.off("paste");
+        oLayoutInfo.editor.off("keydown");
+        oLayoutInfo.editor.off("dragstart");
+    };
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    // .note-air-popover : z-index: 1040;
 
     var tplButtonInfo = {
         picture: function (lang) {
@@ -701,8 +840,9 @@
             var self = this;
 
             observer.disconnect();
-            var editor = $('.note-air-editor');
-            var defs = this.rte.fetch_editables(editor)
+            // console.log(this.rte.editor);
+            // var editor = $('.note-air-editor, .note-editable');
+            var defs = this.rte.fetch_editables(this.editor)
                 .filter('.oe_dirty')
                 .removeAttr('contentEditable')
                 .removeClass('oe_dirty oe_editable cke_focus oe_carlos_danger')
@@ -1011,103 +1151,59 @@
             // create a single editor for the whole page
             var root = document.getElementById('wrapwrap');
             var def = $.Deferred();
-            this.editor = new openerp.website.summernote(self._config(root, def));
+
+            this.editor = $('#wrapwrap [data-oe-model = "ir.ui.view"]');
+
+            var $last;
+            $(document).on('mousedown', function (event) {
+                var $target = $(event.target);
+                var $editable = $target.closest('#wrapwrap [data-oe-model = "ir.ui.view"]');
+
+                if ($last && (!$editable.size() || $last[0] != $editable[0])) {
+                    $last.destroy();
+                    $last = null;
+                }
+                if ($editable.size() && (!$last || $last[0] != $editable[0])) {
+                    $editable.summernote({airMode: true});
+                    var history = $editable.data('NoteHistory');
+
+                    var re_enable_snippet = function () {
+                        $("#wrapwrap").trigger("click");
+                        $(".oe_overlay").remove();
+                        $("#wrapwrap *").filter(function () {
+                            var $el = $(this);
+                            if($el.data('snippet-editor')) {
+                                $el.removeData();
+                            }
+                        });
+
+                        setTimeout(function () {
+                            $(range.create().sc.parentElement).trigger("click");
+                        },0);
+                    };
+
+                    var fn_undo = history.undo;
+                    history.undo = function ($editable) {
+                        re_enable_snippet();
+                        return fn_undo.call(this, $editable);
+                    };
+
+                    var fn_redo = history.redo;
+                    history.redo = function ($editable) {
+                        re_enable_snippet();
+                        return fn_redo.call(this, $editable);
+                    };
+
+                    $last = $editable;
+                }
+            });
+            //this.editor = $('#wrapwrap [data-oe-model = "ir.ui.view"]').summernote({airMode: true});
+
+            //new openerp.website.summernote(self._config(root, def));
             if (!restart) {
-                this.bind_event(root);
                 this.tableNavigation(root);
             }
             return def;
-        },
-        bind_event: function (root) {
-
-            $(root).on("paste", function (event) {
-                // keep norma feature if copy a picture
-                var clipboardData = event.originalEvent.clipboardData;
-                var item = list.last(clipboardData.items);
-                var isClipboardImage = item.kind === 'file' && item.type.indexOf('image/') !== -1;
-                if (isClipboardImage) {
-                    return true;
-                }
-
-                event.preventDefault();
-                var r = range.create();
-                dom.pasteText(r.sc, r.so, clipboardData.getData("text/plain"));
-                return false;
-            });
-            $(root).on("keydown", function (event) {
-                // backspace
-                function clean (field) {
-                    setTimeout(function () {
-                        var r = range.create();
-                        var node = r[field];
-                        while (!node.tagName) {node = node.parentNode;}
-                        node = node.parentNode;
-                        var data = dom.merge(node, r.sc, r.so, r.ec, r.eo, null, true);
-                        data = dom.removeSpace(node, data.sc, data.so, data.sc, data.so);
-
-                        range.create(data.sc, data.so, data.sc, data.so).select();
-                    },0);
-                }
-
-                if (event.keyCode === 8 || event.keyCode === 46) {
-                    var r = range.create();
-                    var node = event.keyCode === 8 ? r.sc : r.ec;
-                    while (!node.nextSibling && !node.previousSibling) {node = node.parentNode;}
-                    
-                    if (event.keyCode === 8) { // backspace
-
-                        // empty tag
-                        if (r.sc===r.ec && !r.sc.textContent.length && node.previousSibling) {
-                            var next = node.previousSibling;
-                            while (next.tagName && next.lastChild) {next = next.lastChild;}
-                            node.parentNode.removeChild(node);
-                            range.create(next, next.textContent.length, next, next.textContent.length).select();
-                        }
-                        // normal feature if same tag and not the begin
-                        else if (r.sc===r.ec && r.so || r.eo) return true;
-                        // merge with the previous text node
-                        else if (r.sc.previousSibling && !r.sc.previousSibling.tagName) return true;
-
-                        else if (r.sc===r.ec && r.so===r.eo && !r.eo && ['P', 'SPAN'].indexOf(r.sc.parentNode.tagName) !== -1) {
-                            clean("sc");
-                            return true;
-                        }
-
-                    } else { // delete
-
-                        // empty tag
-                        if (r.sc===r.ec && !r.sc.textContent.length && node.nextSibling) {
-                            var next = node.nextSibling;
-                            while (next.tagName && next.firstChild) {next = next.firstChild;}
-                            node.parentNode.removeChild(node);
-                            range.create(next, 0, next, 0).select();
-                        }
-                        // normal feature if same tag and not the end
-                        else if (r.sc===r.ec && r.eo!==r.ec.length && r.ec.textContent.match(/\S/)) return true;
-                        // merge with the next text node
-                        else if (r.ec.nextSibling && !r.ec.nextSibling.tagName) return true;
-
-                        else if (r.sc===r.ec && r.so===r.eo && r.eo===r.eo.length && ['P', 'SPAN'].indexOf(r.ec.parentNode.tagName) !== -1) {
-                            clean("ec");
-                            return true;
-                        }
-                    }
-
-                    setTimeout(function () {
-                        var r = range.create();
-                        r = dom.merge(r.sc.parentElement, r.sc, r.so, r.sc, r.so, null, true);
-                        //r = dom.removeSpace(r.sc.parentElement, r.sc, r.so, r.sc, r.so);
-                        range.create(r.sc, r.so, r.ec, r.eo).select();
-                    },0);
-
-                    event.preventDefault();
-                    return false;
-                }
-            });
-
-            $(root).on('dragstart', 'img', function (e) {
-                e.preventDefault();
-            });
         },
         setup_editables: function (root) {
             // selection of editable sub-items was previously in
@@ -1134,7 +1230,8 @@
                 });
         },
         fetch_editables: function (root) {
-            return $(root).find('[data-oe-model]')
+            return this.editor;
+            $(root).find('[data-oe-model]')
                 .not('link, script')
                 .not('.oe_snippet_editor')
                 .filter(function () {

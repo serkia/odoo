@@ -4333,7 +4333,9 @@
     Handle:   Handle,
     Dialog:   Dialog,
     EventHandler: EventHandler,
-    Renderer: Renderer
+    Renderer: Renderer,
+    eventHandler: eventHandler,
+    renderer: renderer
   };
 
 }));

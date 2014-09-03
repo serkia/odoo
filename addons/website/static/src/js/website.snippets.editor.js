@@ -96,8 +96,7 @@
             this.$button.click(_.bind(this.show_blocks, this));
 
             this.$snippet = $("#oe_snippets");
-            this.$wrapwrap = $("#wrapwrap");
-            this.$wrapwrap.click(function () {
+            $(document).on('click', "#wrapwrap", function () {
                 self.$el.addClass("hidden");
             });
 
@@ -155,7 +154,7 @@
                     $snippet.data('selectors', selectors.length ? selectors.join(":first, ") + ":first" : "");
                 }
 
-                if ($snippet.data('selectors').length && self.$wrapwrap.find($snippet.data('selectors')).size()) {
+                if ($snippet.data('selectors').length && $("#wrapwrap").find($snippet.data('selectors')).size()) {
                     $snippet.closest(".oe_snippet").removeClass("disable");
                 } else {
                     $snippet.closest(".oe_snippet").addClass("disable");
@@ -234,14 +233,14 @@
         bind_snippet_click_editor: function () {
             var self = this;
             var snipped_event_flag;
-            self.$wrapwrap.on('click', function (event) {
-                if (snipped_event_flag || !event.srcElement) {
+            $(document).on('click', "#wrapwrap", function (event) {
+                if (snipped_event_flag || !event.target) {
                     return;
                 }
                 snipped_event_flag = true;
 
                 setTimeout(function () {snipped_event_flag = false;}, 0);
-                var $target = $(event.srcElement);
+                var $target = $(event.target);
 
                 if ($target.parents(".oe_overlay").length) {
                     return;
@@ -278,12 +277,12 @@
             for (var k in template) {
                 var Option = options[template[k]['option']];
                 if (Option && Option.prototype.clean_for_save !== dummy) {
-                    self.$wrapwrap.find(template[k].selector).each(function () {
+                    $("#wrapwrap").find(template[k].selector).each(function () {
                         new Option(self, null, $(this), k).clean_for_save();
                     });
                 }
             }
-            self.$wrapwrap.find("*[contentEditable], *[attributeEditable]")
+            $("#wrapwrap").find("*[contentEditable], *[attributeEditable]")
                 .removeAttr('contentEditable')
                 .removeAttr('attributeEditable');
         },
@@ -406,15 +405,15 @@
                 stop: function(ev, ui){
                     $toInsert.removeClass('oe_snippet_body');
                     
-                    if (action === 'insert' && ! dropped && self.$wrapwrap.find('.oe_drop_zone') && ui.position.top > 3) {
-                        var el = self.$wrapwrap.find('.oe_drop_zone').nearest({x: ui.position.left, y: ui.position.top}).first();
+                    if (action === 'insert' && ! dropped && $("#wrapwrap").find('.oe_drop_zone') && ui.position.top > 3) {
+                        var el = $("#wrapwrap").find('.oe_drop_zone').nearest({x: ui.position.left, y: ui.position.top}).first();
                         if (el.length) {
                             el.after($toInsert);
                             dropped = true;
                         }
                     }
 
-                    self.$wrapwrap.find('.oe_drop_zone').droppable('destroy').remove();
+                    $("#wrapwrap").find('.oe_drop_zone').droppable('destroy').remove();
                     
                     if (dropped) {
                         var $target = false;
@@ -487,7 +486,7 @@
             var zone_template = "<div class='oe_drop_zone oe_insert'></div>";
 
             if(child_selector){
-                self.$wrapwrap.find(child_selector).each(function (){
+                $("#wrapwrap").find(child_selector).each(function (){
                     var $zone = $(this);
                     $zone.find('> *:not(.oe_drop_zone):visible').after(zone_template);
                     $zone.prepend(zone_template);
@@ -495,7 +494,7 @@
             }
 
             if(vertical_child_selector){
-                self.$wrapwrap.find(vertical_child_selector).each(function (){
+                $("#wrapwrap").find(vertical_child_selector).each(function (){
                     var $zone = $(this);
                     var $template = $(zone_template).addClass("oe_vertical");
                     var nb = 0;
@@ -526,7 +525,7 @@
             }
 
             if(sibling_selector){
-                self.$wrapwrap.find(sibling_selector, true).each(function (){
+                $("#wrapwrap").find(sibling_selector, true).each(function (){
                     var $zone = $(this);
                     if($zone.prev('.oe_drop_zone:visible').length === 0){
                         $zone.before(zone_template);
@@ -544,13 +543,13 @@
                 // count += $zones.length;
                 // $zones.remove();
 
-                $zones = self.$wrapwrap.find('.oe_drop_zone > .oe_drop_zone:not(.oe_vertical)').remove();   // no recursive zones
+                $zones = $("#wrapwrap").find('.oe_drop_zone > .oe_drop_zone:not(.oe_vertical)').remove();   // no recursive zones
                 count += $zones.length;
                 $zones.remove();
             } while (count > 0);
 
             // Cleaning up zones placed between floating or inline elements. We do not like these kind of zones.
-            var $zones = self.$wrapwrap.find('.oe_drop_zone:not(.oe_vertical)');
+            var $zones = $("#wrapwrap").find('.oe_drop_zone:not(.oe_vertical)');
             $zones.each(function (){
                 var zone = $(this);
                 var prev = zone.prev();
@@ -574,7 +573,7 @@
         // generate drop zones covering the elements selected by the selector
         // we generate overlay drop zones only to get an idea of where the snippet are, the drop
         activate_overlay_zones: function(selector){
-            var $targets = typeof selector === "string" ? this.$wrapwrap.find(selector) : selector;
+            var $targets = typeof selector === "string" ? $("#wrapwrap").find(selector) : selector;
             var self = this;
 
             function is_visible($el){
