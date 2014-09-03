@@ -337,16 +337,23 @@
         <!-- Ir Filters Menu Item -->
         <menuitem id="spam_ir_filters" name="SpamIrFilters" parent="leads_menu" action="spam_ir_filters_action" />
 
-<!--         <record id="action_mark_as_spam" model="ir.actions.server">
+        <record id="action_mark_as_spam" model="ir.actions.server">
             <field name="name">Mark As Spam</field>
             <field name="model_id" ref="model_crm_lead"/>
             <field name="state">code</field>
             <field name="code">
-                print 'does it work ?'
+ir_action_id = self.pool['ir.actions.act_window'].search(cr, uid, [('name', '=', 'SpamIrFilter')], context=context)[0]
+values = {'model_id': 'crm.lead', 'action_id': ir_action_id, 'user_id': uid}
+for lead_id in context['active_ids']:
+    mail = self.read(cr, uid, lead_id, fields=['email_from'], context=context)['email_from']
+    vals = values.copy()
+    vals['domain'] = [('email_from', '=', mail)]
+    vals['name'] = 'spam-' + mail
+    self.pool['ir.filters'].create_or_replace(cr, uid, vals, context=context)
             </field>
-        </record> -->
+        </record>
 
-        <record id="action2" model="ir.actions.act_window">
+<!--         <record id="action2" model="ir.actions.act_window">
             <field name="name">Mark As Spam</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">ir.filters</field>
@@ -360,14 +367,14 @@
             />
             <field name="view_type">form</field>
             <field name="view_id" ref="base.ir_filters_view_form"/>
-            <!-- <field name="user_ids"/> -->
         </record>
-
+ -->
         <record id="ir_mark_as_spam" model="ir.values">
             <field eval="'client_action_multi'" name="key2"/>
             <field eval="'crm.lead'" name="model"/>
             <field name="name">Mark As Spam</field>
-            <field eval="'ir.actions.act_window,'+str(action2)" name="value"/>
+            <!-- <field eval="'ir.actions.act_window,'+str(action2)" name="value"/> -->
+            <field eval="'ir.actions.server,%d'%action_mark_as_spam" name="value"/>
         </record>
 
 <!--         <record id="mt_scoring" model="mail.message.subtype">

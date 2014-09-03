@@ -64,7 +64,9 @@ class crm_case_section(osv.osv):
             for spam_filter in all_spam_filters:
                 spam_leads = self.env["crm.lead"].search(safe_eval(spam_filter['domain']))
                 # spam_leads is a record set of leads that match the domain
-                print "spam_leads", spam_leads
+                for spam_lead in spam_leads:
+                    pass
+                    # what to do with the spam ?
 
         def assign_leads_to_salesteams(all_salesteams, all_leads):
             # lead assignement to salesteams
@@ -115,53 +117,59 @@ class crm_case_section(osv.osv):
                     sorted_leads.extend(scored_leads[score])
 
                 # Only considering as much leads as it is possible to assign
-                capacity_left = salesteam['capacity'] - salesteam['assigned_leads']
-                to_assign_leads_ids = sorted_leads[:capacity_left]
+                # This is not enough because if one of the leads in to_assign_leads_ids
+                #   cannot be assigned, then the capacity_left +1 must be considered
+                # capacity_left = salesteam['capacity'] - salesteam['assigned_leads']
+                # to_assign_leads_ids = sorted_leads[:capacity_left]
 
                 potential_salesmen_for_leads = {}
                 for _, section_user in all_section_users.iteritems():
-                    if section_user['section_id'][0] == salesteam['id']:
+                    if section_user['section_id'][0] == salesteam['id'] and section_user['running']:
                         # get the filters of this salesman
                         domain = section_user['section_user_domain']
                         if domain:
                             domain = safe_eval(domain)
                         else:
                             domain = []
-                        domain.extend([('id', 'in', to_assign_leads_ids)])
+                        # domain.extend([('id', 'in', to_assign_leads_ids)])
+                        domain.extend([('id', 'in', sorted_leads)])
                         # should be done otherwise, it represents a lot of accesses to the db
                         lead_fit = self.env["crm.lead"].search(domain)
-                        if lead_fit and section_user['running']:
+                        if lead_fit:
                             lead_fit = [lead.id for lead in lead_fit]
                             list_to_dict_keys(potential_salesmen_for_leads, lead_fit, section_user['id'])
 
+                assignable_leads = potential_salesmen_for_leads.keys()
                 # assign to leads to salesmen
-                for lead_id in to_assign_leads_ids:
-                    section_user_ids = potential_salesmen_for_leads[lead_id]
-                    lead = all_leads[lead_id]
-                    while not lead['user_id'] and section_user_ids:
-                        # electing a salesteam to get the lead and assigning it if match
-                        proba_dict = {}
-                        for section_user_id in section_user_ids:
-                            section_user = all_section_users[section_user_id]
-                            if section_user['probability']:
-                                proba_dict[section_user_id] = section_user['probability']
-                            else:
-                                section_user_ids.remove(section_user_id)
-                        if proba_dict:
-                            section_user_id = weighted_random(proba_dict)
-                            section_user = all_section_users[section_user_id]
-                            data = {'user_id': section_user['user_id'][0], 'assign_date': fields.Datetime.now()}
+                for lead_id in sorted_leads:
+                    # the following condition is necessary in the case of a lead having no potential_salesman
+                    if lead_id in assignable_leads:
+                        section_user_ids = potential_salesmen_for_leads[lead_id]
+                        lead = all_leads[lead_id]
+                        while not lead['user_id'] and section_user_ids:
+                            # electing a salesteam to get the lead and assigning it if match
+                            proba_dict = {}
+                            for section_user_id in section_user_ids:
+                                section_user = all_section_users[section_user_id]
+                                if section_user['probability']:
+                                    proba_dict[section_user_id] = section_user['probability']
+                                else:
+                                    section_user_ids.remove(section_user_id)
+                            if proba_dict:
+                                section_user_id = weighted_random(proba_dict)
+                                section_user = all_section_users[section_user_id]
+                                data = {'user_id': section_user['user_id'][0], 'assign_date': fields.Datetime.now()}
 
-                            lead_record = self.env['crm.lead'].browse(lead['id'])
-                            lead_record.write(data)
+                                lead_record = self.env['crm.lead'].browse(lead['id'])
+                                lead_record.write(data)
 
-                            # updates value in all_leads and all_salesteams
-                            lead['user_id'] = (section_user['user_id'], '')
-                            section_user['leads_count'] += 1
-                            # recomputing the probability for the salesman that got the lead
-                            # no need to check for ZeroDivisionError because if the section_user got a lead,
-                            #   then it has a maximum_user_leads > 0
-                            section_user['probability'] = 1 - section_user['leads_count'] / float(section_user['maximum_user_leads'])
+                                # updates value in all_leads and all_salesteams
+                                lead['user_id'] = (section_user['user_id'], '')
+                                section_user['leads_count'] += 1
+                                # recomputing the probability for the salesman that got the lead
+                                # no need to check for ZeroDivisionError because if the section_user got a lead,
+                                #   then it has a maximum_user_leads > 0
+                                section_user['probability'] = 1 - section_user['leads_count'] / float(section_user['maximum_user_leads'])
 
         #
         # Getting all the useful data from the db

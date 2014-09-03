@@ -14,6 +14,6 @@
         'security/ir.model.access.csv',
     ],
     'demo': [
-        'website_crm_score_demo.xml',
+        'data/website_crm_score_demo.xml',
     ],
 }
