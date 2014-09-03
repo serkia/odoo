@@ -1,28 +1,31 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
-ODOO_CONFIGURATION_FILE=/etc/openerp/openerp-server.conf
-ODOO_CONFIGURATION_DIR=/etc/openerp
-ODOO_DATA_DIR=/var/lib/openerp
-ODOO_GROUP="openerp"
-ODOO_LOG_DIR=/var/log/openerp
-ODOO_USER="openerp"
+HERE=$(dirname $(readlink -f "$0"))
 
-if ! getent passwd | grep -q "^openerp:"; then
+ODOO_CONFIGURATION_DIR=/etc/odoo
+ODOO_CONFIGURATION_FILE=$ODOO_CONFIGURATION_DIR/openerp-server.conf
+ODOO_DATA_DIR=/var/lib/odoo
+ODOO_GROUP="odoo"
+ODOO_LOG_DIR=/var/log/odoo
+ODOO_USER="odoo"
+
+if ! getent passwd | grep -q "^odoo:"; then
     groupadd $ODOO_GROUP
     adduser --system --no-create-home $ODOO_USER -g $ODOO_GROUP
 fi
-# Register "openerp" as a postgres superuser 
-su - postgres -c "createuser -s openerp" 2> /dev/null || true
+# Register "$ODOO_USER" as a postgres superuser
+su - postgres -c "createuser -s $ODOO_USER" 2> /dev/null || true
 # Configuration file
 mkdir -p $ODOO_CONFIGURATION_DIR
+# can't copy debian config-file as addons_path is not the same
 echo "[options]
 ; This is the password that allows database operations:
 ; admin_passwd = admin
 db_host = False
 db_port = False
-db_user = openerp
+db_user = $ODOO_USER
 db_password = False
 addons_path = /usr/local/lib/python2.7/dist-packages/openerp/addons
 " > $ODOO_CONFIGURATION_FILE
@@ -36,67 +39,6 @@ chmod 0750 $ODOO_LOG_DIR
 mkdir -p $ODOO_DATA_DIR
 chown $ODOO_USER:$ODOO_GROUP $ODOO_DATA_DIR
 
-echo '#!/bin/sh
-
-### BEGIN INIT INFO
-# Provides:     openerp-server
-# Required-Start:   $remote_fs $syslog
-# Required-Stop:    $remote_fs $syslog
-# Should-Start:     $network
-# Should-Stop:      $network
-# Default-Start:    2 3 4 5
-# Default-Stop:     0 1 6
-# Short-Description:    Enterprise Resource Management software
-# Description:      Open ERP is a complete ERP and CRM software.
-### END INIT INFO
-
-PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
-DAEMON=/usr/bin/openerp-server
-NAME=openerp-server
-DESC=openerp-server
-CONFIG=/etc/openerp/openerp-server.conf
-LOGFILE=/var/log/openerp/openerp-server.log
-USER=openerp
-
-test -x ${DAEMON} || exit 0
-
-set -e
-
-do_start () {
-    echo -n "Starting ${DESC}: "
-    start-stop-daemon --start --quiet --pidfile /var/run/${NAME}.pid --chuid ${USER} --background --make-pidfile --exec ${DAEMON} -- --config=${CONFIG} --logfile=${LOGFILE}
-    echo "${NAME}."
-}
-
-do_stop () {
-    echo -n "Stopping ${DESC}: "
-    start-stop-daemon --stop --quiet --pidfile /var/run/${NAME}.pid --oknodo
-    echo "${NAME}."
-}
-
-case "${1}" in
-    start)
-        do_start
-        ;;
-
-    stop)
-        do_stop
-        ;;
-
-    restart|force-reload)
-        echo -n "Restarting ${DESC}: "
-        do_stop
-        sleep 1
-        do_start
-        ;;
-
-    *)
-        N=/etc/init.d/${NAME}
-        echo "Usage: ${NAME} {start|stop|restart|force-reload}" >&2
-        exit 1
-        ;;
-esac
-
-exit 0
-' > /etc/init.d/openerp
-chmod 700 /etc/init.d/openerp
+INIT_FILE=/etc/init.d/openerp
+cp $HERE/../debian/init $INIT_FILE
+chmod 0700 $INIT_FILE
