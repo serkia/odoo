@@ -339,7 +339,6 @@
     *  - change the default feature of contentEditable for backspace and delete
     */
 
-    var fn_attach = eventHandler.attach;
     function summernote_paste (event) {
         // keep norma feature if copy a picture
         var clipboardData = event.originalEvent.clipboardData;
@@ -432,6 +431,7 @@
         event.preventDefault();
         return false;
     }
+    var fn_attach = eventHandler.attach;
     eventHandler.attach = function (oLayoutInfo, options) {
         fn_attach.call(this, oLayoutInfo, options);
         oLayoutInfo.editor.on("paste", summernote_paste);
@@ -449,7 +449,73 @@
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /* Change History to have a global History for all summernote instances */
 
+    var History = function History () {
+        console.log(this);
+
+        function re_enable_snippet () {
+            $("#wrapwrap").trigger("click");
+            $(".oe_overlay").remove();
+            $("#wrapwrap *").filter(function () {
+                var $el = $(this);
+                if($el.data('snippet-editor')) {
+                    $el.removeData();
+                }
+            });
+
+            setTimeout(function () {
+                $(range.create().sc.parentElement).trigger("click");
+            },0);
+        }
+
+        var aUndo = [],
+            aRedo = [],
+            last_id;
+
+        var makeSnap = function ($editable, id) {
+            var elEditable = $editable[0], rng = range.create();
+            last_id = +$editable.attr("id").split("-").pop();
+            return {
+                id: last_id,
+                contents: $editable.html(),
+                bookmark: rng.bookmark(elEditable),
+                scrollTop: $editable.scrollTop()
+            };
+        };
+
+        var applySnap = function ($editable, oSnap) {
+            $editable.html(oSnap.contents).scrollTop(oSnap.scrollTop);
+            range.createFromBookmark($editable[0], oSnap.bookmark).select();
+        };
+
+        this.undo = function ($editable) {
+            re_enable_snippet();
+            if (!aUndo.length) { return; }
+            var prev = aUndo.pop();
+            $editable = $("#note-editor-"+prev.id);
+            var oSnap = makeSnap($editable);
+            applySnap($editable, prev);
+            aRedo.push(oSnap);
+        };
+
+        this.redo = function ($editable) {
+            re_enable_snippet();
+            if (!aRedo.length) { return; }
+            var next = aRedo.pop();
+            $editable = $("#note-editor-"+next.id);
+            var oSnap = makeSnap($editable);
+            applySnap($editable, next);
+            aUndo.push(oSnap);
+        };
+
+        this.recordUndo = function ($editable) {
+            aRedo = [];
+            aUndo.push(makeSnap($editable));
+        };
+    };
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // .note-air-popover : z-index: 1040;
 
@@ -1153,6 +1219,7 @@
             var def = $.Deferred();
 
             this.editor = $('#wrapwrap [data-oe-model = "ir.ui.view"]');
+            this.history = new History();
 
             var $last;
             $(document).on('mousedown', function (event) {
@@ -1160,40 +1227,20 @@
                 var $editable = $target.closest('#wrapwrap [data-oe-model = "ir.ui.view"]');
 
                 if ($last && (!$editable.size() || $last[0] != $editable[0])) {
-                    $last.destroy();
+                    //$last.destroy();
+                    var id = +$last.attr("id").split("-").pop();
+                    $("#note-popover-"+id+", #note-handle-"+id+", #note-dialog-"+id).hide();
                     $last = null;
                 }
+                if ($editable.data('summernote')) {
+                    var id = +$editable.attr("id").split("-").pop();
+                    $("#note-popover-"+id+", #note-handle-"+id+", #note-dialog-"+id).show();
+                    return;
+                }
                 if ($editable.size() && (!$last || $last[0] != $editable[0])) {
-                    $editable.summernote({airMode: true});
-                    var history = $editable.data('NoteHistory');
-
-                    var re_enable_snippet = function () {
-                        $("#wrapwrap").trigger("click");
-                        $(".oe_overlay").remove();
-                        $("#wrapwrap *").filter(function () {
-                            var $el = $(this);
-                            if($el.data('snippet-editor')) {
-                                $el.removeData();
-                            }
-                        });
-
-                        setTimeout(function () {
-                            $(range.create().sc.parentElement).trigger("click");
-                        },0);
-                    };
-
-                    var fn_undo = history.undo;
-                    history.undo = function ($editable) {
-                        re_enable_snippet();
-                        return fn_undo.call(this, $editable);
-                    };
-
-                    var fn_redo = history.redo;
-                    history.redo = function ($editable) {
-                        re_enable_snippet();
-                        return fn_redo.call(this, $editable);
-                    };
-
+                    var $summernote = $editable.summernote({airMode: true});
+                    $editable.data('summernote', $summernote);
+                    $editable.data('NoteHistory', self.history);
                     $last = $editable;
                 }
             });
