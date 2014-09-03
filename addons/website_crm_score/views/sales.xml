@@ -109,7 +109,7 @@
                                                                             <field name="user_name"/>
                                                                         </a></li>
                                                                         <!-- widget is uesless because char_domain doesn't exist for kanban view-->
-                                                                        <li><field name="section_user_domain" widget="char_domain"/></li>
+                                                                        <li><field name="section_user_domain" widget="filters"/></li>
                                                                     </ul>
                                                                 </td> 
                                                                 <td>
