@@ -56,6 +56,16 @@ class crm_case_section(osv.osv):
             # should never happen -> maybe for approximation imprecision
             return choice([e for e, _ in d.iteritems()])
 
+        def remove_spam_leads():
+            # FIXME: if a filter is not well written, it causes a problem
+            action = self.env['ir.actions.actions'].search([('name', '=', 'SpamIrFilter')])
+            domain = [('action_id', '=', action.id)]
+            all_spam_filters = self.env['ir.filters'].search_read(domain, fields=['domain'])
+            for spam_filter in all_spam_filters:
+                spam_leads = self.env["crm.lead"].search(safe_eval(spam_filter['domain']))
+                # spam_leads is a record set of leads that match the domain
+                print "spam_leads", spam_leads
+
         def assign_leads_to_salesteams(all_salesteams, all_leads):
             # lead assignement to salesteams
             potential_salesteams_for_leads = {}
@@ -193,6 +203,8 @@ class crm_case_section(osv.osv):
         all_leads = self.env["crm.lead"].search_read(fields=leads_fields)
         # casting the list into a dict to ease the access afterwards
         all_leads = {lead['id']: lead for lead in all_leads}
+
+        remove_spam_leads()  # match the filters that allow to filter spam leads
 
         #
         # Assigning the leads to salesteams and salesmen

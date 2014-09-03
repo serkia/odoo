@@ -25,12 +25,19 @@
             <field name="arch" type="xml">
                 <data>
                     <xpath expr="//div[@class='oe_clear']" position="after">
-                        <!-- <group> -->
-                            <!-- TODO: make this nice -->
-                            Capacity <field name="capacity"/>
-                            Lead count <field name="leads_count"/>
-                            Assigned <field name="assigned_leads"/>
-                        <!-- </group> -->
+                        <!-- TODO: make this nice -->
+                        <div class="oe_items_list">
+                            <div>
+                                Capacity: <b><field name="capacity"/></b>
+                            </div>
+                            <div>
+                                Lead count: <b><field name="leads_count"/></b>
+                            </div>
+                            <div></div>
+                            <div>
+                                Assigned: <b><field name="assigned_leads"/></b>
+                            </div>
+                        </div>
                     </xpath>
                 </data>
             </field>

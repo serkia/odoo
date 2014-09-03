@@ -290,6 +290,86 @@
         <!-- Section User Menu Item -->
         <menuitem id="section_user" name="SectionUser" parent="leads_menu" action="section_user_action" />
 
+        <!-- 
+        IR FILTER
+         -->
+        <!-- Ir Filters Search Filter - action_id added -->
+        <record model="ir.ui.view" id="ir_filters_view_search_inherit">
+            <field name="name">ir.filters.inherit</field>
+            <field name="model">ir.filters</field>
+            <field name="inherit_id" ref="base.ir_filters_view_search" />
+            <field name="arch" type="xml">
+                <!-- <xpath expr="//group[@string='Group By']/filter[@string='Model']" position="after">
+                    <filter string="Action" domain="[]" context="{'group_by':'action_id'}"/>
+                </xpath> -->
+                <field name="user_id" position="after">
+                    <field name="action_id"/>
+                </field>
+            </field>
+        </record>
+
+        <!-- Ir Filters Tree View -->
+        <record model="ir.ui.view" id="view_ir_filters_tree">
+            <field name="name">Spam ir Filters Tree</field>
+            <field name="model">ir.filters</field>
+            <field name="arch" type="xml">
+                <tree string="Spam Ir Filters">
+                    <field name="name"/>
+                    <!-- <field name="user_id"/> -->
+                    <field name="domain"/>
+                    <field name="model_id"/>
+                    <field name="action_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Ir Filters Action - form - tree -->
+        <record model="ir.actions.act_window" id="spam_ir_filters_action">
+            <field name="name">SpamIrFilter</field>
+            <field name="res_model">ir.filters</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_ir_filters_tree"/>
+            <field name="search_view_id" ref="ir_filters_view_search_inherit"/>
+            <field name="context" eval="{'search_default_action_id': ref('spam_ir_filters_action')}"/> <!-- Comment mettre l'id de l'action ici -->
+        </record>
+
+        <!-- Ir Filters Menu Item -->
+        <menuitem id="spam_ir_filters" name="SpamIrFilters" parent="leads_menu" action="spam_ir_filters_action" />
+
+<!--         <record id="action_mark_as_spam" model="ir.actions.server">
+            <field name="name">Mark As Spam</field>
+            <field name="model_id" ref="model_crm_lead"/>
+            <field name="state">code</field>
+            <field name="code">
+                print 'does it work ?'
+            </field>
+        </record> -->
+
+        <record id="action2" model="ir.actions.act_window">
+            <field name="name">Mark As Spam</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">ir.filters</field>
+            <field name="context" eval=
+                "{
+                'default_name': 'SpamFilter',
+                'default_action_id': ref('spam_ir_filters_action'), 
+                'default_model_id': 'crm.lead', 
+                'default_domain': '[(\'email_from\',\'=\',' + 'Lead email here... how do I do this ?' + ')]'
+                }"
+            />
+            <field name="view_type">form</field>
+            <field name="view_id" ref="base.ir_filters_view_form"/>
+            <!-- <field name="user_ids"/> -->
+        </record>
+
+        <record id="ir_mark_as_spam" model="ir.values">
+            <field eval="'client_action_multi'" name="key2"/>
+            <field eval="'crm.lead'" name="model"/>
+            <field name="name">Mark As Spam</field>
+            <field eval="'ir.actions.act_window,'+str(action2)" name="value"/>
+        </record>
+
 <!--         <record id="mt_scoring" model="mail.message.subtype">
             <field name="name">Scoring</field>
             <field name="res_model">crm.lead</field>
