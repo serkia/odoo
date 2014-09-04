@@ -366,16 +366,129 @@
 <t t-name="UserMenu.about">
 
     <div class="oe_about">
-      <a class="oe_activate_debug_mode oe_right" href="?debug" style="background-color: white; padding:2px 6px; border-radius: 10px;">Activate the developer mode</a>
-      <img class="oe_logo" src="/web/static/src/img/logo2.png"/>
-      <h3>Version <t t-esc="version_info.server_version"/></h3>
+      <a class="oe_activate_debug_mode oe_right label label-primary" href="?debug" >Activate the developer mode</a>
 
-      <div class="oe_bottom">
-        <p>Copyright © 2004-TODAY OpenERP SA. All Rights Reserved.<br />
-            Odoo is a trademark of the <a target="_blank" href="https://www.odoo.com" style="text-decoration: underline;">OpenERP SA Company</a>.</p>
-        <p>Licenced under the terms of <a target="_blank" href="http://www.gnu.org/licenses/agpl.html" style="text-decoration: underline;">GNU Affero General Public License</a></p>
-        <p>For more information visit <a target="_blank" href="https://www.odoo.com" style="text-decoration: underline;">Odoo.com</a></p>
-      </div>
+
+
+        <div class="container">
+            <div class="">
+                <div class="col-sm-6 col-md-6 user-details">
+                    <div class="user-image">
+                        <img src="/web/static/src/img/logo2.png" alt="Odoo (Formerly OpenERP)" title="Odoo (Formerly OpenERP)" class="img-circle"/>
+                    </div>
+                    <div class="user-info-block">
+                        <div class="user-heading">
+                            <br/><span class="help-block">(Formerly OpenERP)</span>
+                            <h3>Version <t t-esc="version_info.server_version"/></h3>
+                        </div>
+
+                        <ul class="navigation">
+                            <li class="active">
+                                <a data-toggle="tab" href="#settings">
+                                    <span class="glyphicon glyphicon-cog"></span>
+                                </a>
+                            </li>
+                            <li>
+                                <a data-toggle="tab" href="#email">
+                                    <span class="glyphicon glyphicon-envelope"></span>
+                                </a>
+                            </li>
+                            <li>
+                                <a data-toggle="tab" href="#events">
+                                    <span class="glyphicon glyphicon-calendar"></span>
+                                </a>
+                            </li>
+                             <li>
+                                <a data-toggle="tab" href="#social">
+                                    <span class="glyphicon glyphicon-share"></span>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="user-body">
+                            <div class="tab-content">
+                                <div id="settings" class="tab-pane active">
+                                    <h4>Copyright © 2004-TODAY OpenERP SA. All Rights Reserved.</h4>
+                                    <p>Odoo is a trademark of the <a target="_blank" href="https://www.odoo.com" style="text-decoration: underline;">OpenERP SA Company</a>.</p>
+                                    <p>Licenced under the terms of <a target="_blank" href="http://www.gnu.org/licenses/agpl.html" style="text-decoration: underline;">GNU Affero General Public License</a></p>
+                                    <p>For more information visit <a target="_blank" href="https://www.odoo.com" style="text-decoration: underline;">Odoo.com</a></p>
+                                </div>
+                                <div id="email" class="tab-pane">
+                                    <h4>OpenERP S.A.</h4>
+                                    <p>
+                                        Chaussée de Namur 40<br/>
+                                        1367 Grand-Rosière <br/>
+                                        Belgium
+                                    </p>
+                                    <!-- TODO - ALIAS contactus -->
+                                    <a class='btn btn-link' href='https://www.odoo.com/about/contactus'>Our website</a>
+                                </div>
+                                <div id="events" class="tab-pane">
+                                    <h4>Discover Events of Odoo around the world...</h4>
+                                    <a class='btn btn-link' href='https://www.odoo.com/about/event'> Our next Events</a>
+                                </div>
+                                <div id="social" class="tab-pane">
+                                    <h4>Follow Us...</h4>
+                                    <a href="https://www.odoo.com/about/facebook"><i class="fa fa-facebook-square fa-3x social-fb"></i></a>
+                                    <a href="https://www.odoo.com/about/twitter"><i class="fa fa-twitter-square fa-3x social-tw"></i></a>
+                                    <a href="https://www.odoo.com/about/googleplus"><i class="fa fa-google-plus-square fa-3x social-gp"></i></a>
+                                    <a href="https://www.odoo.com/about/linkedin"><i class="fa fa-linkedin-square fa-3x social-lk"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!--
+                    ================
+                    if dev accepted
+                    ================
+
+                    =+> REDIRECTION to add in a controller of openerp_website
+                        https://www.odoo.com/about/facebook: https://www.facebook.com/odoo
+                        https://www.odoo.com/about/twitter: https://twitter.com/Odoo
+                        https://www.odoo.com/about/googleplus: https://plus.google.com/u/0/100883176139028080672/posts
+                        https://www.odoo.com/about/linkedin: https://www.linkedin.com/company/odoo
+
+                        https://www.odoo.com/about/contactus: https://www.odoo.com/page/aboutus
+                        https://www.odoo.com/about/event: https://www.odoo.com/event
+
+                    =+> CSS need to be moved in base.sass
+                -->
+                <style>
+                    .label { background-color:#7c7bad }
+
+                    .user-details {position: relative; padding: 0; margin-bottom: 315px; }
+                    .user-details .user-image {position: relative;  z-index: 1; width: 100%; text-align: center;}
+                    .user-details .user-info-block {width: 100%; position: absolute; top: 55px; padding-top: 35px; }
+
+                    .user-image img { clear: both; margin: auto; position: relative;}
+
+                    .user-info-block .user-heading {width: 100%; text-align: center; margin: 10px 0 0;}
+                    .user-info-block .navigation {float: left; width: auto; margin: 0; padding: 0; margin-left:25%; list-style: none; border-bottom: 1px solid #7c7bad; border-top: 1px solid #7c7bad;}
+                    .user-info-block .user-body {float: left; padding: 5%; width: 100%;}
+
+                    .navigation li {float: left; margin: 0; padding: 0;}
+                    .navigation li a {padding: 20px 30px; float: left;}
+                    .navigation li.active a {background: #7c7bad; color: #fff;}
+
+                    .user-body .tab-content > div {float: left; width: 100%;}
+                    .user-body .tab-content h4 {width: 100%; margin: 10px 0; color: #333;}
+                    .user-body a {padding-left: 0px;}
+                    .user-body {text-align: center;}
+                    a.oe_activate_debug_mode {color:white !important; font-size:100%}
+                    #social i { margin:10px;}
+                    #social i:hover {
+                        -webkit-transform:scale(1.1);
+                        -moz-transform:scale(1.1);
+                        -o-transform:scale(1.1);
+                    }
+                    .social-fb:hover {color: #3B5998;}
+                    .social-tw:hover {color: #4099FF;}
+                    .social-gp:hover {color: #d34836;}
+                    .social-lk:hover {color: #007bb6;}
+                </style>
+            </div>
+        </div>
     </div>
 
 </t>
