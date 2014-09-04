@@ -22,6 +22,7 @@
             this._super();
             this.channel_id = channel_id;
             this.file = {};
+            this.index_content = "";
         },
         start: function () {
             var self = this;
@@ -37,10 +38,10 @@
             if (!video_id && url){
                 this.$('.url-error').show();
             }else{
-                var api_url = 'http://gdata.youtube.com/feeds/api/videos/'+video_id+'?v=2&alt=jsonc';
+                var api_url = "https://www.googleapis.com/youtube/v3/videos?id="+ video_id +" &key=AIzaSyBKDzf7KjjZqwPWAME6JOeHzzBlq9nrpjk&part=snippet&fields=items(snippet/title, snippet/thumbnails/high/url)";
                 $.getJSON(api_url,function(data){
-                    var title = data.data.title;
-                    var image_src = data.data.thumbnail.hqDefault;
+                    var title = data.items[0].snippet.title;
+                    var image_src = data.items[0].snippet.thumbnails.high.url;
                     self.$('#name').val(title);
                     self.$("#slide-image").attr("src",image_src);
                 });
@@ -56,6 +57,7 @@
             var file = ev.target.files[0];
             this.file.name = file.name;
             this.file.type = file.type;
+            var loaded = false;
             var BinaryReader = new FileReader();
             // file read as DataURL
             BinaryReader.readAsDataURL(file);
@@ -88,9 +90,35 @@
                             page.render({canvasContext: context, viewport: viewport}).then(function(){
                                 var image_data = self.$('#the-canvas')[0].toDataURL();
                                 self.$("#slide-image").attr("src", image_data);
-                                self.$('.save').button('reset');
+                                if (loaded){
+                                    self.$('.save').button('reset');
+                                }
+                                loaded = true;
+
                             });
                         });
+                        var maxPages = pdf.pdfInfo.numPages;
+                        self.index_content = "";
+                        for (var j = 1; j <= maxPages; j++) {
+                            var page = pdf.getPage(j);
+                            page.then(function(p){
+                                var page_number = p.pageInfo.pageIndex + 1;
+                                p.getTextContent().then(function(data){
+                                var page_content = '';
+                                _.each(data.items,function(obj){
+                                    page_content += obj.str;
+                                });
+                                self.index_content = self.index_content + page_number +". "  + page_content + '\n';
+                                if (maxPages == page_number){
+                                    if (loaded){
+                                        self.$('.save').button('reset');
+                                    }
+                                    loaded = true;
+                                } 
+
+                            });
+                         });}
+
                     });
                 };
             }
@@ -134,7 +162,8 @@
                 _.extend(values, {
                     'image': canvas.toDataURL().split(',')[1],
                     'width': canvas.width,
-                    'height':canvas.height
+                    'height':canvas.height,
+                    'indext_content': self.index_content
                 });
             }
             _.extend(values, {
