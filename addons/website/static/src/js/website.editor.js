@@ -40,7 +40,7 @@
     * pasteText:
     *  - paste text and convert into different 'p' tag .
     *  - Close the dom.pasteTextClose list for the parent node of the caret
-    *  - All line are converted as 'p' tag by default or by parent node of the caret if the tag is a dom.pasteTextKeepTag
+    *  - All line are converted as 'p' tag by default or by parent node of the caret if the tag is a dom.pasteTextApply
     */
 
     dom.orderClass = function (node) {
@@ -57,7 +57,7 @@
         if (prev.tagName !== cur.tagName) {
             return false;
         }
-        if (prev.attributes.length !== cur.attributes.length) {
+        if ((prev.attributes ? prev.attributes.length : 0) !== (cur.attributes ? cur.attributes.length : 0)) {
             return false;
         }
         var att, att2;
@@ -75,7 +75,7 @@
         return true;
     };
     dom.mergeFilter = function (prev, cur) {
-        if (!cur.tagName && !cur.textContent.match(/\S/) && (!prev.tagName || prev.textContent.match(/\S/))) {
+        if (prev && !cur.tagName && !cur.textContent.match(/\S/) && (!prev.tagName || prev.textContent.match(/\S/))) {
             return true;
         }
         if (prev && dom.isEqual(prev, cur) &&
@@ -83,7 +83,7 @@
               cur.tagName && "inline".indexOf(window.getComputedStyle(cur).display) !== -1))) {
             return true;
         }
-        if (cur.tagName === "SPAN" && !prev.tagName && !cur.className && cur.childNodes.length <= 1) {
+        if (cur.tagName === "SPAN" && !cur.className) {
             return true;
         }
     };
@@ -130,6 +130,15 @@
 
                 // create the first prev value
                 if (!prev) {
+                    if (mergeFilter.call(dom, prev, cur)) {
+                        for (var i=0; i<cur.childNodes.length; i++) {
+                            cur.parentNode.insertBefore(cur.childNodes[i], cur);
+                            console.log("child", cur.childNodes[i]);
+                            k--;
+                        }
+                        console.log(cur.parentNode);
+                        cur.parentNode.removeChild(cur);
+                    }
                     prev = cur;
                     continue;
                 }
@@ -263,27 +272,31 @@
             eo: end && end.textContent.length > offsetEnd ? end.textContent.length - offsetEnd : 0
         };
     };
-    dom.pasteTextKeepTag = "h1 h2 h3 h4 h5 h6".split();
-    dom.pasteTextClose = "h1 h2 h3 h4 h5 h6 p b bold i u code sup strong small".split();
+    dom.pasteTextApply = "h1 h2 h3 h4 h5 h6 li ol".split(" ");
+    dom.pasteTextClose = "h1 h2 h3 h4 h5 h6 p b bold i u code sup strong small li".split(" ");
     dom.pasteText = function (textNode, offset, text, isOnlyText) {
         var node = textNode.parentNode;
         while(!node.tagName) {node = node.parentNode;}
         var $parent = $(node).parent();
         // clean the node
         var data = dom.merge($parent[0], textNode, offset, textNode, offset, null, true);
+        data = dom.removeSpace($parent[0], data.sc, data.so, data.ec, data.eo);
         // Break the text node up
+        if (data.sc.tagName) {
+            data.sc = data.sc.appendChild(document.createTextNode(""));
+            data.so = 0;
+        }
         data.sc.splitText(data.so);
         node = data.sc.parentNode;
-        var parts = node.childNodes;
-        var first = parts[0];
-        var last = parts[1];
+        var first = data.sc;
+        var last = data.sc.nextSibling;
 
         isOnlyText = isOnlyText || !text.match('\n');
         
         if (!isOnlyText) {
             // tag to close and open
             var tag = node.tagName.toLowerCase();
-            if(dom.pasteTextKeepTag.indexOf(tag) === -1) {
+            if(dom.pasteTextApply.indexOf(tag) === -1) {
                 text = "<p>"+text.split('\n').join("</p><p>")+"</p>";
             } else {
                 text = "<"+tag+">"+text.split('\n').join("</"+tag+"><"+tag+">")+"</"+tag+">";
@@ -421,6 +434,10 @@
             }
         }
 
+        if (r.so !== r.eo || r.sc !== r.oc) {
+            return true;
+        }
+
         setTimeout(function () {
             var r = range.create();
             r = dom.merge(r.sc.parentElement, r.sc, r.so, r.sc, r.so, null, true);
@@ -452,8 +469,6 @@
     /* Change History to have a global History for all summernote instances */
 
     var History = function History () {
-        console.log(this);
-
         function re_enable_snippet () {
             $("#wrapwrap").trigger("click");
             $(".oe_overlay").remove();
@@ -475,16 +490,16 @@
 
         var makeSnap = function ($editable, id) {
             var elEditable = $editable[0], rng = range.create();
-            last_id = +$editable.attr("id").split("-").pop();
             return {
-                id: last_id,
+                editable: elEditable,
                 contents: $editable.html(),
                 bookmark: rng.bookmark(elEditable),
                 scrollTop: $editable.scrollTop()
             };
         };
 
-        var applySnap = function ($editable, oSnap) {
+        var applySnap = function (oSnap) {
+            var $editable = $(oSnap.editable);
             $editable.html(oSnap.contents).scrollTop(oSnap.scrollTop);
             range.createFromBookmark($editable[0], oSnap.bookmark).select();
         };
@@ -492,20 +507,16 @@
         this.undo = function ($editable) {
             re_enable_snippet();
             if (!aUndo.length) { return; }
-            var prev = aUndo.pop();
-            $editable = $("#note-editor-"+prev.id);
             var oSnap = makeSnap($editable);
-            applySnap($editable, prev);
+            applySnap(aUndo.pop());
             aRedo.push(oSnap);
         };
 
         this.redo = function ($editable) {
             re_enable_snippet();
             if (!aRedo.length) { return; }
-            var next = aRedo.pop();
-            $editable = $("#note-editor-"+next.id);
             var oSnap = makeSnap($editable);
-            applySnap($editable, next);
+            applySnap(aRedo.pop());
             aUndo.push(oSnap);
         };
 
@@ -909,9 +920,9 @@
             // console.log(this.rte.editor);
             // var editor = $('.note-air-editor, .note-editable');
             var defs = this.rte.fetch_editables(this.editor)
-                .filter('.oe_dirty')
+                .filter('.o_dirty')
                 .removeAttr('contentEditable')
-                .removeClass('oe_dirty oe_editable cke_focus oe_carlos_danger')
+                .removeClass('o_dirty o_editable cke_focus oe_carlos_danger')
                 .map(function () {
                     var $el = $(this);
                     // TODO: Add a queue with concurrency limit in webclient
@@ -926,7 +937,7 @@
                                 // returns a new rejection with all relevant
                                 // info
                                 var id = _.uniqueId('carlos_danger_');
-                                $el.addClass('oe_dirty oe_carlos_danger');
+                                $el.addClass('o_dirty oe_carlos_danger');
                                 $el.addClass(id);
                                 return $.Deferred().reject({
                                     id: id,
@@ -939,28 +950,27 @@
                 website.reload();
             }, function (failed) {
                 // If there were errors, re-enable edition
-                self.rte.start_edition(true).then(function () {
-                    // jquery's deferred being a pain in the ass
-                    if (!_.isArray(failed)) { failed = [failed]; }
+                self.rte.start_edition(true);
+                // jquery's deferred being a pain in the ass
+                if (!_.isArray(failed)) { failed = [failed]; }
 
-                    _(failed).each(function (failure) {
-                        var html = failure.error.exception_type === "except_osv";
-                        if (html) {
-                            var msg = $("<div/>").text(failure.error.message).html();
-                            var data = msg.substring(3,msg.length-2).split(/', u'/);
-                            failure.error.message = '<b>' + data[0] + '</b><br/>' + data[1];
-                        }
-                        $(root).find('.' + failure.id)
-                            .removeClass(failure.id)
-                            .popover({
-                                html: html,
-                                trigger: 'hover',
-                                content: failure.error.message,
-                                placement: 'auto top',
-                            })
-                            // Force-show popovers so users will notice them.
-                            .popover('show');
-                    });
+                _(failed).each(function (failure) {
+                    var html = failure.error.exception_type === "except_osv";
+                    if (html) {
+                        var msg = $("<div/>").text(failure.error.message).html();
+                        var data = msg.substring(3,msg.length-2).split(/', u'/);
+                        failure.error.message = '<b>' + data[0] + '</b><br/>' + data[1];
+                    }
+                    $(root).find('.' + failure.id)
+                        .removeClass(failure.id)
+                        .popover({
+                            html: html,
+                            trigger: 'hover',
+                            content: failure.error.message,
+                            placement: 'auto top',
+                        })
+                        // Force-show popovers so users will notice them.
+                        .popover('show');
                 });
             });
         },
@@ -1216,9 +1226,11 @@
             var self = this;
             // create a single editor for the whole page
             var root = document.getElementById('wrapwrap');
-            var def = $.Deferred();
 
-            this.editor = $('#wrapwrap [data-oe-model = "ir.ui.view"]');
+            this.editable = $('#wrapwrap [data-oe-model = "ir.ui.view"]')
+                .not('link, script')
+                .not('.oe_snippet_editor');
+
             this.history = new History();
 
             var $last;
@@ -1226,73 +1238,52 @@
                 var $target = $(event.target);
                 var $editable = $target.closest('#wrapwrap [data-oe-model = "ir.ui.view"]');
 
-                if ($last && (!$editable.size() || $last[0] != $editable[0])) {
-                    //$last.destroy();
-                    var id = +$last.attr("id").split("-").pop();
-                    $("#note-popover-"+id+", #note-handle-"+id+", #note-dialog-"+id).hide();
-                    $last = null;
-                }
-                if ($editable.data('summernote')) {
-                    var id = +$editable.attr("id").split("-").pop();
-                    $("#note-popover-"+id+", #note-handle-"+id+", #note-dialog-"+id).show();
+                if (!$editable.size()) {
                     return;
                 }
+
+                if ($last && (!$editable.size() || $last[0] != $editable[0])) {
+                    $last.destroy();
+                    // var id = +$last.attr("id").split("-").pop();
+                    // $("#note-popover-"+id+", #note-handle-"+id+", #note-dialog-"+id).hide();
+                    $last = null;
+                }
+                // if ($editable.data('summernote')) {
+                //     var id = +$editable.attr("id").split("-").pop();
+                //     $("#note-popover-"+id+", #note-handle-"+id+", #note-dialog-"+id).show();
+                //     return;
+                // }
                 if ($editable.size() && (!$last || $last[0] != $editable[0])) {
-                    var $summernote = $editable.summernote({airMode: true});
-                    $editable.data('summernote', $summernote);
+                    var $summernote = $editable.summernote(self._config());
+                    // $editable.data('summernote', $summernote);
                     $editable.data('NoteHistory', self.history);
                     $last = $editable;
                 }
             });
-            //this.editor = $('#wrapwrap [data-oe-model = "ir.ui.view"]').summernote({airMode: true});
 
-            //new openerp.website.summernote(self._config(root, def));
+            this.editable.each(function () {
+                var node = this;
+                var $node = $(node);
+                // start element observation
+                observer.observe(node, OBSERVER_CONFIG);
+                $(node).addClass('o_editable')
+                    .one('content_changed', function () {
+                    $node.addClass('o_dirty');
+                    self.trigger('change');
+                });
+            });
+
             if (!restart) {
                 this.tableNavigation(root);
             }
-            return def;
-        },
-        setup_editables: function (root) {
-            // selection of editable sub-items was previously in
-            // EditorBar#edit, but for some unknown reason the elements were
-            // apparently removed and recreated (?) at editor initalization,
-            // and observer setup was lost.
-            var self = this;
-            // setup dirty-marking for each editable element
-            this.fetch_editables(root)
-                .addClass('oe_editable')
-                .each(function () {
-                    var node = this;
-                    var $node = $(node);
-                    // only explicitly set contenteditable on view sections,
-                    // cke widgets system will do the widgets themselves
-                    if ($node.data('oe-model') === 'ir.ui.view') {
-                        node.contentEditable = true;
-                    }
-                    observer.observe(node, OBSERVER_CONFIG);
-                    $node.one('content_changed', function () {
-                        $node.addClass('oe_dirty');
-                        self.trigger('change');
-                    });
-                });
+
+            self.trigger('rte:ready');
         },
         fetch_editables: function (root) {
-            return this.editor;
-            $(root).find('[data-oe-model]')
-                .not('link, script')
-                .not('.oe_snippet_editor')
-                .filter(function () {
-                    var $this = $(this);
-                    // keep view sections and fields which are *not* in
-                    // view sections for top-level editables
-                    return $this.data('oe-model') === 'ir.ui.view'
-                       || !$this.closest('[data-oe-model = "ir.ui.view"]').length;
-                });
+            return this.editable;
         },
-        _config: function (root, def) {
-            var self = this;
-             return {
-                content : $('#wrapwrap'), //.wrap("<div>").parent(),
+        _config: function () {
+            return {
                 airMode : true,
                 airPopover: [
                     ['style', ['style']],
@@ -1304,13 +1295,10 @@
                     ['insert', ['link']],
                 ],
                 oninit: function() {
-                  self.setup_editables(root);
-                  self.trigger('rte:ready');
-                  def.resolve();
                 },
                 styleWithSpan: false,
                 inlinemedia : ['p']
-             };
+            };
         }
     });
 
@@ -2762,42 +2750,47 @@
                     return false;
                 }
                 switch(m.type) {
-                case 'attributes': // ignore .cke_focus being added or removed
-                    // ignore id modification
-                    if (m.attributeName === 'id') { return false; }
-                    // if attribute is not a class, can't be .cke_focus change
-                    if (m.attributeName !== 'class') { return true; }
+                    case 'attributes':
+                        // ignore contenteditable modification
+                        if (m.attributeName === 'contenteditable') { return false; }
+                        // ignore id modification
+                        if (m.attributeName === 'id') { return false; }
+                        // if attribute is not a class, can't be .cke_focus change
+                        if (m.attributeName !== 'class') { return true; }
 
-                    // find out what classes were added or removed
-                    var oldClasses = (m.oldValue || '').split(/\s+/);
-                    var newClasses = m.target.className.split(/\s+/);
-                    var change = _.union(_.difference(oldClasses, newClasses),
-                                         _.difference(newClasses, oldClasses));
-                    // ignore mutation if the *only* change is .cke_focus
-                    return change.length !== 1 || change[0] === 'cke_focus';
-                case 'childList':
-                    setTimeout(function () {
-                        fixup_browser_crap(m.addedNodes);
-                    }, 0);
-                    // Remove ignorable nodes from addedNodes or removedNodes,
-                    // if either set remains non-empty it's considered to be an
-                    // impactful change. Otherwise it's ignored.
-                    return !!remove_mundane_nodes(m.addedNodes).length ||
-                           !!remove_mundane_nodes(m.removedNodes).length;
-                default:
-                    return true;
+                        // find out what classes were added or removed
+                        var oldClasses = (m.oldValue || '').split(/\s+/);
+                        var newClasses = m.target.className.split(/\s+/);
+                        var change = _.union(_.difference(oldClasses, newClasses),
+                                             _.difference(newClasses, oldClasses));
+                        // ignore mutation to create editable zone and add dirty class
+                        var change = _.difference(change, ["note-air-editor", "note-editable", "o_dirty"]);
+                        return !!change.length;
+                    case 'childList':
+                        setTimeout(function () {
+                            fixup_browser_crap(m.addedNodes);
+                        }, 0);
+                        // Remove ignorable nodes from addedNodes or removedNodes,
+                        // if either set remains non-empty it's considered to be an
+                        // impactful change. Otherwise it's ignored.
+                        return !!remove_mundane_nodes(m.addedNodes).length ||
+                               !!remove_mundane_nodes(m.removedNodes).length;
+                    default:
+                        return true;
                 }
             })
             .map(function (m) {
                 var node = m.target;
-                while (node && !$(node).hasClass('oe_editable')) {
+                while (node && (!node.className || node.className.indexOf('o_editable')===-1)) {
                     node = node.parentNode;
                 }
                 return node;
             })
             .compact()
             .uniq()
-            .each(function (node) { $(node).trigger('content_changed'); })
+            .each(function (node) {
+                $(node).trigger('content_changed');
+            });
     });
     function remove_mundane_nodes(nodes) {
         if (!nodes || !nodes.length) { return []; }
