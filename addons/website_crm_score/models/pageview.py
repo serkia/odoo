@@ -31,6 +31,7 @@ class pageview(models.Model):
                 # update failed
                 # creating a pageview is then tried
                 try:
+                    # TODO: is the NOT EXIST useful ? if the row existed, it would have been updated...
                     pv_cr.execute('''
                         INSERT INTO website_crm_pageview (lead_id, partner_id, url, create_date)
                         SELECT %s,%s,%s,%s
@@ -44,5 +45,5 @@ class pageview(models.Model):
                         request.registry['crm.lead'].message_post(cr, SUPERUSER_ID, [lead_id], body=body, subject="Page visited", context=context)
                         return True
                 except IntegrityError:
-                    # todo: how do I know if it is a lead_id error of partner_id error ?
+                    # TODO: how to know if it is a lead_id error of partner_id error ?
                     return False

@@ -4,7 +4,6 @@ import datetime
 from openerp.tools.safe_eval import safe_eval
 from random import randint, uniform, choice
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
-from time import time
 
 
 class crm_case_section(osv.osv):
@@ -240,7 +239,7 @@ class crm_case_section(osv.osv):
         # casting the list into a dict to ease the access afterwards
         all_leads = {lead['id']: lead for lead in all_leads}
         remove_spam_leads()  # match the filters that allow to filter spam leads
-        
+
         #
         # Assigning the leads to salesteams and salesmen
         #
