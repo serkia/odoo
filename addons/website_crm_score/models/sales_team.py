@@ -62,17 +62,12 @@ class crm_case_section(osv.osv):
                 n = 0
                 for e in d:
                     if e == '!':
-                        # print '!', type(e)
                         pass
                     elif e == '|' or e == '&':
-                        # print '|&', type(e)
                         n -= 1
-                    else:  # e is a 3-tuple
-                        # print 'else', type(e)
+                    else:  # e is a 3-tuple (maybe the type should be checked)
                         n += 1
-                # print 'n', n
-                l = ['&'] * (n - 1)
-                u = l + d
+                u = ['&'] * (n - 1) + d
                 print u
                 return u
 
@@ -83,27 +78,22 @@ class crm_case_section(osv.osv):
 
             all_domain = []
             nb_filters = 0
+
+            # computing one domain for all the spam filters
             for spam_filter in all_spam_filters:
-                # print 'filter', spam_filter
                 # NODE: as many db access as there are filters... (might be huge)
                 u_domain = unary_domain(safe_eval(spam_filter['domain']))
                 if u_domain:
                     all_domain.extend(u_domain)
                     nb_filters += 1
-            or_list = ['|'] * (nb_filters - 1)
-            all_domain = or_list + all_domain
-            print 'all_domain', all_domain
+            all_domain = ['|'] * (nb_filters - 1) + all_domain
+            # print 'all_domain', all_domain
+
+            # searching for all leads matching spam filters
             spam_leads = self.env["crm.lead"].search(all_domain)
             for spam_lead in spam_leads:
-                print 'spam_lead', spam_lead
-
-                # spam_leads = self.env["crm.lead"].search(safe_eval(spam_filter['domain']))
-                # # print 'leads', spam_leads
-                # # spam_leads is a record set of leads that match the domain
-                # for spam_lead in spam_leads:
-                #     print spam_lead
-                #     pass
-                    # what to do with the spam ?
+                # print 'spam_lead', spam_lead
+                pass
 
         def assign_leads_to_salesteams(all_salesteams, all_leads):
             # lead assignement to salesteams
