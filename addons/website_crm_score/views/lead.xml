@@ -331,6 +331,8 @@
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="view_ir_filters_tree"/>
             <field name="search_view_id" ref="ir_filters_view_search_inherit"/>
+        </record>
+        <record model="ir.actions.act_window" id="spam_ir_filters_action">
             <field name="context" eval="{'search_default_action_id': ref('spam_ir_filters_action')}"/>
         </record>
 
