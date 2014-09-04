@@ -3,7 +3,7 @@
     <data>
 
         <!-- Creating salesteams -->
-        <record model="crm.case.section" id="wcs_team_0">
+<!--         <record model="crm.case.section" id="wcs_team_0">
             <field name="name">Wcs team 0</field>
             <field name="code">T0</field>
         </record>
@@ -15,15 +15,27 @@
             <field name="name">Wcs team 2</field>
             <field name="code">T2</field>
             <field name="score_section_domain">[['country_id', '=', 'France']]</field>
+        </record> -->
+        <record model="crm.case.section" id="sales_team.section_sales_department">
+            <!-- <field name="score_section_domain">[['country_id', '=', 'France']]</field> -->
+        </record>
+        <record model="crm.case.section" id="website.salesteam_website_sales">
+            <!-- <field name="score_section_domain">[['country_id', '=', 'France']]</field> -->
+        </record>
+        <record model="crm.case.section" id="sales_team.crm_case_section_1">
+            <!-- <field name="score_section_domain">[['country_id', '=', 'France']]</field> -->
+        </record>
+        <record model="crm.case.section" id="sales_team.crm_case_section_2">
+            <!-- <field name="score_section_domain">[['country_id', '=', 'France']]</field> -->
         </record>
 
 
         <!-- Creating salesmen -->
         <record id="wcs_partner_0" model="res.partner">
-            <field name="name">Wcs user 0</field>
-            <field name="email">wcs_0@yourcompany.example.com</field>
+            <field name="name">Toni Buchanan</field>
+            <field name="email">Toni.Buchanan@yourcompany?com</field>
             <field name="supplier" eval="False"/>
-            <field name="customer" eval="True"/>
+            <field name="customer" eval="False"/>
             <field name="notify_email">none</field>
             <field name="city">Vivegnis</field>
             <field name="zip">4683</field>
@@ -32,62 +44,62 @@
         </record>
         <record id="wcs_user_0" model="res.users" context="{'no_reset_password': True}">
             <field name="partner_id" ref="wcs_partner_0"/>
-            <field name="login">wcs_user_0</field>
-            <field name="password">wcs_user_0</field>
+            <field name="login">tbuchanan</field>
+            <field name="password">tbuchanan</field>
             <field name="groups_id" eval="[(5,)]"/>
         </record>
 
         <record id="wcs_partner_1" model="res.partner">
-            <field name="name">Wcs user 1</field>
-            <field name="email">wcs_1@yourcompany.example.com</field>
+            <field name="name">Frances Pierce</field>
+            <field name="email">Frances.Pierce@yourcompany.com</field>
             <field name="supplier" eval="False"/>
-            <field name="customer" eval="True"/>
+            <field name="customer" eval="False"/>
             <field name="notify_email">none</field>
-            <field name="city">Vivegnis</field>
-            <field name="zip">4683</field>
+            <field name="city">Oakland</field>
+            <field name="zip">94612</field>
             <field name="country_id" ref="base.be"/>
-            <field name="street">Rue Cesar de Paepe, 43</field>
+            <field name="street">4850 Clifford Street</field>
         </record>
         <record id="wcs_user_1" model="res.users" context="{'no_reset_password': True}">
             <field name="partner_id" ref="wcs_partner_1"/>
-            <field name="login">wcs_user_1</field>
-            <field name="password">wcs_user_1</field>
+            <field name="login">fpierce</field>
+            <field name="password">fpierce</field>
             <field name="groups_id" eval="[(5,)]"/>
         </record>
 
         <record id="wcs_partner_2" model="res.partner">
-            <field name="name">Wcs user 2</field>
-            <field name="email">wcs_2@yourcompany.example.com</field>
+            <field name="name">Camille Watkins</field>
+            <field name="email">Camille.Watkins@yourcompany.com</field>
             <field name="supplier" eval="False"/>
-            <field name="customer" eval="True"/>
+            <field name="customer" eval="False"/>
             <field name="notify_email">none</field>
-            <field name="city">Vivegnis</field>
-            <field name="zip">4683</field>
+            <field name="city">Houston</field>
+            <field name="zip">77036</field>
             <field name="country_id" ref="base.be"/>
-            <field name="street">Rue Cesar de Paepe, 43</field>
+            <field name="street">181 Swick Hill Street</field>
         </record>
         <record id="wcs_user_2" model="res.users" context="{'no_reset_password': True}">
             <field name="partner_id" ref="wcs_partner_2"/>
-            <field name="login">wcs_user_2</field>
-            <field name="password">wcs_user_2</field>
+            <field name="login">cwatkins</field>
+            <field name="password">cwatkins</field>
             <field name="groups_id" eval="[(5,)]"/>
         </record>
 
         <record id="wcs_partner_3" model="res.partner">
-            <field name="name">Wcs user 3</field>
-            <field name="email">wcs_3@yourcompany.example.com</field>
+            <field name="name">Judy Garza</field>
+            <field name="email">Judy.Garza@yourcompany.example.com</field>
             <field name="supplier" eval="False"/>
-            <field name="customer" eval="True"/>
+            <field name="customer" eval="False"/>
             <field name="notify_email">none</field>
-            <field name="city">Vivegnis</field>
-            <field name="zip">4683</field>
+            <field name="city">Daytona Beach</field>
+            <field name="zip">32114</field>
             <field name="country_id" ref="base.be"/>
-            <field name="street">Rue Cesar de Paepe, 43</field>
+            <field name="street">763 Melm Street</field>
         </record>
         <record id="wcs_user_3" model="res.users" context="{'no_reset_password': True}">
             <field name="partner_id" ref="wcs_partner_3"/>
-            <field name="login">wcs_user_3</field>
-            <field name="password">wcs_user_3</field>
+            <field name="login">jgarza</field>
+            <field name="password">jgarza</field>
             <field name="groups_id" eval="[(5,)]"/>
         </record>
 
@@ -96,201 +108,210 @@
         <!-- Team 0 -->
         <record id="wcs_section_user_0" model="section.user">
             <field name="user_id" ref="wcs_user_0"/>
-            <field name="section_id" ref="wcs_team_0"/>
+            <field name="section_id" ref="sales_team.section_sales_department"/>
             <field name="maximum_user_leads">2</field>
             <field name="section_user_domain">[['lang_id', '=', 'English']]</field>
         </record>
         <record id="wcs_section_user_1" model="section.user">
             <field name="user_id" ref="wcs_user_2"/>
-            <field name="section_id" ref="wcs_team_0"/>
+            <field name="section_id" ref="sales_team.section_sales_department"/>
             <field name="maximum_user_leads">1</field>
-            <field name="section_user_domain">[['country_id', '=', 'Belgium']]</field>
+            <!-- <field name="section_user_domain">[['country_id', '=', 'Belgium']]</field> -->
         </record>
-        <record id="wcs_section_user_2" model="section.user">
+<!--         <record id="wcs_section_user_2" model="section.user">
             <field name="user_id" ref="wcs_user_3"/>
-            <field name="section_id" ref="wcs_team_0"/>
+            <field name="section_id" ref="sales_team.section_sales_department"/>
             <field name="maximum_user_leads">3</field>
-        </record>
+        </record> -->
 
         <!-- Team 1 -->
         <record id="wcs_section_user_3" model="section.user">
             <field name="user_id" ref="wcs_user_1"/>
-            <field name="section_id" ref="wcs_team_1"/>
+            <field name="section_id" ref="website.salesteam_website_sales"/>
             <field name="maximum_user_leads">1</field>
         </record>
         <record id="wcs_section_user_4" model="section.user">
             <field name="user_id" ref="wcs_user_3"/>
-            <field name="section_id" ref="wcs_team_1"/>
+            <field name="section_id" ref="website.salesteam_website_sales"/>
             <field name="maximum_user_leads">2</field>
             <field name="section_user_domain">[['lang_id', '=', 'English'], ['country_id', '=', 'Belgium']]</field>
         </record>
 
         <!-- Team 3 -->
-        <record id="wcs_section_user_5" model="section.user">
+<!--         <record id="wcs_section_user_5" model="section.user">
             <field name="user_id" ref="wcs_user_2"/>
-            <field name="section_id" ref="wcs_team_2"/>
+            <field name="section_id" ref="sales_team.crm_case_section_1"/>
             <field name="maximum_user_leads">3</field>
             <field name="section_user_domain">[['country_id', '=', 'Belgium']]</field>
-        </record>
+        </record> -->
         <record id="wcs_section_user_6" model="section.user">
             <field name="user_id" ref="wcs_user_3"/>
-            <field name="section_id" ref="wcs_team_2"/>
+            <field name="section_id" ref="sales_team.crm_case_section_1"/>
             <field name="maximum_user_leads">1</field>
         </record>
 
+        <!-- Team 4 -->
+        <record id="wcs_section_user_7" model="section.user">
+            <field name="user_id" ref="wcs_user_2"/>
+            <field name="section_id" ref="sales_team.crm_case_section_2"/>
+            <field name="maximum_user_leads">3</field>
+            <!-- <field name="section_user_domain">[['country_id', '=', 'Belgium']]</field> -->
+        </record>
+<!--         <record id="wcs_section_user_8" model="section.user">
+            <field name="user_id" ref="wcs_user_3"/>
+            <field name="section_id" ref="sales_team.crm_case_section_2"/>
+            <field name="maximum_user_leads">1</field>
+        </record> -->
+
 
         <!-- Leads -->
-        <record id="wcs_lead_0" model="crm.lead">
-            <field name="type">lead</field>
-            <field name="name">Wcs lead 0</field>
-            <field name="contact_name">Wcs lead 0</field>
-            <field name="partner_name">Wcs lead 0</field>
-            <field name="email_from">wcs_lead_0@example.com</field>
-            <field name="country_id" ref=""/>
-            <field name="priority">2</field>
+        <record id="crm.crm_case_1" model="crm.lead">
             <field name="section_id" ref=""/>
             <field name="user_id" ref=""/>
-            <field name="lang_id" ref="base.lang_en"/>
-            <field name="stage_id" ref="crm.stage_lead1"/>
         </record>
-        <record id="wcs_lead_1" model="crm.lead">
-            <field name="type">lead</field>
-            <field name="name">Wcs lead 1</field>
-            <field name="contact_name">Wcs lead 1</field>
-            <field name="partner_name">Wcs lead 1</field>
-            <field name="email_from">wcs_lead_1@example.com</field>
-            <field name="country_id" ref="base.be"/>
-            <field name="priority">2</field>
+        <record id="crm.crm_case_2" model="crm.lead">
             <field name="section_id" ref=""/>
             <field name="user_id" ref=""/>
-            <field name="lang_id" ref="base.lang_en"/>
-            <field name="stage_id" ref="crm.stage_lead1"/>
         </record>
-        <record id="wcs_lead_2" model="crm.lead">
-            <field name="type">lead</field>
-            <field name="name">Wcs lead 2</field>
-            <field name="contact_name">Wcs lead 2</field>
-            <field name="partner_name">Wcs lead 2</field>
-            <field name="email_from">wcs_lead_2@example.com</field>
-            <field name="country_id" ref="base.be"/>
-            <field name="priority">2</field>
+        <record id="crm.crm_case_3" model="crm.lead">
             <field name="section_id" ref=""/>
             <field name="user_id" ref=""/>
-            <field name="stage_id" ref="crm.stage_lead1"/>
         </record>
-        <record id="wcs_lead_3" model="crm.lead">
-            <field name="type">lead</field>
-            <field name="name">Wcs lead 3</field>
-            <field name="contact_name">Wcs lead 3</field>
-            <field name="partner_name">Wcs lead 3</field>
-            <field name="email_from">wcs_lead_3@example.com</field>
-            <field name="country_id" ref="base.be"/>
-            <field name="priority">2</field>
+        <record id="crm.crm_case_4" model="crm.lead">
             <field name="section_id" ref=""/>
             <field name="user_id" ref=""/>
-            <field name="stage_id" ref="crm.stage_lead1"/>
         </record>
-        <record id="wcs_lead_4" model="crm.lead">
-            <field name="type">lead</field>
-            <field name="name">Wcs lead 4</field>
-            <field name="contact_name">Wcs lead 4</field>
-            <field name="partner_name">Wcs lead 4</field>
-            <field name="email_from">wcs_lead_4@example.com</field>
-            <field name="country_id" ref=""/>
-            <field name="priority">2</field>
+        <record id="crm.crm_case_5" model="crm.lead">
             <field name="section_id" ref=""/>
             <field name="user_id" ref=""/>
-            <field name="stage_id" ref="crm.stage_lead1"/>
         </record>
-        <record id="wcs_lead_5" model="crm.lead">
-            <field name="type">lead</field>
-            <field name="name">Wcs lead 5</field>
-            <field name="contact_name">Wcs lead 5</field>
-            <field name="partner_name">Wcs lead 5</field>
-            <field name="email_from">wcs_lead_5@example.com</field>
-            <field name="country_id" ref="base.fr"/>
-            <field name="priority">2</field>
+        <record id="crm.crm_case_6" model="crm.lead">
             <field name="section_id" ref=""/>
             <field name="user_id" ref=""/>
-            <field name="stage_id" ref="crm.stage_lead1"/>
         </record>
-        <record id="wcs_lead_6" model="crm.lead">
-            <field name="type">lead</field>
-            <field name="name">Wcs lead 6</field>
-            <field name="contact_name">Wcs lead 6</field>
-            <field name="partner_name">Wcs lead 6</field>
-            <field name="email_from">wcs_lead_6@example.com</field>
-            <field name="country_id" ref="base.fr"/>
-            <field name="priority">2</field>
+        <record id="crm.crm_case_7" model="crm.lead">
             <field name="section_id" ref=""/>
             <field name="user_id" ref=""/>
-            <field name="stage_id" ref="crm.stage_lead1"/>
         </record>
-        <record id="wcs_lead_7" model="crm.lead">
-            <field name="type">lead</field>
-            <field name="name">Wcs lead 7</field>
-            <field name="contact_name">Wcs lead 7</field>
-            <field name="partner_name">Wcs lead 7</field>
-            <field name="email_from">wcs_lead_7@example.com</field>
-            <field name="country_id" ref="base.fr"/>
-            <field name="priority">2</field>
+        <record id="crm.crm_case_8" model="crm.lead">
             <field name="section_id" ref=""/>
             <field name="user_id" ref=""/>
-            <field name="stage_id" ref="crm.stage_lead1"/>
         </record>
-        <record id="wcs_lead_8" model="crm.lead">
-            <field name="type">lead</field>
-            <field name="name">Wcs lead 8</field>
-            <field name="contact_name">Wcs lead 8</field>
-            <field name="partner_name">Wcs lead 8</field>
-            <field name="email_from">wcs_lead_8@example.com</field>
-            <field name="country_id" ref="base.fr"/>
-            <field name="priority">2</field>
+        <record id="crm.crm_case_9" model="crm.lead">
             <field name="section_id" ref=""/>
             <field name="user_id" ref=""/>
-            <field name="stage_id" ref="crm.stage_lead1"/>
         </record>
-        <record id="wcs_lead_9" model="crm.lead">
-            <field name="type">lead</field>
-            <field name="name">Wcs lead 9</field>
-            <field name="contact_name">Wcs lead 9</field>
-            <field name="partner_name">Wcs lead 9</field>
-            <field name="email_from">wcs_lead_9@example.com</field>
-            <field name="country_id" ref="base.fr"/>
-            <field name="priority">2</field>
+        <record id="crm.crm_case_10" model="crm.lead">
             <field name="section_id" ref=""/>
             <field name="user_id" ref=""/>
-            <field name="stage_id" ref="crm.stage_lead1"/>
         </record>
+        <record id="crm.crm_case_11" model="crm.lead">
+            <field name="section_id" ref=""/>
+            <field name="user_id" ref=""/>
+        </record>
+        <record id="crm.crm_case_12" model="crm.lead">
+            <field name="section_id" ref=""/>
+            <field name="user_id" ref=""/>
+        </record>
+        <record id="crm.crm_case_13" model="crm.lead">
+            <field name="section_id" ref=""/>
+            <field name="user_id" ref=""/>
+        </record>
+        <record id="crm.crm_case_14" model="crm.lead">
+            <field name="section_id" ref=""/>
+            <field name="user_id" ref=""/>
+        </record>
+        <record id="crm.crm_case_15" model="crm.lead">
+            <field name="section_id" ref=""/>
+            <field name="user_id" ref=""/>
+        </record>
+        <record id="crm.crm_case_16" model="crm.lead">
+            <field name="section_id" ref=""/>
+            <field name="user_id" ref=""/>
+        </record>
+        <record id="crm.crm_case_17" model="crm.lead">
+            <field name="section_id" ref=""/>
+            <field name="user_id" ref=""/>
+        </record>
+        <record id="crm.crm_case_18" model="crm.lead">
+            <field name="section_id" ref=""/>
+            <field name="user_id" ref=""/>
+        </record>
+        <record id="crm.crm_case_19" model="crm.lead">
+            <field name="section_id" ref=""/>
+            <field name="user_id" ref=""/>
+        </record>
+        <record id="crm.crm_case_20" model="crm.lead">
+            <field name="section_id" ref=""/>
+            <field name="user_id" ref=""/>
+        </record>
+        <record id="crm.crm_case_21" model="crm.lead">
+            <field name="section_id" ref=""/>
+            <field name="user_id" ref=""/>
+        </record>
+        <record id="crm.crm_case_22" model="crm.lead">
+            <field name="section_id" ref=""/>
+            <field name="user_id" ref=""/>
+        </record>
+        <record id="crm.crm_case_23" model="crm.lead">
+            <field name="section_id" ref=""/>
+            <field name="user_id" ref=""/>
+        </record>
+        <record id="crm.crm_case_24" model="crm.lead">
+            <field name="section_id" ref=""/>
+            <field name="user_id" ref=""/>
+        </record>
+        <record id="crm.crm_case_25" model="crm.lead">
+            <field name="section_id" ref=""/>
+            <field name="user_id" ref=""/>
+        </record>
+        <record id="crm.crm_case_26" model="crm.lead">
+            <field name="section_id" ref=""/>
+            <field name="user_id" ref=""/>
+        </record>
+
+        <function model="crm.lead" name="write"
+            eval="[ ref('crm.crm_case_7'), ref('crm.crm_case_8'),
+                    ref('crm.crm_case_9'), ref('crm.crm_case_10'),
+                    ref('crm.crm_case_11'), ref('crm.crm_case_12')],
+                    {'stage_id': ref('crm.stage_lead1')},
+                    {'install_mode': True}"
+        />
+        
 
         <!-- Scores -->
          <record id="wcs_score_0" model="website.crm.score">
-            <field name="name">Wcs score 0</field>
+            <field name="name">Belgium Score</field>
             <field name="value">8</field>
             <field name="domain">[['country_id', '=', 'Belgium']]</field>
         </record>
         <record id="wcs_score_1" model="website.crm.score">
-            <field name="name">Wcs score 1</field>
+            <field name="name">English Score</field>
             <field name="value">4</field>
             <field name="domain">[['lang_id', '=', 'English']]</field>
         </record>
+        <record id="wcs_score_1" model="website.crm.score">
+            <field name="name">US Score</field>
+            <field name="value">4</field>
+            <field name="domain">[['country_id', '=', 'United States']]</field>
+        </record>
         <record id="wcs_score_2" model="website.crm.score">
-            <field name="name">Wcs score 2</field>
+            <field name="name">France Score</field>
             <field name="value">2</field>
             <field name="domain">[['country_id', '=', 'France']]</field>
         </record>
         <record id="wcs_score_3" model="website.crm.score">
-            <field name="name">Wcs score 3</field>
+            <field name="name">Anti-China Score</field>
             <field name="value">1</field>
             <field name="domain">[['country_id', '!=', 'China']]</field>
         </record>
         <record id="wcs_score_4" model="website.crm.score">
-            <field name="name">Wcs score 4</field>
+            <field name="name">Homepage Score</field>
             <field name="value">16</field>
             <field name="domain">[['score_pageview_ids.url', '=', 'http://localhost:8069/page/homepage']]</field>
         </record>
         <record id="wcs_score_5" model="website.crm.score">
-            <field name="name">Wcs score 5</field>
+            <field name="name">Aboutus Score</field>
             <field name="value">32</field>
             <field name="domain">[['score_pageview_ids.url', '=', 'http://localhost:8069/page/website.aboutus']]</field>
         </record>

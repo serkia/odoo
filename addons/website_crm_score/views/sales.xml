@@ -39,6 +39,11 @@
                             </div>
                         </div>
                     </xpath>
+                    <!-- <xpath expr="//div[@class='oe_kanban_salesteams_avatars']" position="replace">
+                        <t t-foreach="record.section_user_ids.raw_value.slice(0,10)" t-as="member">
+                            <img t-att-src="kanban_image('res.users', 'image_small', member.user_id)" t-att-data-member_id="member.user_id"/>
+                        </t>
+                    </xpath> -->
                 </data>
             </field>
         </record>

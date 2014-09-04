@@ -4,6 +4,7 @@ import datetime
 from openerp.tools.safe_eval import safe_eval
 from random import randint, uniform, choice
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
+from time import time
 
 
 class crm_case_section(osv.osv):
@@ -68,7 +69,6 @@ class crm_case_section(osv.osv):
                     else:  # e is a 3-tuple (maybe the type should be checked)
                         n += 1
                 u = ['&'] * (n - 1) + d
-                print u
                 return u
 
             # FIXME: if a filter is not well written, it causes a problem
@@ -120,6 +120,7 @@ class crm_case_section(osv.osv):
                     salesteam_id = salesteams_ids[r]
                     salesteam = all_salesteams[salesteam_id]
                     lead_record = self.env['crm.lead'].browse(lead['id'])
+                    # NOTE: the write takes 0.04 seconds, which is huge
                     lead_record.write({'section_id': salesteam['id']})
                     # updates value in all_leads and all_salesteams
                     lead['section_id'] = (salesteam['id'], '')
@@ -238,9 +239,8 @@ class crm_case_section(osv.osv):
         all_leads = self.env["crm.lead"].search_read(fields=leads_fields)
         # casting the list into a dict to ease the access afterwards
         all_leads = {lead['id']: lead for lead in all_leads}
-
         remove_spam_leads()  # match the filters that allow to filter spam leads
-
+        
         #
         # Assigning the leads to salesteams and salesmen
         #
