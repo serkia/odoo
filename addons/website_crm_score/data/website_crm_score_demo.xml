@@ -23,7 +23,7 @@
             <!-- <field name="score_section_domain">[['country_id', '=', 'France']]</field> -->
         </record>
         <record model="crm.case.section" id="sales_team.crm_case_section_1">
-            <!-- <field name="score_section_domain">[['country_id', '=', 'France']]</field> -->
+            <field name="score_section_domain">[['country_id', '=', 'France']]</field>
         </record>
         <record model="crm.case.section" id="sales_team.crm_case_section_2">
             <!-- <field name="score_section_domain">[['country_id', '=', 'France']]</field> -->
@@ -270,13 +270,13 @@
             <field name="user_id" ref=""/>
         </record>
 
-        <function model="crm.lead" name="write"
+<!--         <function model="crm.lead" name="write"
             eval="[ ref('crm.crm_case_7'), ref('crm.crm_case_8'),
                     ref('crm.crm_case_9'), ref('crm.crm_case_10'),
                     ref('crm.crm_case_11'), ref('crm.crm_case_12')],
                     {'stage_id': ref('crm.stage_lead1')},
                     {'install_mode': True}"
-        />
+        /> -->
         
 
         <!-- Scores -->
@@ -290,11 +290,6 @@
             <field name="value">4</field>
             <field name="domain">[['lang_id', '=', 'English']]</field>
         </record>
-        <record id="wcs_score_1" model="website.crm.score">
-            <field name="name">US Score</field>
-            <field name="value">4</field>
-            <field name="domain">[['country_id', '=', 'United States']]</field>
-        </record>
         <record id="wcs_score_2" model="website.crm.score">
             <field name="name">France Score</field>
             <field name="value">2</field>
@@ -307,15 +302,24 @@
         </record>
         <record id="wcs_score_4" model="website.crm.score">
             <field name="name">Homepage Score</field>
-            <field name="value">16</field>
+            <field name="value">2</field>
             <field name="domain">[['score_pageview_ids.url', '=', 'http://localhost:8069/page/homepage']]</field>
         </record>
         <record id="wcs_score_5" model="website.crm.score">
             <field name="name">Aboutus Score</field>
-            <field name="value">32</field>
+            <field name="value">8</field>
             <field name="domain">[['score_pageview_ids.url', '=', 'http://localhost:8069/page/website.aboutus']]</field>
         </record>
-
+        <record id="wcs_score_6" model="website.crm.score">
+            <field name="name">Email</field>
+            <field name="value">8</field>
+            <field name="domain">[['email_from', '!=', False]]</field>
+        </record>
+        <record id="wcs_score_7" model="website.crm.score">
+            <field name="name">US Score</field>
+            <field name="value">4</field>
+            <field name="domain">[['country_id', '=', 'United States']]</field>
+        </record>
 
     </data>
 </openerp>

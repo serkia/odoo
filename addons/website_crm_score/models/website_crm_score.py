@@ -11,7 +11,7 @@ class website_crm_score(models.Model):
     domain = fields.Char('Domain', required=True)
     running = fields.Boolean('Active', default=True)
 
-    # ids is needed when the button is used to start the function, that button shoudl be removed in fine
+    # ids is needed when the button is used to start the function, that button should be removed in fine
     @api.model
     def assign_scores_to_leads(self, ids=[]):
 

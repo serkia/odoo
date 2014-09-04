@@ -210,7 +210,7 @@
                             <field name="domain"/>
                             <field name="running"/>
                         </group>
-                        <button name="assign_scores_to_leads" type="object" string="Assign"/>
+                        <button name="assign_scores_to_leads" type="object" string="Assign (dev)"/>
                     </sheet>
                 </form>
             </field>
