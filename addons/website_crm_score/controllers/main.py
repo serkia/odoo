@@ -78,7 +78,7 @@ class ContactController(addons.website_crm.controllers.main.contactus):
             # NOTE: the following should be changed when dynamic forms exist
             changed_values = {}
             for fieldname, fieldvalue in values.items():
-                if fieldname in lead._all_columns and fieldvalue: # and not lead[fieldname]:  # rem : why this last condition ?
+                if fieldname in lead._all_columns and fieldvalue:  # and not lead[fieldname]:  # rem : why this last condition ?
                     if lead[fieldname] and lead[fieldname] != fieldvalue:
                         changed_values[fieldname] = fieldvalue
                     else:

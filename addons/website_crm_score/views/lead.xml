@@ -331,7 +331,7 @@
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="view_ir_filters_tree"/>
             <field name="search_view_id" ref="ir_filters_view_search_inherit"/>
-            <field name="context" eval="{'search_default_action_id': ref('spam_ir_filters_action')}"/> <!-- Comment mettre l'id de l'action ici -->
+            <field name="context" eval="{'search_default_action_id': ref('spam_ir_filters_action')}"/>
         </record>
 
         <!-- Ir Filters Menu Item -->
@@ -347,7 +347,8 @@ values = {'model_id': 'crm.lead', 'action_id': ir_action_id, 'user_id': uid}
 for lead_id in context['active_ids']:
     mail = self.read(cr, uid, lead_id, fields=['email_from'], context=context)['email_from']
     vals = values.copy()
-    vals['domain'] = [('email_from', '=', mail)]
+    # str() below changes the encoding of mail from unicode 
+    vals['domain'] = [('email_from', '=', str(mail))]
     vals['name'] = 'spam-' + mail
     self.pool['ir.filters'].create_or_replace(cr, uid, vals, context=context)
             </field>

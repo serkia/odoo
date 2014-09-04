@@ -57,15 +57,52 @@ class crm_case_section(osv.osv):
             return choice([e for e, _ in d.iteritems()])
 
         def remove_spam_leads():
+
+            def unary_domain(d):
+                n = 0
+                for e in d:
+                    if e == '!':
+                        # print '!', type(e)
+                        pass
+                    elif e == '|' or e == '&':
+                        # print '|&', type(e)
+                        n -= 1
+                    else:  # e is a 3-tuple
+                        # print 'else', type(e)
+                        n += 1
+                # print 'n', n
+                l = ['&'] * (n - 1)
+                u = l + d
+                print u
+                return u
+
             # FIXME: if a filter is not well written, it causes a problem
             action = self.env['ir.actions.actions'].search([('name', '=', 'SpamIrFilter')])
             domain = [('action_id', '=', action.id)]
             all_spam_filters = self.env['ir.filters'].search_read(domain, fields=['domain'])
+
+            all_domain = []
+            nb_filters = 0
             for spam_filter in all_spam_filters:
-                spam_leads = self.env["crm.lead"].search(safe_eval(spam_filter['domain']))
-                # spam_leads is a record set of leads that match the domain
-                for spam_lead in spam_leads:
-                    pass
+                # print 'filter', spam_filter
+                # NODE: as many db access as there are filters... (might be huge)
+                u_domain = unary_domain(safe_eval(spam_filter['domain']))
+                if u_domain:
+                    all_domain.extend(u_domain)
+                    nb_filters += 1
+            or_list = ['|'] * (nb_filters - 1)
+            all_domain = or_list + all_domain
+            print 'all_domain', all_domain
+            spam_leads = self.env["crm.lead"].search(all_domain)
+            for spam_lead in spam_leads:
+                print 'spam_lead', spam_lead
+
+                # spam_leads = self.env["crm.lead"].search(safe_eval(spam_filter['domain']))
+                # # print 'leads', spam_leads
+                # # spam_leads is a record set of leads that match the domain
+                # for spam_lead in spam_leads:
+                #     print spam_lead
+                #     pass
                     # what to do with the spam ?
 
         def assign_leads_to_salesteams(all_salesteams, all_leads):
