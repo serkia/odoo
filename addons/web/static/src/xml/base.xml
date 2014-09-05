@@ -420,73 +420,23 @@
                                         Belgium
                                     </p>
                                     <!-- TODO - ALIAS contactus -->
-                                    <a class='btn btn-link' href='https://www.odoo.com/about/contactus'>Our website</a>
+                                    <a class='btn btn-link' href='https://www.odoo.com/web/about/contactus'>Our website</a>
                                 </div>
                                 <div id="events" class="tab-pane">
                                     <h4>Discover Events of Odoo around the world...</h4>
-                                    <a class='btn btn-link' href='https://www.odoo.com/about/event'> Our next Events</a>
+                                    <a class='btn btn-link' href='https://www.odoo.com/web/about/event'> Our next Events</a>
                                 </div>
                                 <div id="social" class="tab-pane">
                                     <h4>Follow Us...</h4>
-                                    <a href="https://www.odoo.com/about/facebook"><i class="fa fa-facebook-square fa-3x social-fb"></i></a>
-                                    <a href="https://www.odoo.com/about/twitter"><i class="fa fa-twitter-square fa-3x social-tw"></i></a>
-                                    <a href="https://www.odoo.com/about/googleplus"><i class="fa fa-google-plus-square fa-3x social-gp"></i></a>
-                                    <a href="https://www.odoo.com/about/linkedin"><i class="fa fa-linkedin-square fa-3x social-lk"></i></a>
+                                    <a href="https://www.odoo.com/web/about/facebook"><i class="fa fa-facebook-square fa-3x social-fb"></i></a>
+                                    <a href="https://www.odoo.com/web/about/twitter"><i class="fa fa-twitter-square fa-3x social-tw"></i></a>
+                                    <a href="https://www.odoo.com/web/about/googleplus"><i class="fa fa-google-plus-square fa-3x social-gp"></i></a>
+                                    <a href="https://www.odoo.com/web/about/linkedin"><i class="fa fa-linkedin-square fa-3x social-lk"></i></a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!--
-                    ================
-                    if dev accepted
-                    ================
-
-                    =+> REDIRECTION to add in a controller of openerp_website
-                        https://www.odoo.com/about/facebook: https://www.facebook.com/odoo
-                        https://www.odoo.com/about/twitter: https://twitter.com/Odoo
-                        https://www.odoo.com/about/googleplus: https://plus.google.com/u/0/100883176139028080672/posts
-                        https://www.odoo.com/about/linkedin: https://www.linkedin.com/company/odoo
-
-                        https://www.odoo.com/about/contactus: https://www.odoo.com/page/aboutus
-                        https://www.odoo.com/about/event: https://www.odoo.com/event
-
-                    =+> CSS need to be moved in base.sass
-                -->
-                <style>
-                    .label { background-color:#7c7bad }
-
-                    .user-details {position: relative; padding: 0; margin-bottom: 315px; }
-                    .user-details .user-image {position: relative;  z-index: 1; width: 100%; text-align: center;}
-                    .user-details .user-info-block {width: 100%; position: absolute; top: 55px; padding-top: 35px; }
-
-                    .user-image img { clear: both; margin: auto; position: relative;}
-
-                    .user-info-block .user-heading {width: 100%; text-align: center; margin: 10px 0 0;}
-                    .user-info-block .navigation {float: left; width: auto; margin: 0; padding: 0; margin-left:25%; list-style: none; border-bottom: 1px solid #7c7bad; border-top: 1px solid #7c7bad;}
-                    .user-info-block .user-body {float: left; padding: 5%; width: 100%;}
-
-                    .navigation li {float: left; margin: 0; padding: 0;}
-                    .navigation li a {padding: 20px 30px; float: left;}
-                    .navigation li.active a {background: #7c7bad; color: #fff;}
-
-                    .user-body .tab-content > div {float: left; width: 100%;}
-                    .user-body .tab-content h4 {width: 100%; margin: 10px 0; color: #333;}
-                    .user-body a {padding-left: 0px;}
-                    .user-body {text-align: center;}
-                    a.oe_activate_debug_mode {color:white !important; font-size:100%}
-                    #social i { margin:10px;}
-                    #social i:hover {
-                        -webkit-transform:scale(1.1);
-                        -moz-transform:scale(1.1);
-                        -o-transform:scale(1.1);
-                    }
-                    .social-fb:hover {color: #3B5998;}
-                    .social-tw:hover {color: #4099FF;}
-                    .social-gp:hover {color: #d34836;}
-                    .social-lk:hover {color: #007bb6;}
-                </style>
             </div>
         </div>
     </div>
