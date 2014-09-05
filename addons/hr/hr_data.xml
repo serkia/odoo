@@ -20,6 +20,5 @@ Leave Management (keep track of employee leaves), Expense Management (manage emp
             <field name="address_home_id" ref="base.partner_root"/>
             <field name="image" type="base64" file="hr/static/img/employee-image.png"/>
         </record>
-
     </data>
 </openerp>

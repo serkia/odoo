@@ -4,7 +4,7 @@ from openerp import models, fields, api, _
 from openerp.exceptions import except_orm
 from openerp.tools import html2plaintext
 
-class maintenance_request_stage(models.Model):
+class MaintenanceRequestStage(models.Model):
     """Stages for Kanban view of Maintenance Request"""
 
     _name = 'maintenance.request.stage'
@@ -19,7 +19,7 @@ class maintenance_request_stage(models.Model):
         ('positive_sequence', 'CHECK(sequence >= 0)', 'Sequence number MUST be a natural')
     ]
 
-class hr_material_category(models.Model):
+class HrMaterialCategory(models.Model):
     _name = 'hr.material.category'
     _inherits = {"mail.alias": "alias_id"}
     _inherit = ['mail.thread']
@@ -45,7 +45,7 @@ class hr_material_category(models.Model):
     @api.model
     def create(self, vals):
         self = self.with_context(alias_model_name='hr.material.maintenance_request', alias_parent_model_name=self._name) 
-        category_id = super(hr_material_category, self).create(vals)
+        category_id = super(HrMaterialCategory, self).create(vals)
         category_id.alias_id.write({'alias_parent_thread_id': category_id.id, 'alias_defaults': {'category_id': category_id.id}})
         return category_id
 
@@ -58,15 +58,15 @@ class hr_material_category(models.Model):
                                      _('You cannot delete a Material Category containing Material/Maintenance Request. You can either delete all the material/maintenance which belongs to in this category and then delete the material category.'))
             elif category.alias_id:
                 alias_ids.append(category.alias_id.id)
-        res = super(hr_material_category, self).unlink()
+        res = super(HrMaterialCategory, self).unlink()
         self.env['mail.alias'].browse(alias_ids).unlink()
         return res
 
 
 
-class hr_material(models.Model):
+class HrMaterial(models.Model):
     _name = 'hr.material'
-    _inherit = ['mail.thread', 'ir.needaction_mixin']
+    _inherit = ['mail.thread']
     _description = 'Material'
     _track = {
         'employee_id': {
@@ -97,8 +97,8 @@ class hr_material(models.Model):
     color = fields.Integer('Color Index')
     scrap_date = fields.Date('Scrap Date')
     material_assign_to = fields.Selection(
-        [('employee', 'By Employee'), ('department', 'By Department')],
-        string='Assigned to', 
+        [('department', 'By Department'), ('employee', 'By Employee')],
+        string='Allocate To',
         help='By Employee: Material assigned to individual Employee, By Department: Material assigned to group of employees in department',
         required=True,
         default='employee')
@@ -116,7 +116,7 @@ class hr_material(models.Model):
         if 'employee_id' in vals or 'department_id' in vals: 
             if vals.get('employee_id') or vals.get('department_id'):
                 vals['assign_date'] = fields.Date.context_today(self)
-        material = super(hr_material, self).create(vals)
+        material = super(HrMaterial, self).create(vals)
         # subscribe employee or department manager when material assign to him.
         if material.employee_id and material.employee_id.user_id:
             material.message_subscribe_users(user_ids=[material.employee_id.user_id.id])
@@ -136,7 +136,7 @@ class hr_material(models.Model):
             if department and department.manager_id and department.manager_id.user_id:
                 self.message_subscribe_users(user_ids=[department.manager_id.user_id.id])
 
-        return super(hr_material, self).write(vals)
+        return super(HrMaterial, self).write(vals)
 
     @api.onchange('material_assign_to')
     def _onchange_material_assign_to(self):
@@ -150,9 +150,9 @@ class hr_material(models.Model):
         self.user_id = self.category_id.user_id.id
 
 
-class hr_material_maintenance_request(models.Model):
+class HrMaterialMaintenanceRequest(models.Model):
     _name = 'hr.material.maintenance_request'
-    _inherit = ['mail.thread', 'ir.needaction_mixin']
+    _inherit = ['mail.thread']
     _description = 'Maintenance Request'
     _track = {
         'stage_id': {
@@ -184,10 +184,15 @@ class hr_material_maintenance_request(models.Model):
         default=_default_stage,
         )
     priority = fields.Selection(
-        [('0', 'Very Low'), ('1', 'Low'), ('2', 'Normal'), ('3', 'High'), ('4', 'Very High'),],
+        [('0', 'Very Low'), ('1', 'Low'), ('2', 'Normal'), ('3', 'High')],
         string='Priority', select=True)
     color = fields.Integer('Color Index')
     close_date = fields.Date('Close Date')
+    kanban_state = fields.Selection([('normal', 'In Progress'), ('blocked', 'Blocked'), ('done', 'Ready for next stage')],
+        string='Kanban State',
+        required=False,
+        default='normal',
+        track_visibility='onchange')
 
     @api.v7
     def _read_group_stage_ids(self, cr, uid, ids, domain, read_group_order=None, access_rights_uid=None, context=None):
@@ -216,9 +221,19 @@ class hr_material_maintenance_request(models.Model):
     }
 
     @api.model
+    def get_empty_list_help(self,help):
+        res = super(HrMaterialMaintenanceRequest, self).get_empty_list_help(help)
+        xml_id = self.env['ir.model.data'].xmlid_to_res_id('hr_material.mail_alias_material')
+        rec = self.env['mail.alias'].browse(xml_id)
+        if rec.alias_domain and rec.alias_name and res:
+            alias_name = '<a>' + rec.alias_name +'@'+ rec.alias_domain + '</a>'
+            res = res.replace('*alias*',alias_name)
+        return res
+
+    @api.model
     def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
         # override of fields_view_get in order to remove the clickable attribute from stage when user is not HRmanager
-        res = super(hr_material_maintenance_request, self).fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=submenu)
+        res = super(HrMaterialMaintenanceRequest, self).fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=submenu)
         if not self.env['res.users'].has_group('base.group_hr_manager'):
             if view_type == 'form':
                 doc = etree.XML(res['arch'])
@@ -245,19 +260,13 @@ class hr_material_maintenance_request(models.Model):
             'employee_id': False,
         }
         defaults.update(custom_values)
-        return super(hr_material_maintenance_request, self).message_new(msg, custom_values=defaults)
+        return super(HrMaterialMaintenanceRequest, self).message_new(msg, custom_values=defaults)
 
     @api.model
     def create(self, vals):
         # context: no_log, because subtype already handle this
         self = self.with_context(mail_create_nolog=True)
-        return super(hr_material_maintenance_request, self).create(vals)
-
-    @api.one
-    def set_priority(self, priority, *args):
-        """Set priority
-        """
-        return self.write({'priority' : priority})
+        return super(HrMaterialMaintenanceRequest, self).create(vals)
 
     @api.onchange('employee_id', 'department_id')
     def onchange_department_or_employee_id(self):
@@ -268,6 +277,9 @@ class hr_material_maintenance_request(models.Model):
             domain = ['|'] + domain
         if self.employee_id:
             domain = domain + [('employee_id', '=', self.employee_id.id)]
+        rec = self.env['hr.material'].search(domain)
+        if len(rec) == 1:
+            self.material_id = rec
         return {'domain': {'material_id': domain}}
 
     @api.onchange('material_id')

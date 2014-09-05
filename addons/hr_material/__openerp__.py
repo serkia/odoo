@@ -1,6 +1,6 @@
 
 {
-    'name': 'HR Material',
+    'name': 'Track Employees Materials',
     'version': '1.0',
     'description': """
         Track material's employees and manage material allocation """,
@@ -11,9 +11,9 @@
     'data': [
         'security/ir.model.access.csv',
         'security/ir_rule.xml',
+        'data/hr_material_data.xml',
         'views/hr_material_view.xml',
         'views/hr_material.xml',
-        'data/hr_material_data.xml',
     ],
     'auto_install': False,
     'installable': True,

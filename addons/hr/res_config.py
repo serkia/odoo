@@ -52,6 +52,8 @@ class hr_config_settings(osv.osv_memory):
             help ="""This installs the module hr_material."""),
         'alias_prefix': fields.char('Use default alias to report internal material issue'),
         'alias_domain': fields.char("Alias Prefix"),
+        'group_hr_material': fields.boolean("Organize materials allocation by categories",
+            implied_group='hr.group_materials_allocation')
     }
 
     def onchange_hr_timesheet(self, cr, uid, ids, timesheet, context=None):

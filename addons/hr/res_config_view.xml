@@ -110,6 +110,10 @@
                                 <label for="alias_prefix" class="oe_inline"/>
                                 <field name="alias_prefix" class="oe_inline"/>@<field name="alias_domain" class="oe_inline" readonly="1"/>
                             </div>
+                           <div attrs="{'invisible': [('module_hr_material','=',False)]}">
+                                <field name="group_hr_material" class="oe_inline"/>
+                                <label for="group_hr_material"/>
+                            </div>
                         </div>
                     </group>
                 </form>

@@ -16,7 +16,7 @@
             <field name="name">hr.material.maintenance_request.search</field>
             <field name="model">hr.material.maintenance_request</field>
             <field name="arch" type="xml">
-                <search string="maintenance Request Search" version="7.0">
+                <search string="maintenance Request Search">
                     <field name="name"/>
                     <field name="category_id"/>
                     <field name="user_id"/>
@@ -44,11 +44,14 @@
             <field name="name">hr.material.maintenance_request.form</field>
             <field name="model">hr.material.maintenance_request</field>
             <field name="arch" type="xml">
-                <form string="Maintenance Request" version="7.0">
+                <form string="Maintenance Request">
                     <header>
                         <field name="stage_id" widget="statusbar" clickable="true" readonly="1"/>
                     </header>
                     <sheet>
+                        <div class="oe_right">
+                            <field name="kanban_state" class="oe_inline" widget="kanban_state_selection"/>
+                        </div>
                         <div class="oe_title">
                             <label for="name" class="oe_edit_only" string="Subject"/>
                             <h1>
@@ -56,20 +59,15 @@
                             </h1>
                         </div>
                         <group col="4">
-                            <field name="employee_id" on_change="1"/>
-                            <field name="department_id" on_change="1"/>
+                            <field name="employee_id" on_change="1" string="Sender"/>
+                            <field name="user_id" string="Repair Responsible"/>
                             <field name="material_id"  on_change="1" context="{'default_category_id':category_id}"/>
-                            <field name="category_id" groups="base.group_hr_manager" on_change="1"/>
-                            <field name="user_id"/>
                             <field name="priority" widget="priority"/>
+                            <field name="category_id" groups="base.group_hr_manager" on_change="1"/>
                             <field name="request_date" groups="base.group_no_one"/>
                             <field name="close_date" groups="base.group_no_one"/>
                         </group>
-                        <notebook>
-                            <page string="Description">
-                                <field name='description' placeholder="Describe here the issue you encounter with the material.."/>
-                            </page>
-                        </notebook>
+                        <field name='description' placeholder="Internal Note ......."/>
                     </sheet>
                     <div class="oe_chatter">
                         <field name="message_follower_ids" widget="mail_followers"/>
@@ -90,6 +88,7 @@
                     <field name="priority"/>
                     <field name="user_id"/>
                     <field name="category_id"/>
+                    <field name="kanban_state"/>
                     <field name="message_summary"/>
                     <templates>
                         <t t-name="kanban-tooltip">
@@ -119,9 +118,12 @@
                                         <t t-raw="record.message_summary.raw_value"/>
                                         <span t-if="record.category_id.raw_value"><field name="category_id"/></span>
                                     </div>
-                                    <div class="oe_kanban_right">
-	                                    <field name="priority" widget="priority"/>
-                                        <img t-att-src="kanban_image('res.users', 'image_small', record.user_id.raw_value)" t-att-title="record.user_id.value" width="24" height="24" class="oe_kanban_avatar"/>
+                                    <div class="oe_kanban_bottom_right">
+                                        <img t-att-src="kanban_image('res.users', 'image_small', record.user_id.raw_value)" t-att-title="record.user_id.value" width="24" height="24" class="oe_kanban_avatar pull-right"/>
+                                        <div class="pull-left" groups="base.group_user">
+                                            <field name="kanban_state" widget="kanban_state_selection"/>
+                                            <field name="priority" widget="priority"/>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="oe_clear"></div>
@@ -137,7 +139,7 @@
             <field name="name">hr.material.maintenance_request.tree</field>
             <field name="model">hr.material.maintenance_request</field>
             <field name="arch" type="xml">
-                <tree string="maintenance Request" fonts="bold:message_unread==True" version="7.0">
+                <tree string="maintenance Request" fonts="bold:message_unread==True">
                     <field name="message_unread" invisible="1"/>
                     <field name="name"/>
                     <field name="request_date" groups="base.group_no_one"/>
@@ -156,7 +158,7 @@
             <field name="view_id" ref="hr_material_maintenance_request_view_kanban"/>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
-                    Click to add a new maintenance request or send an email to *alias*(if alias is configured).
+                    Click to add a new maintenance request or send an email to *alias*.
                 </p><p>
                     Follow the process of the request and communicate with the collaborator.
                 </p>
@@ -174,7 +176,7 @@
             <field name="view_id" ref="hr_material_maintenance_request_view_kanban"/>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
-                    Click to add a new maintenance request or send an email to *alias*(if alias is configured).
+                    Click to add a new maintenance request or send an email to *alias*.
                 </p><p>
                     Follow the process of the request and communicate with the collaborator.
                 </p>
@@ -193,7 +195,7 @@
             <field name="view_id" ref="hr_material_maintenance_request_view_kanban"/>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
-                    Click to add a new maintenance request or send an email to *alias*(if alias is configured).
+                    Click to add a new maintenance request or send an email to *alias*.
                 </p><p>
                     Follow the process of the request and communicate with the collaborator.
                 </p>
@@ -212,11 +214,13 @@
             <field name="name">hr.material.form</field>
             <field name="model">hr.material</field>
             <field name="arch" type="xml">
-                <form string="Materials" version="7.0">
+                <form string="Materials">
                     <sheet>
                         <div class="oe_title">
                             <label for="name" class="oe_edit_only" string="Name"/>
                             <h1><field name="name" string="Name"/></h1>
+                            <label for="serial_no" class="oe_edit_only"/>
+                            <field name="serial_no"/>
                         </div>
                         <div class="oe_right oe_button_box" name="buttons">
 	                        <button name="%(action_maintenance_request_link)d" 
@@ -228,20 +232,15 @@
 	                    </div>
                         <group>
 	                        <group>
-	                            <field name="category_id" groups="base.group_hr_manager" on_change="1"/>
-	                            <field name="material_assign_to" on_change="1"/>
+	                            <field name="category_id" groups="base.group_hr_manager" on_change="1" options="{&quot;no_open&quot;: True}"/>
+	                            <field name="material_assign_to" on_change="1" widget="radio"/>
+	                            <field name="employee_id" string="Employee" attrs="{'invisible': ['|', ('material_assign_to', '=', 'department'), ('material_assign_to', '=', False)]}"/>
+                                <field name="department_id" string="Department" attrs="{'invisible': ['|', ('material_assign_to', '=', 'employee'), ('material_assign_to', '=', False)]}"/>
 	                        </group>
 	                        <group>
 	                            <field name="user_id"/>
-	                            <field name="employee_id" string="Employee" attrs="{'invisible': ['|', ('material_assign_to', '=', 'department'), ('material_assign_to', '=', False)]}"/>
-	                            <field name="department_id" string="Department" attrs="{'invisible': ['|', ('material_assign_to', '=', 'employee'), ('material_assign_to', '=', False)]}"/>
-	                        </group>
-	                        <group>
-	                            <field name="serial_no"/>
-	                        </group>
-	                        <group>
 	                            <field name="scrap_date" groups="base.group_no_one"/>
-	                            <field name="assign_date" groups="base.group_no_one"/>
+                                <field name="assign_date" groups="base.group_no_one"/>
 	                        </group>
                         </group>
                         <notebook>
@@ -331,7 +330,7 @@
             <field name="name">hr.material.tree</field>
             <field name="model">hr.material</field>
             <field name="arch" type="xml">
-                <tree string="Assign To Employee"  fonts="bold:message_unread==True" version="7.0">
+                <tree string="Assign To Employee"  fonts="bold:message_unread==True">
                     <field name="message_unread" invisible="1"/>
                     <field name="name"/>
                     <field name="employee_id" string="Employee"/>
@@ -350,7 +349,7 @@
             <field name="name">hr.material.search</field> 
             <field name="model">hr.material</field>
             <field name="arch" type="xml">
-                <search string="Search" version="7.0">
+                <search string="Search">
                     <field name="name"/>
                     <field name="serial_no"/>
                     <field name="category_id"/>
@@ -414,7 +413,7 @@
         </record>
 
         <menuitem name="Materials" parent="menu_material_title" 
-            groups="base.group_hr_manager,base.group_user" 
+            groups="base.group_hr_manager,base.group_user"
             id="menu_hr_material_form" 
             action="action_hr_material_form" sequence="2"/>
 
@@ -433,7 +432,7 @@
             <field name="name">hr.material.category.form</field>
             <field name="model">hr.material.category</field>
             <field name="arch" type="xml">
-                <form string="Material Categories" version="7.0">
+                <form string="Material Categories">
                     <sheet>
                     <div class="oe_title">
                         <label for="name" class="oe_edit_only" string="Category Name"/>
@@ -455,24 +454,27 @@
                             <field string="Maintenance" name="maintenance_count" widget="statinfo"/>
                         </button>
                     </div>
-                    <group>
-                        <group col="4">
-                            <field name="user_id"/>
-                        </group>
-                        <group name="group_alias" attrs="{'invisible': [('alias_domain', '=', False)]}">
-                            <label for="alias_name" string="Email Alias"/>
-                            <div name="alias_def">
-                                <field name="alias_id" class="oe_read_only oe_inline"
-                                        string="Email Alias" required="0"/>
-                                <div class="oe_edit_only oe_inline" name="edit_alias" style="display: inline;" >
-                                    <field name="alias_name" class="oe_inline"/>@<field name="alias_domain" class="oe_inline" readonly="1"/>
-                                </div>
-                            </div>
-                        </group>
-                    </group>
-                    <group string="Comments">
-                        <field name="note" nolabel="1"/>
-                    </group>
+                    <notebook>
+                        <page string="Description">
+                            <field name="note" nolabel="1"/>
+                        </page>
+                        <page string="Extra Information">
+                            <group>
+                                <group col="4">
+                                    <field name="user_id"/>
+                                </group>
+                                <group name="group_alias" attrs="{'invisible': [('alias_domain', '=', False)]}">
+                                    <label for="alias_name" string="Email Alias"/>
+                                    <div name="alias_def">
+                                        <field name="alias_id" class="oe_read_only oe_inline" string="Email Alias" required="0"/>
+                                        <div class="oe_edit_only oe_inline" name="edit_alias" style="display: inline;" >
+                                            <field name="alias_name" class="oe_inline"/>@<field name="alias_domain" class="oe_inline" readonly="1"/>
+                                        </div>
+                                    </div>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
                     </sheet>
                     <div class="oe_chatter">
                         <field name="message_follower_ids" widget="mail_followers"/>
@@ -487,7 +489,7 @@
             <field name="name">hr.material.category.tree</field>
             <field name="model">hr.material.category</field>
             <field name="arch" type="xml">
-                <tree string="Assign To Employee" version="7.0">
+                <tree string="Assign To Employee">
                     <field name="name" string="Name"/>
                     <field name="user_id"/>
                 </tree>
@@ -499,7 +501,7 @@
             <field name="name">hr.material.category.kanban</field>
             <field name="model">hr.material.category</field>
             <field name="arch" type="xml">
-                <kanban version="7.0" class="oe_background_grey">
+                <kanban class="oe_background_grey">
                     <field name="name"/>
                     <field name="color"/>
                     <field name="material_ids"/>
@@ -549,7 +551,7 @@
             <field name="name">hr.material.category.search</field>
             <field name="model">hr.material.category</field>
             <field name="arch" type="xml">
-                <search string="Search" version="7.0">
+                <search string="Search">
                     <field name="name" string="Category Name" filter_domain="[('name','ilike',self)]"/>
                     <group  expand='0' string='Group by...'>
                         <filter string='Responsible' icon="terp-stock_symbol-selection" domain="[]" context="{'group_by' : 'user_id'}"/>
@@ -572,7 +574,7 @@
 
         <menuitem name="Material Categories"
             id="menu_material_cat"
-            groups="base.group_hr_manager"
+            groups="hr.group_materials_allocation"
             action="action_hr_material_category_form"
             parent="menu_material_title" sequence="1"/>
 
@@ -629,7 +631,7 @@
             parent="menu_material_configuration"
             id="menu_material_stage_configuration"
             action="open_maintenance_request_stage"
-            sequence="2"/>
+            sequence="2" groups="base.group_no_one"/>
 
     </data>
 </openerp>
