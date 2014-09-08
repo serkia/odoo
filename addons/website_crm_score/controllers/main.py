@@ -14,6 +14,7 @@ class PageController(addons.website.controllers.main.Website):
             cr, uid, context = request.cr, request.uid, request.context
             lead_id = request.registry["crm.lead"].decode(request)
             url = request.httprequest.url
+            import pdb; pdb.set_trace()
             date = fields.Datetime.now()
             vals = {'lead_id': lead_id, 'partner_id': request.session.get('uid', None), 'url': url}
             if lead_id and request.registry['website.crm.pageview'].create_pageview(cr, uid, vals, context=context):

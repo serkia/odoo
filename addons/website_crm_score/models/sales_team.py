@@ -15,7 +15,16 @@ class crm_case_section(osv.osv):
 
     @api.one
     def _assigned_leads(self):
-        self.assigned_leads = self.env['crm.lead'].search_count([('section_id', '=', self.id), ('user_id', '!=', False)])
+        limit_date = datetime.datetime.now() - datetime.timedelta(days=30)
+        domain = [('assign_date', '>=', limit_date.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
+                  ('section_id', '=', self.id),
+                  ('user_id', '!=', False)
+                  ]
+        self.assigned_leads = self.env['crm.lead'].search_count(domain)
+
+    @api.one
+    def _unassigned_leads(self):
+        self.unassigned_leads = self.env['crm.lead'].search_count([('section_id', '=', self.id), ('user_id', '=', False)])
 
     @api.one
     def _capacity(self):
@@ -26,6 +35,7 @@ class crm_case_section(osv.osv):
     lead_ids = fields.One2many('crm.lead', 'section_id', string='Leads')
     leads_count = fields.Integer(compute='_count_leads')
     assigned_leads = fields.Integer(compute='_assigned_leads')
+    unassigned_leads = fields.Integer(compute='_unassigned_leads')
     capacity = fields.Integer(compute='_capacity')
     section_user_ids = fields.One2many('section.user', 'section_id', string='Salemen')
 
@@ -59,6 +69,26 @@ class crm_case_section(osv.osv):
         def remove_spam_leads():
 
             def unary_domain(d):
+                # this function takes a domain d and return the unary equivalent
+                # eg: let any 3-tuple ('criteria', 'op', 'value') be written as d# (d1, d2, d3...)
+                #   - unary :
+                #           - [d1]            = d1
+                #           - ['!', d1]       = -d1
+                #           - ['|', d1, d2]   = d1 | d2
+                #           - ['&', d1, d2]   = d1 & d2
+                #           - ['|', '!', d1, '&', d2, d3] = -d1 | (d2 & d3)
+                #   - not unary :
+                #           - [d1, d2]  = d1 & d2 ('&' is not explicit)
+                #               in the latter case, there are 2 unary expressions
+                #           - ['!', d1, d2, d3] = -d1 & d2 & d3 ('&' are not explicit)
+                #               in the latter case, there are 3 unary expressions
+                #
+                # the following loop count the number of unary expression in d and adds as many (minus one) '&' at the begining of the domain
+                #   - d# counts as one unary expression
+                #   - '!' doesn't count as a unary expression (['!', d1] = -d1)
+                #   - '|' and '&' count as minus one unary expression because it is a binary operation (['|', d1, d2] = d1 | d2)
+                #
+
                 n = 0
                 for e in d:
                     if e == '!':
@@ -79,6 +109,7 @@ class crm_case_section(osv.osv):
             nb_filters = 0
 
             # computing one domain for all the spam filters
+            # disjunction of the unary domains
             for spam_filter in all_spam_filters:
                 # NODE: as many db access as there are filters... (might be huge)
                 u_domain = unary_domain(safe_eval(spam_filter['domain']))

@@ -51,20 +51,95 @@
             </field>
         </record>
 
+
+<!--         <record id="crm_score_lead_filter" model="ir.ui.view">
+            <field name="name">crm_lead_sales_search</field>
+            <field name="model">crm.lead</field>
+            <field name="arch" type="xml">
+                <search string="Leads Search">
+                    <field name="user_id"/>
+                </search>
+            </field>
+        </record>
+ -->
+        <record model="ir.ui.view" id="crm_case_graph_view_leads_sales">
+            <field name="name">Unassigned leads</field>
+            <field name="model">crm.lead</field>
+            <field name="arch" type="xml">
+                <graph string="Opportunities" type="line">
+                    <field name="create_date" type="row"/>
+                    <!-- <field name="planned_revenue" type="measure"/> -->
+                </graph>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="crm_score_views_action_graph">
+            <field name="name">Unassigned leads</field>
+            <field name="res_model">crm.lead</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">graph,tree,form</field>
+            <field name="view_id" ref="crm_case_graph_view_leads_sales"/>
+            <!-- <field name="search_view_id" ref="crm_score_lead_filter"/> -->
+            <!-- <field name="context" eval="{}"/> -->
+        </record>
+
+
+        <record model="ir.ui.view" id="crm_case_table_view_leads_sales">
+            <field name="name">Opportunities</field>
+            <field name="model">crm.lead</field>
+            <field name="arch" type="xml">
+                <graph string="Opportunities" type="pivot">
+                    <field name="stage_id" type="col"/>
+                    <field name="user_id" type="row"/>
+                    <!-- <field name="planned_revenue" type="measure"/> -->
+                </graph>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="crm_score_views_action_table">
+            <field name="name">Opportunities</field>
+            <field name="res_model">crm.lead</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">graph</field>
+            <field name="view_id" ref="crm_case_table_view_leads_sales"/>
+            <!-- <field name="search_view_id" ref="crm_score_lead_filter"/> -->
+            <!-- <field name="context" eval="{}"/> -->
+        </record>
+
         <!-- SalesTeam Form View - Lead information and page Assignation added -->
         <record model="ir.ui.view" id="sales_team_form_view_assign">
             <field name="name">crm.case.section.form.inherit</field>
             <field name="model">crm.case.section</field>
             <field name="inherit_id" ref="sales_team.crm_case_section_view_form"/>
             <field name="arch" type="xml">
+                <xpath expr="//div[@class='oe_title']" position="before">
+                    <div class="oe_right oe_button_box" name="buttons">
+                        <button class="oe_inline oe_stat_button" type="action" 
+                            name="%(crm_score_views_action_graph)d" icon="fa-tags"
+                            context="{'search_default_section_id': active_id, 'search_default_user_id': False }" 
+                            >
+                            <!-- Domain marche pas :p -->
+                            <field string="Unassigned leads" name="unassigned_leads" widget="statinfo"/>
+                        </button>
+                        <button class="oe_inline oe_stat_button" type="action" 
+                            name="%(crm_score_views_action_table)d" icon="fa-tags"
+                            context="{'search_default_section_id': active_id}" 
+                            >
+                            <field string="Opportunities" name="leads_count" widget="statinfo"/>
+                        </button>
+                    </div>
+                </xpath>
                 <xpath expr="//group[@name='left']" position="after">
                     <group name="right">
                         <field name="score_section_domain" widget="char_domain" options="{'model': 'crm.lead'}"/>
-                        <field name="capacity"/>
-                        <field name="leads_count"/>
-                        <field name="assigned_leads"/>
-                        <button name="assign_leads" type="object" string="Assign (dev)"/>
-                        <!-- <button name="old_assign_leads" type="object" string="Old Assign"/> -->
+                        <label for="assigned_leads"/>
+                        <div>
+                            <field name="assigned_leads" class="oe_inline"/> / <!-- how to put it as assigned/capacity -->
+                            <field name="capacity" class="oe_inline"/>
+                            <br/>
+                            <button name="assign_leads" type="object" string=" Assign Now" class="oe_link"/>
+                        </div>
+                        
                     </group>
                 </xpath>
                 <xpath expr="//page[@string='Team Members']" position="replace">
@@ -87,22 +162,20 @@
                                                         </li>
                                                         <li>
                                                             <div style='text-align: center; padding: 4px;'>
-                                                                <!-- <button name="toggle_active" type="object"> -->
-                                                                    <t t-if="record.running.raw_value === true">
-                                                                        <button name="toggle_active" type="object" style="
-                                                                            color: white;
-                                                                            background-image: -webkit-gradient(linear, left top, left bottom, from(#3fdf3f), to(#1aa21a));">
-                                                                            <span class="fa fa-check"/>
-                                                                        </button>
-                                                                    </t> 
-                                                                    <t t-if="record.running.raw_value === false">
-                                                                        <button name="toggle_active" type="object" style="
-                                                                            color: white;
-                                                                            background-image: -webkit-gradient(linear, left top, left bottom, from(#df3f3f), to(#a21a1a));">
-                                                                            <span class="fa fa-times"/>
-                                                                        </button>
-                                                                    </t>
-                                                                <!-- </button> -->
+                                                                <t t-if="record.running.raw_value === true">
+                                                                    <button name="toggle_active" type="object" style="
+                                                                        color: white;
+                                                                        background-image: -webkit-gradient(linear, left top, left bottom, from(#3faf3f), to(#1a721a));">
+                                                                        <span class="fa fa-check"/>
+                                                                    </button>
+                                                                </t> 
+                                                                <t t-if="record.running.raw_value === false">
+                                                                    <button name="toggle_active" type="object" style="
+                                                                        color: white;
+                                                                        background-image: -webkit-gradient(linear, left top, left bottom, from(#df3f3f), to(#a21a1a));">
+                                                                        <span class="fa fa-times"/>
+                                                                    </button>
+                                                                </t>
                                                             </div>
                                                         </li>
                                                     </ul>
@@ -114,7 +187,7 @@
                                                                 <td style='width: 240px'>
                                                                     <ul>
                                                                         <li><a type="open">
-                                                                            <field name="user_name"/>
+                                                                            <b><field name="user_name"/></b>
                                                                         </a></li>
                                                                         <!-- widget is uesless because char_domain doesn't exist for kanban view-->
                                                                         <li><field name="section_user_domain" widget="filters"/></li>
@@ -143,5 +216,6 @@
                </xpath>
             </field>
         </record>
+
     </data>
 </openerp>

@@ -18,13 +18,13 @@
         </record> -->
 
         <!-- Score Menu Item -->
-        <menuitem id="leads_menu" name="website_crm_score" parent="base.menu_base_partner" />
+        <menuitem id="leads_menu" name="Leads Management" parent="base.marketing_menu" />
 
         <!-- 
         PAGEVIEW
         -->
         <!-- PageView Search Filter on lead_id -->
-         <record id="crm_score_pageview_filter" model="ir.ui.view">
+        <record id="crm_score_pageview_filter" model="ir.ui.view">
             <field name="name">Website crm score pageviews</field>
             <field name="model">website.crm.pageview</field>
             <field name="arch" type="xml">
@@ -90,7 +90,7 @@
         </record>
 
         <!-- PageView Menu Item -->
-        <menuitem id="pageview_menu" name="PageViews" parent="leads_menu" action="website_crm_score_pageviews" />
+        <menuitem id="pageview_menu" name="Website Pages" parent="base.marketing_reporting_menu" action="website_crm_score_pageviews" />
 
         <!-- 
         LEADS
@@ -103,6 +103,7 @@
             <field name="arch" type="xml">
                 <field name="country_id" position="after">
                     <field name="lang_id"/>
+                    <field name="score_ids"/>
                 </field>
             </field>
         </record>
@@ -130,10 +131,9 @@
             <field name="arch" type="xml">
                 <xpath expr="//button[@class='oe_inline oe_stat_button']" position="after">
                     <button class="oe_inline oe_stat_button" type="action" 
-                            name="%(website_crm_score_pageviews)d" icon="fa-tags"
-                            context="{'search_default_lead_id': active_id, 'default_lead_id': active_id}">
-                            <!-- TODO: The count is not on the same line as the 'label' -->
-                            <div>Page Views: <field name="pageviews_count"/></div>
+                        name="%(website_crm_score_pageviews)d" icon="fa-tags"
+                        context="{'search_default_lead_id': active_id, 'default_lead_id': active_id}">
+                        <field string="Page views" name="pageviews_count" widget="statinfo"/>
                     </button>
                 </xpath>
                 <field name="priority" position="after">
@@ -202,15 +202,26 @@
             <field name="arch" type="xml">
                 <form string="Scores">
                     <sheet>
-                        <h1>
-                            <field name="name"/>
-                        </h1>
+                        <div class="oe_right oe_button_box" name="buttons">
+                            <button class="oe_inline oe_stat_button" type="action" 
+                                name="%(crm.crm_case_category_act_leads_all)d" icon="fa-tags"
+                                context="{'score_ids': active_id}" 
+                                > <!-- lead.score_ids contains active_id -->
+                                <field string="Leads" name="leads_count" widget="statinfo"/>
+                            </button>
+                        </div>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name"/>
+                            </h1>
+                        </div>
                         <group>
                             <field name="value"/>
                             <field name="domain"/>
                             <field name="running"/>
                         </group>
-                        <button name="assign_scores_to_leads" type="object" string="Assign (dev)"/>
+                        <!-- <button name="assign_scores_to_leads" type="object" string="Assign (dev)"/> -->
+                        <button name="assign_scores_to_leads" type="object" string=" Assign Now" class="oe_link"/>
                     </sheet>
                 </form>
             </field>
@@ -239,7 +250,7 @@
         </record>
 
         <!-- Score Menu Item -->
-        <menuitem id="scores_menu" name="Scores" parent="leads_menu" action="score_action" />
+        <menuitem id="scores_menu" name="Scoring Rules" parent="leads_menu" action="score_action" />
 
         <!-- 
         SECTION USER
@@ -279,16 +290,104 @@
             </field>
         </record>
 
+        <!-- Mega Moche !!! -->
+        <record model="ir.ui.view" id="section_user_kanban">
+            <field name="name">event.event.kanban</field>
+            <field name="model">section.user</field>
+            <field name="arch" type="xml">
+                <kanban quick_create="false" create="true">
+                    <field name="user_id"/>
+                    <field name="running"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <table>
+                                <tr>
+                                    <td>
+                                        <ul>
+                                            <li>
+                                                <a type="open">
+                                                    <img t-att-src="kanban_image('res.partner', 'image_small', record.user_id.id)" class="oe_kanban_image"/>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <div style='text-align: center; padding: 4px;'>
+                                                    <t t-if="record.running.raw_value === true">
+                                                        <button name="toggle_active" type="object" style="
+                                                            color: white;
+                                                            background-image: -webkit-gradient(linear, left top, left bottom, from(#3faf3f), to(#1a721a));">
+                                                            <span class="fa fa-check"/>
+                                                        </button>
+                                                    </t> 
+                                                    <t t-if="record.running.raw_value === false">
+                                                        <button name="toggle_active" type="object" style="
+                                                            color: white;
+                                                            background-image: -webkit-gradient(linear, left top, left bottom, from(#df3f3f), to(#a21a1a));">
+                                                            <span class="fa fa-times"/>
+                                                        </button>
+                                                    </t>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </td>
+                                    <td> 
+                                        <div class="oe_kanban_details">
+                                            <table>
+                                                <tr>
+                                                    <td style='width: 240px'>
+                                                        <ul>
+                                                            <li><a type="open">
+                                                                <b><field name="user_name"/></b>
+                                                            </a></li>
+                                                            <li><a type="open">
+                                                                <field name="section_id"/>
+                                                            </a></li>
+                                                            <!-- widget is uesless because char_domain doesn't exist for kanban view-->
+                                                            <li><field name="section_user_domain" widget="filters"/></li>
+                                                        </ul>
+                                                    </td> 
+                                                    <td>
+                                                        <field name="maximum_user_leads" invisible="1"/>
+                                                        <!-- todo: edit css -->
+                                                       <!--  <field name="percentage_leads" widget="gauge" 
+                                                            style="width:120px; height: 100px; cursor: pointer;"/>  -->
+                                                        <field name="leads_count" widget="gauge" 
+                                                            style="width:108px; height: 81px; cursor: pointer;"
+                                                            options="{'max_field': 'maximum_user_leads'}"/> 
+                                                    </td> 
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </td> 
+                                </tr>
+                            </table>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
         <!-- Section User Action - form - tree -->
         <record model="ir.actions.act_window" id="section_user_action">
             <field name="name">SectionUser</field>
             <field name="res_model">section.user</field>
             <field name="view_type">form</field>
+            <field name="view_mode">kanban,tree,form</field>
+        </record>
+
+        <!-- Section User Menu Item -->
+        <menuitem id="section_user" name="Leads Assignation" parent="leads_menu" action="section_user_action" />
+
+        <!-- SECTION -->
+        <!-- Section Action - form - tree -->
+        <record model="ir.actions.act_window" id="section_action">
+            <field name="name">Sections</field>
+            <field name="res_model">crm.case.section</field>
+            <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
         </record>
 
         <!-- Section User Menu Item -->
-        <menuitem id="section_user" name="SectionUser" parent="leads_menu" action="section_user_action" />
+        <menuitem id="section" name="Teams Assignation" parent="leads_menu" action="section_action" />        
 
         <!-- 
         IR FILTER
@@ -299,9 +398,6 @@
             <field name="model">ir.filters</field>
             <field name="inherit_id" ref="base.ir_filters_view_search" />
             <field name="arch" type="xml">
-                <!-- <xpath expr="//group[@string='Group By']/filter[@string='Model']" position="after">
-                    <filter string="Action" domain="[]" context="{'group_by':'action_id'}"/>
-                </xpath> -->
                 <field name="user_id" position="after">
                     <field name="action_id"/>
                 </field>
@@ -315,7 +411,6 @@
             <field name="arch" type="xml">
                 <tree string="Spam Ir Filters">
                     <field name="name"/>
-                    <!-- <field name="user_id"/> -->
                     <field name="domain"/>
                     <field name="model_id"/>
                     <field name="action_id"/>
@@ -337,7 +432,7 @@
         </record>
 
         <!-- Ir Filters Menu Item -->
-        <menuitem id="spam_ir_filters" name="SpamIrFilters" parent="leads_menu" action="spam_ir_filters_action" />
+        <!-- <menuitem id="spam_ir_filters" name="SpamIrFilters" parent="leads_menu" action="spam_ir_filters_action" /> -->
 
         <record id="action_mark_as_spam" model="ir.actions.server">
             <field name="name">Mark As Spam</field>
@@ -356,29 +451,15 @@ for lead_id in context['active_ids']:
             </field>
         </record>
 
-<!--         <record id="action2" model="ir.actions.act_window">
-            <field name="name">Mark As Spam</field>
-            <field name="type">ir.actions.act_window</field>
-            <field name="res_model">ir.filters</field>
-            <field name="context" eval=
-                "{
-                'default_name': 'SpamFilter',
-                'default_action_id': ref('spam_ir_filters_action'), 
-                'default_model_id': 'crm.lead', 
-                'default_domain': '[(\'email_from\',\'=\',' + 'Lead email here... how do I do this ?' + ')]'
-                }"
-            />
-            <field name="view_type">form</field>
-            <field name="view_id" ref="base.ir_filters_view_form"/>
-        </record>
- -->
-        <record id="ir_mark_as_spam" model="ir.values">
+        <!-- The following enables the more action that creates the filter on the email address of the lead -->
+<!--         <record id="ir_mark_as_spam" model="ir.values">
             <field eval="'client_action_multi'" name="key2"/>
             <field eval="'crm.lead'" name="model"/>
             <field name="name">Mark As Spam</field>
-            <!-- <field eval="'ir.actions.act_window,'+str(action2)" name="value"/> -->
             <field eval="'ir.actions.server,%d'%action_mark_as_spam" name="value"/>
-        </record>
+        </record> -->
+
+
 
 <!--         <record id="mt_scoring" model="mail.message.subtype">
             <field name="name">Scoring</field>
