@@ -192,12 +192,21 @@ class crm_lead(format_address, osv.osv):
                     duration = abs(int(ans.days))
                 res[lead.id][field] = duration
         return res
+
     def _meeting_count(self, cr, uid, ids, field_name, arg, context=None):
         Event = self.pool['calendar.event']
         return {
             opp_id: Event.search_count(cr,uid, [('opportunity_id', '=', opp_id)], context=context)
             for opp_id in ids
         }
+
+    def _calls_count(self, cr, uid, ids, field_name, arg, context=None):
+        Event = self.pool['crm.phonecall']
+        return {
+            opp_id: Event.search_count(cr,uid, [('opportunity_id', '=', opp_id)], context=context)
+            for opp_id in ids
+        }
+
     _columns = {
         'partner_id': fields.many2one('res.partner', 'Partner', ondelete='set null', track_visibility='onchange',
             select=True, help="Linked partner (optional). Usually created when converting the lead."),
@@ -272,6 +281,7 @@ class crm_lead(format_address, osv.osv):
                             domain="[('section_id','=',section_id)]"),
         'planned_cost': fields.float('Planned Costs'),
         'meeting_count': fields.function(_meeting_count, string='# Meetings', type='integer'),
+        'calls_count': fields.function(_calls_count, string='# Calls', type='integer'),
     }
 
     _defaults = {
