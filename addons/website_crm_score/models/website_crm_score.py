@@ -17,7 +17,8 @@ class website_crm_score(models.Model):
     lead_ids = fields.Many2many('crm.lead', 'crm_lead_score_rel', 'score_id', 'lead_id', string='Leads')
     leads_count = fields.Integer(compute='_count_leads')
 
-    # ids is needed when the button is used to start the function, that button should be removed in fine
+    # ids is needed when the button is used to start the function,
+    # the default [] is needed for the function to be usable by the cron
     @api.model
     def assign_scores_to_leads(self, ids=[]):
 

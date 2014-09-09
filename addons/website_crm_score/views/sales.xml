@@ -28,7 +28,6 @@
                         <field name="section_user_ids"/>
                     </field>
                     <xpath expr="//div[@class='oe_clear']" position="after">
-                        <!-- TODO: make this nice -->
                         <div class="oe_items_list">
                             <div>
                                 Capacity: <b><field name="capacity"/></b>
@@ -100,7 +99,7 @@
             <field name="name">Opportunities</field>
             <field name="res_model">crm.lead</field>
             <field name="view_type">form</field>
-            <field name="view_mode">graph</field>
+            <field name="view_mode">graph,tree,form</field>
             <field name="view_id" ref="crm_case_table_view_leads_sales"/>
             <!-- <field name="search_view_id" ref="crm_score_lead_filter"/> -->
             <!-- <field name="context" eval="{}"/> -->
@@ -116,9 +115,8 @@
                     <div class="oe_right oe_button_box" name="buttons">
                         <button class="oe_inline oe_stat_button" type="action" 
                             name="%(crm_score_views_action_graph)d" icon="fa-tags"
-                            context="{'search_default_section_id': active_id, 'search_default_user_id': False }" 
+                            context="{'search_default_section_id': active_id, 'search_default_unassigned': 1 }" 
                             >
-                            <!-- Domain marche pas :p -->
                             <field string="Unassigned leads" name="unassigned_leads" widget="statinfo"/>
                         </button>
                         <button class="oe_inline oe_stat_button" type="action" 
@@ -134,7 +132,7 @@
                         <field name="score_section_domain" widget="char_domain" options="{'model': 'crm.lead'}"/>
                         <label for="assigned_leads"/>
                         <div>
-                            <field name="assigned_leads" class="oe_inline"/> / <!-- how to put it as assigned/capacity -->
+                            <field name="assigned_leads" class="oe_inline"/> / <!-- le slash est en hauteur, c'est moche -->
                             <field name="capacity" class="oe_inline"/>
                             <br/>
                             <button name="assign_leads" type="object" string=" Assign Now" class="oe_link"/>
@@ -164,14 +162,14 @@
                                                             <div style='text-align: center; padding: 4px;'>
                                                                 <t t-if="record.running.raw_value === true">
                                                                     <button name="toggle_active" type="object" style="
-                                                                        color: white;
+                                                                        color: #eeeeee;
                                                                         background-image: -webkit-gradient(linear, left top, left bottom, from(#3faf3f), to(#1a721a));">
                                                                         <span class="fa fa-check"/>
                                                                     </button>
                                                                 </t> 
                                                                 <t t-if="record.running.raw_value === false">
                                                                     <button name="toggle_active" type="object" style="
-                                                                        color: white;
+                                                                        color: #eeeeee;
                                                                         background-image: -webkit-gradient(linear, left top, left bottom, from(#df3f3f), to(#a21a1a));">
                                                                         <span class="fa fa-times"/>
                                                                     </button>
@@ -195,9 +193,6 @@
                                                                 </td> 
                                                                 <td>
                                                                     <field name="maximum_user_leads" invisible="1"/>
-                                                                    <!-- todo: edit css -->
-                                                                   <!--  <field name="percentage_leads" widget="gauge" 
-                                                                        style="width:120px; height: 100px; cursor: pointer;"/>  -->
                                                                     <field name="leads_count" widget="gauge" 
                                                                         style="width:108px; height: 81px; cursor: pointer;"
                                                                         options="{'max_field': 'maximum_user_leads'}"/> 

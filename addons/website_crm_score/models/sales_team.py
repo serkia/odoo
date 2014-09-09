@@ -39,6 +39,8 @@ class crm_case_section(osv.osv):
     capacity = fields.Integer(compute='_capacity')
     section_user_ids = fields.One2many('section.user', 'section_id', string='Salemen')
 
+    # ids is needed when the button is used to start the function,
+    # the default [] is needed for the function to be usable by the cron
     @api.model
     def assign_leads(self, ids=[]):
         # note: this is old api translated to new api
@@ -70,7 +72,7 @@ class crm_case_section(osv.osv):
 
             def unary_domain(d):
                 # this function takes a domain d and return the unary equivalent
-                # eg: let any 3-tuple ('criteria', 'op', 'value') be written as d# (d1, d2, d3...)
+                # eg: let any 3-tuple ('criteria', 'op', 'value') be written as d# like d1, d2, d3...
                 #   - unary :
                 #           - [d1]            = d1
                 #           - ['!', d1]       = -d1
@@ -83,7 +85,7 @@ class crm_case_section(osv.osv):
                 #           - ['!', d1, d2, d3] = -d1 & d2 & d3 ('&' are not explicit)
                 #               in the latter case, there are 3 unary expressions
                 #
-                # the following loop count the number of unary expression in d and adds as many (minus one) '&' at the begining of the domain
+                # the following loop counts the number of unary expression in d and adds as many (minus one) '&' at the begining of the domain
                 #   - d# counts as one unary expression
                 #   - '!' doesn't count as a unary expression (['!', d1] = -d1)
                 #   - '|' and '&' count as minus one unary expression because it is a binary operation (['|', d1, d2] = d1 | d2)
@@ -117,12 +119,10 @@ class crm_case_section(osv.osv):
                     all_domain.extend(u_domain)
                     nb_filters += 1
             all_domain = ['|'] * (nb_filters - 1) + all_domain
-            # print 'all_domain', all_domain
 
             # searching for all leads matching spam filters
             spam_leads = self.env["crm.lead"].search(all_domain)
             for spam_lead in spam_leads:
-                # print 'spam_lead', spam_lead
                 pass
 
         def assign_leads_to_salesteams(all_salesteams, all_leads):

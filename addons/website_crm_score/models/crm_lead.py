@@ -14,12 +14,13 @@ class Lead(models.Model):
         self.pageviews_count = len(self.score_pageview_ids)
 
     @api.one
+    @api.depends('score_ids')
     def _compute_score(self):
         self.score = 0
         for score_id in self.score_ids:
             self.score += score_id.value
 
-    score = fields.Float(compute='_compute_score')
+    score = fields.Float(compute='_compute_score', store=True)
     score_ids = fields.Many2many('website.crm.score', 'crm_lead_score_rel', 'lead_id', 'score_id', string='Score')
     score_pageview_ids = fields.One2many('website.crm.pageview', 'lead_id', string='Page Views')
     assign_date = fields.Datetime(string='Assign Date')

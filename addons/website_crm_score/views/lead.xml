@@ -117,6 +117,8 @@
                 <field name="phone" position="after">
                     <field name="score" />
                 </field>
+                <!-- todo: score fait planter la vue list quand 
+                on utilise les boutons pour accéder a la vue graph -->
                 <field name="section_id" position="after">
                     <field name="user_id" />
                 </field>
@@ -141,7 +143,6 @@
                 </field>
                 <xpath expr="//group[@string='Misc']" position="after">
                     <group string="Scoring">
-                        <!-- <field name="score"/> -->
                         <field name="score_ids"
                             widget="many2many_tags"
                             domain="[('object_id.model','=','crm.lead')]"
@@ -170,7 +171,7 @@
         </record>
 
         <!-- View Tree View - Track added -->
-        <record model="ir.ui.view" id="view_track_tree">
+<!--         <record model="ir.ui.view" id="view_track_tree">
             <field name="name">ir.ui.view.inherit.track</field>
             <field name="model">ir.ui.view</field>
             <field name="inherit_id" ref="base.view_view_tree" />
@@ -179,22 +180,30 @@
                     <field name="track"/>
                 </field>
             </field>
-        </record>
+        </record> -->
 
         <!-- View Action - tree - form -->
-        <record model="ir.actions.act_window" id="crm_score_views_action">
+ <!--        <record model="ir.actions.act_window" id="crm_score_views_action">
             <field name="name">Views</field>
             <field name="res_model">ir.ui.view</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
-        </record>
+        </record> -->
 
         <!-- Views Menu Item -->
-        <menuitem id="views_menu" name="Views" parent="leads_menu" action="crm_score_views_action" />
+        <!-- <menuitem id="views_menu" name="Views" parent="leads_menu" action="crm_score_views_action" /> -->
 
         <!-- 
         SCORE
          -->
+        <!-- Action to display the leads that have a particular score -->
+        <record model="ir.actions.act_window" id="score_leads">
+            <field name="name">Leads</field>
+            <field name="res_model">crm.lead</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('score_ids', 'in', active_id)]</field>
+        </record>
         <!-- Score Form View -->
         <record model="ir.ui.view" id="view_crm_score_form">
             <field name="name">Website Crm Score Form</field>
@@ -204,9 +213,8 @@
                     <sheet>
                         <div class="oe_right oe_button_box" name="buttons">
                             <button class="oe_inline oe_stat_button" type="action" 
-                                name="%(crm.crm_case_category_act_leads_all)d" icon="fa-tags"
-                                context="{'score_ids': active_id}" 
-                                > <!-- lead.score_ids contains active_id -->
+                                name="%(score_leads)d" icon="fa-tags"
+                                >
                                 <field string="Leads" name="leads_count" widget="statinfo"/>
                             </button>
                         </div>
@@ -220,8 +228,7 @@
                             <field name="domain"/>
                             <field name="running"/>
                         </group>
-                        <!-- <button name="assign_scores_to_leads" type="object" string="Assign (dev)"/> -->
-                        <button name="assign_scores_to_leads" type="object" string=" Assign Now" class="oe_link"/>
+                        <button name="assign_scores_to_leads" type="object" string=" Score Now" class="oe_link"/>
                     </sheet>
                 </form>
             </field>
@@ -267,8 +274,11 @@
                         </h1>
                         <group>
                             <field name="section_id"/>
-                            <!-- <field name="user_id"/> -->
-                            <field name="maximum_user_leads"/>
+                            <label for="maximum_user_leads" String="Maximum Leads / 30 days"/>
+                            <div>
+                                <field name="maximum_user_leads" class="oe_inline"/>
+                            </div>
+                            <!-- <field name="maximum_user_leads"/>  -->
                             <field name="section_user_domain" widget="char_domain" options="{'model': 'crm.lead'}"/>
                         </group>
                     </sheet>
@@ -313,14 +323,14 @@
                                                 <div style='text-align: center; padding: 4px;'>
                                                     <t t-if="record.running.raw_value === true">
                                                         <button name="toggle_active" type="object" style="
-                                                            color: white;
+                                                            color: #eeeeee;
                                                             background-image: -webkit-gradient(linear, left top, left bottom, from(#3faf3f), to(#1a721a));">
                                                             <span class="fa fa-check"/>
                                                         </button>
                                                     </t> 
                                                     <t t-if="record.running.raw_value === false">
                                                         <button name="toggle_active" type="object" style="
-                                                            color: white;
+                                                            color: #eeeeee;
                                                             background-image: -webkit-gradient(linear, left top, left bottom, from(#df3f3f), to(#a21a1a));">
                                                             <span class="fa fa-times"/>
                                                         </button>
@@ -341,15 +351,11 @@
                                                             <li><a type="open">
                                                                 <field name="section_id"/>
                                                             </a></li>
-                                                            <!-- widget is uesless because char_domain doesn't exist for kanban view-->
                                                             <li><field name="section_user_domain" widget="filters"/></li>
                                                         </ul>
                                                     </td> 
                                                     <td>
                                                         <field name="maximum_user_leads" invisible="1"/>
-                                                        <!-- todo: edit css -->
-                                                       <!--  <field name="percentage_leads" widget="gauge" 
-                                                            style="width:120px; height: 100px; cursor: pointer;"/>  -->
                                                         <field name="leads_count" widget="gauge" 
                                                             style="width:108px; height: 81px; cursor: pointer;"
                                                             options="{'max_field': 'maximum_user_leads'}"/> 
