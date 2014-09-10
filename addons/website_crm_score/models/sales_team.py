@@ -245,7 +245,7 @@ class crm_case_section(osv.osv):
                                 'section_id',
                                 'leads_count',
                                 'maximum_user_leads',
-                                'user_name',
+                                'name',
                                 'running',
                                 'percentage_leads'
                                 ]
@@ -316,7 +316,7 @@ class section_user(models.Model):
 
     section_id = fields.Many2one('crm.case.section', string='SaleTeam', required=True)
     user_id = fields.Many2one('res.users', string='Saleman', required=True)
-    user_name = fields.Char(related='user_id.partner_id.display_name')
+    name = fields.Char(related='user_id.partner_id.display_name')
     running = fields.Boolean(string='Running', default=True)
     section_user_domain = fields.Char('Domain')
     maximum_user_leads = fields.Integer('Maximum leads')

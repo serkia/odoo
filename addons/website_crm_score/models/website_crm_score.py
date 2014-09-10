@@ -32,7 +32,8 @@ class website_crm_score(models.Model):
         scores_to_write = {}
         for score in scores:
             domain = safe_eval(score['domain'])
-            domain.extend([('user_id', '=', False), ('date_closed', '=', False)])
+            # ('user_id', '=', False) could be added, but the score might still be relevant when a lead is assigned ot a salesmen
+            domain.extend([('date_closed', '=', False)])
             leads = self.env['crm.lead'].search_read(domain=domain, fields=['name', 'country_id', 'lang_id', 'score_ids'])
             for lead in leads:
                 if not score['id'] in lead['score_ids']:

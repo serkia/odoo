@@ -133,8 +133,8 @@ openerp.website_crm_score = function(instance) {
                 the list somehow represents a tree due to its format ([marker, args..])
                 browses a list/tree and returns an html representation
                 this is fairly simple as it only needs to match the marker and act accordinly
-
         */
+
         NEG_OP: ['!=', 'not like', 'not ilike', 'not in'],
         MAX_LEN: 10,
         start: function() {
@@ -158,6 +158,7 @@ openerp.website_crm_score = function(instance) {
         },
 
         interpret: function(val, i) {
+            // returns the index of the next element to parse and the representation of the parsed element
             var a = val[i];
             if(typeof a !== 'string'){
                 // a is a tuple (field, op, value)
@@ -176,7 +177,7 @@ openerp.website_crm_score = function(instance) {
                 return [res[0], span];
             }
             else {
-                // binary operator
+                // binary operator ( | or & )
                 var res = this.binary_operator(val, i);
                 return res;
             }

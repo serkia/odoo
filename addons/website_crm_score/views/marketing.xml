@@ -188,7 +188,7 @@
                                                     <td style='width: 240px'>
                                                         <ul>
                                                             <li><a type="open">
-                                                                <b><field name="user_name"/></b>
+                                                                <b><field name="name"/></b>
                                                             </a></li>
                                                             <li><a type="open">
                                                                 <field name="section_id"/>

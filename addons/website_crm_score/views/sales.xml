@@ -217,7 +217,7 @@
                                                                 <td style='width: 240px'>
                                                                     <ul>
                                                                         <li><a type="open">
-                                                                            <b><field name="user_name"/></b>
+                                                                            <b><field name="name"/></b>
                                                                         </a></li>
                                                                         <li><field name="section_user_domain" widget="smart_filters"/></li>
                                                                     </ul>
