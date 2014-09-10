@@ -210,6 +210,7 @@
         var add = node === begin;
 
         (function __remove_space (node) {
+            if (!node) return;
             for (var k=0; k<node.childNodes.length; k++) {
                 var cur = node.childNodes[k];
 
@@ -274,8 +275,8 @@
     dom.pasteTextClose = "h1 h2 h3 h4 h5 h6 p b bold i u code sup strong small li".split(" ");
     dom.pasteText = function (textNode, offset, text, isOnlyText) {
         // clean the node
-        var data = dom.merge(textNode.parentElement, textNode, offset, textNode, offset, null, true);
-        data = dom.removeSpace(textNode.parentElement, data.sc, data.so, data.ec, data.eo);
+        var data = dom.merge(textNode.parentElement.parentElement, textNode, offset, textNode, offset, null, true);
+        data = dom.removeSpace(textNode.parentElement.parentElement, data.sc, data.so, data.ec, data.eo);
         var node = textNode.parentNode;
         while(!node.tagName) {node = node.parentNode;}
         // Break the text node up
@@ -321,8 +322,8 @@
         }
 
         // clean the dom content
-        data = dom.merge(node.parentElement, last, 0, last, 0, null, true);
-        data = dom.removeSpace(node.parentElement, data.sc, data.so, data.ec, data.eo);
+        data = dom.merge(node.parentElement.parentElement, last, 0, last, 0, null, true);
+        data = dom.removeSpace(node.parentElement.parentElement, data.sc, data.so, data.ec, data.eo);
 
         // move caret
         range.create(data.sc, data.so, data.ec, data.eo).select();
@@ -358,10 +359,12 @@
     function summernote_paste (event) {
         // keep norma feature if copy a picture
         var clipboardData = event.originalEvent.clipboardData;
-        var item = list.last(clipboardData.items);
-        var isClipboardImage = item.kind === 'file' && item.type.indexOf('image/') !== -1;
-        if (isClipboardImage) {
-            return true;
+        if (clipboardData.items) {
+            var item = list.last(clipboardData.items);
+            var isClipboardImage = item.kind === 'file' && item.type.indexOf('image/') !== -1;
+            if (isClipboardImage) {
+                return true;
+            }
         }
 
         var $editable = $(event.currentTarget);
@@ -394,14 +397,31 @@
         var $editable = $(event.currentTarget);
         $editable.data('NoteHistory').recordUndo($editable);
 
+        setTimeout(function () {
+           var r = range.create();
+            var parent = r.sc.parentElement.parentElement;
+            r = dom.merge(parent, r.sc, r.so, r.sc, r.so, null, true);
+            r = dom.removeSpace(parent, r.sc, r.so, r.sc, r.so);
+            if (r.ec.tagName === "BR") {
+                if (r.sc.previousSibling) {
+                    r.sc = r.ec = r.sc.previousSibling || r.sc.parentNode;
+                } else {
+                    r.sc = r.ec = r.sc.previousSibling;
+                }
+            }
+            r.eo = r.eo > r.ec.textContent.length ? r.ec.textContent.length : r.eo;
+            if (r.so > r.eo) r.so = r.eo;
+            range.create(r.sc, r.so, r.ec, r.eo).select();
+        },0);
+
         var r = range.create();
-        var node = event.keyCode === 8 ? r.sc : r.ec;
-        while (!node.nextSibling && !node.previousSibling) {node = node.parentNode;}
-        
         if (r.so !== r.eo || r.sc !== r.oc) {
             return true;
         }
-
+        
+        var node = event.keyCode === 8 ? r.sc : r.ec;
+        while (!node.nextSibling && !node.previousSibling) {node = node.parentNode;}
+        
         if (event.keyCode === 8) { // backspace
 
             // empty tag
@@ -451,18 +471,6 @@
                 }
             }
         }
-
-        setTimeout(function () {
-            var r = range.create();
-            r = dom.merge(r.sc.parentElement, r.sc, r.so, r.sc, r.so, null, true);
-            r = dom.removeSpace(r.sc.parentElement, r.sc, r.so, r.sc, r.so);
-            var node = r.sc;
-            var cur = r.eo > r.ec.textContent.length ? r.ec.textContent.length : r.eo;
-            if (r.ec.tagName === "BR") {
-                node = r.sc.previousSibling || r.sc.parentNode;
-            }
-            range.create(node, cur, node, cur).select();
-        },0);
 
         event.preventDefault();
         return false;
@@ -2886,38 +2894,3 @@
         }
     }
 })();
-
-
-
-
-
-// $('header').remove();
-// $("body").summernote({
-//     onpaste: function(e) {
-//         e.preventDefault();
-//         var $editable = $(e.currentTarget);
-//         var clipboardData = e.originalEvent.clipboardData;
-//         var text = clipboardData.getData("text/plain");
-//         var tag = e.target.tagName.toLowerCase();
-//         if("h1 h2 h3 h4 h5 h6 span".indexOf(tag) === -1) {
-//          text = "p";
-//         }
-//         text = "<"+tag+">"+text.split('\n').join("</"+tag+"><"+tag+">")+"</"+tag+">";
-
-//         // var selection = document.getSelection();
-//         // var nativeRng = selection.getRangeAt(0);
-//         // nativeRng.deleteContents();
-//         // nativeRng.insertNode($(text)[0]);
-
-//         console.log(document.execCommand('insertHTML', true, "</"+tag+">__summernote__<"+tag+">"));
-//         console.log(e.target);
-
-//         $(e.target).find("*:contains(__summernote__)").remove();
-//         $(e.target).next().remove();
-//         $(e.target).after(text);
-
-//         //console.log(document.execCommand('insertHTML', true, text));
-
-//         //console.log(e.target);
-//     }
-// });
