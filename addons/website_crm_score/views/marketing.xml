@@ -193,7 +193,8 @@
                                                             <li><a type="open">
                                                                 <field name="section_id"/>
                                                             </a></li>
-                                                            <li><field name="section_user_domain" widget="smart_filters"/></li>
+                                                            <!-- <li><field name="section_user_domain" widget="smart_filters"/></li> -->
+                                                            <li><field name="section_user_domain"/></li>
                                                         </ul>
                                                     </td> 
                                                     <td>

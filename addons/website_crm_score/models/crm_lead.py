@@ -25,6 +25,7 @@ class Lead(models.Model):
     score_pageview_ids = fields.One2many('website.crm.pageview', 'lead_id', string='Page Views')
     assign_date = fields.Datetime(string='Assign Date')
     pageviews_count = fields.Integer(compute='_count_pageviews')
+    lang_id = fields.Many2one('res.lang', string='Language')
 
     def encode(self, lead_id):
         encrypted_lead_id = md5.new(str(lead_id) + secret_key).hexdigest()
