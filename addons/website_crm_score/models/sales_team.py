@@ -65,7 +65,7 @@ class crm_case_section(osv.osv):
                 a += p
                 if r < a:
                     return e
-            # should never happen -> maybe for approximation imprecision
+            # should never happen -> maybe for approximation imprecision (random choice is then returned)
             return choice([e for e, _ in d.iteritems()])
 
         def remove_spam_leads():
@@ -102,7 +102,7 @@ class crm_case_section(osv.osv):
                 u = ['&'] * (n - 1) + d
                 return u
 
-            # FIXME: if a filter is not well written, it causes a problem
+            # NOTE: if a filter is not well written, it causes a problem
             action = self.env['ir.actions.actions'].search([('name', '=', 'SpamIrFilter')])
             domain = [('action_id', '=', action.id)]
             all_spam_filters = self.env['ir.filters'].search_read(domain, fields=['domain'])
@@ -183,13 +183,12 @@ class crm_case_section(osv.osv):
                 potential_salesmen_for_leads = {}
                 for _, section_user in all_section_users.iteritems():
                     if section_user['section_id'][0] == salesteam['id'] and section_user['running']:
-                        # get the filters of this salesman
+                        # get the filters of this salesman (section_user)
                         domain = section_user['section_user_domain']
                         if domain:
                             domain = safe_eval(domain)
                         else:
                             domain = []
-                        # domain.extend([('id', 'in', to_assign_leads_ids)])
                         domain.extend([('id', 'in', sorted_leads)])
                         # should be done otherwise, it represents a lot of accesses to the db
                         lead_fit = self.env["crm.lead"].search(domain)
