@@ -112,7 +112,7 @@ openerp.website_crm_score = function(instance) {
                 a tuple is represented as ['d', tip, tag]
                     tag being the field name
                     tip being the field value
-                    note: a negative stament is cast into a negation as described below
+                    note: a negative statement is cast into a negation as described below
                         eg: [(field, '!=', value)] = ['not', ['d', tag, tip]]
                 a negation is represented as ['not', elem]
                     elem being a list (eg : ['d', tip, tag], ['not', elem], ...)

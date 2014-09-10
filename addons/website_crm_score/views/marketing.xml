@@ -44,6 +44,7 @@
             <field name="view_mode">tree,form</field>
             <field name="domain">[('score_ids', 'in', active_id)]</field>
         </record>
+
         <!-- Score Form View -->
         <record model="ir.ui.view" id="view_crm_score_form">
             <field name="name">Website Crm Score Form</field>
@@ -235,9 +236,6 @@
 
         <!-- Section User Menu Item -->
         <menuitem id="section" name="Teams Assignation" parent="leads_menu" action="section_action" /> 
-
-
-
 
     </data>
 </openerp>

@@ -45,7 +45,6 @@
             <field name="arch" type="xml">
                 <graph string="Page Views" type="bar">
                     <field name="url"/>
-                    <!-- <field name="create_date"/> -->
                 </graph>
             </field>
         </record>

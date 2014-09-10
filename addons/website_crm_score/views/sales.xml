@@ -99,7 +99,7 @@
             </field>
         </record>
 
-        <!-- LEADS VIA SALESTEAM -->
+        <!-- Graph view of leads via SalesTeam -->
         <record model="ir.ui.view" id="crm_case_graph_view_leads_sales">
             <field name="name">Unassigned leads</field>
             <field name="model">crm.lead</field>
@@ -117,7 +117,6 @@
             <field name="view_mode">graph,tree,form</field>
             <field name="view_id" ref="crm_case_graph_view_leads_sales"/>
         </record>
-
 
         <record model="ir.ui.view" id="crm_case_table_view_leads_sales">
             <field name="name">Opportunities</field>
@@ -165,7 +164,7 @@
                         <field name="score_section_domain" widget="char_domain" options="{'model': 'crm.lead'}"/>
                         <label for="assigned_leads"/>
                         <div>
-                            <field name="assigned_leads" class="oe_inline"/> / <!-- le slash est en hauteur, c'est moche -->
+                            <field name="assigned_leads" class="oe_inline"/> /
                             <field name="capacity" class="oe_inline"/>
                             <br/>
                             <button name="assign_leads" type="object" string=" Assign Now" class="oe_link"/>
@@ -220,7 +219,6 @@
                                                                         <li><a type="open">
                                                                             <b><field name="user_name"/></b>
                                                                         </a></li>
-                                                                        <!-- widget is uesless because char_domain doesn't exist for kanban view-->
                                                                         <li><field name="section_user_domain" widget="smart_filters"/></li>
                                                                     </ul>
                                                                 </td> 
