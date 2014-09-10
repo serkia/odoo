@@ -112,6 +112,8 @@ openerp.website_crm_score = function(instance) {
                 a tuple is represented as ['d', tip, tag]
                     tag being the field name
                     tip being the field value
+                    note: a negative stament is cast into a negation as described below
+                        eg: [(field, '!=', value)] = ['not', ['d', tag, tip]]
                 a negation is represented as ['not', elem]
                     elem being a list (eg : ['d', tip, tag], ['not', elem], ...)
                 a binary operation (or/and) is represented as ['or/and', elem1, elem2]
@@ -171,7 +173,6 @@ openerp.website_crm_score = function(instance) {
             else if (a === '!'){
                 var res = this.interpret(val, i+1);
                 var span = ['not', res[1]];
-                // var span = '<span class="label label-danger" style="border-style: solid; border-width: 1px; border-color: #666;">' + res[1] + '</span>';
                 return [res[0], span];
             }
             else {
@@ -196,9 +197,6 @@ openerp.website_crm_score = function(instance) {
                 op = 'and';
             }
             var span = [op, resA[1], resB[1]];
-            // var span = '<span class="label ' + label + '" style="border-style:solid; border-width: 1px; border-color: #666;">' + resA[1] + ' ' + resB[1] + '</span>';
-            // var span = '<span>[ ' + resA[1] + op + resB[1] + ' ]</span>';
-            // var span = '<span class="well well-sm">' + resA[1] + ' ' + resB[1] + '</span>';
             return [resB[0], span];
         },
 
@@ -252,33 +250,43 @@ openerp.website_crm_score = function(instance) {
             var self = this;
             var style = 'padding:1px; border-style: solid; border-width:1px; border-color=black; text-align:center; border-radius: 4px;';
             if (a[0] == 'd'){
-                // color = '#5bc0de'
+                /** format here what a domain should look like
+                        a[1] : tip
+                        a[2] : tag
+                */
                 var span = '<span class="label label-info" style="border-style: solid; border-width: 1px; border-color:#666" title="' + a[1] + '">'+ a[2] +'</span>';
+                // color = '#5bc0de'
                 // var span = '<span style="background-color:' + color + '; ' + style + '" title="' + a[1] + '">'+ a[2] +'</span>';
                 return span;
             }
             else if (a[0] == 'not') {
                 var res = this.format_domain(a[1]);
-                // var span = '<span class="label label-danger">' + res + '</span>';
-                // var span = '<span>' + res + '</span>';
+                /** format here what a negation should look like
+                        res is the expression that is negated
+                */
                 var color = '#d66';
                 var span = '<div style="background-color:' + color + '; ' + style + '">' + res + '</div>';
+                // var span = '<span class="label label-danger">' + res + '</span>';
+                // var span = '<span>' + res + '</span>';
                 // var span = '<span class="label label-danger" style="border-style: solid; border-width: 1px; border-color: #666;">' + res[1] + '</span>';
                 return span;
             }
             else if (a[0] == 'and' || a[0] == 'or') {
                 var label = '';
                 var color = '';
+                /** format here what an or/and shoud look like
+                        as there can be more than 2 operands, it is needed to loop over a[1:]
+                */
                 if (a[0] == 'or') {
-                    label = 'label-success';
                     color = '#5c5'
+                    // label = 'label-success';
                 }
                 else if (a[0] == 'and') {
-                    label = 'label-primary';
                     color = '#77e'
+                    // label = 'label-primary';
                 }
-                // var span = '<span class="label ' + label + '">'
                 var span = '<div style="background-color:' + color + '; ' + style + '">';
+                // var span = '<span class="label ' + label + '">'
                 var as = a.slice(1);
                 _.each(as, function(s) {
                     var res = self.format_domain(s);

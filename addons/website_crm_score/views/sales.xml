@@ -4,19 +4,68 @@
 
     <data>
 
-        <!-- Scheduler for Lead Assign-->
-<!--         <record forcecreate="True" id="ir_cron_lead_assign" model="ir.cron">
-            <field name="name">Lead Assign Cron</field>
-            <field eval="True" name="active" />
-            <field name="user_id" ref="base.user_root" />
-            <field name="interval_number">1</field>
-            <field name="interval_type">hours</field>
-            <field name="numbercall">-1</field>
-            <field eval="False" name="doall" />
-            <field eval="'crm.case.section'" name="model" />
-            <field eval="'assign_leads'" name="function" />
-        </record> -->
+        <!-- 
+        LEADS
+         -->
+        <!-- Crm Lead Search Filter - Language added -->
+        <record model="ir.ui.view" id="view_crm_case_leads_filter_inherit">
+            <field name="name">crm.lead.search.inherit</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.view_crm_case_leads_filter" />
+            <field name="arch" type="xml">
+                <field name="country_id" position="after">
+                    <field name="lang_id"/>
+                    <field name="score_ids"/>
+                </field>
+            </field>
+        </record>
 
+        <!-- Crm Lead Tree View - Score and Salesman added -->
+        <record model="ir.ui.view" id="lead_tree_view">
+            <field name="name">crm.lead.tree.inherit</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_case_tree_view_leads" />
+            <field name="arch" type="xml">
+                <field name="phone" position="after">
+                    <field name="score" />
+                </field>
+                <field name="section_id" position="after">
+                    <field name="user_id" />
+                </field>
+            </field>
+        </record>
+
+        <!-- Crm Lead Form View - PageViews, Score and Language added -->
+        <record model="ir.ui.view" id="lead_score_form">
+            <field name="name">crm.lead.form.inherit</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_case_form_view_leads" />
+            <field name="arch" type="xml">
+                <xpath expr="//button[@class='oe_inline oe_stat_button']" position="after">
+                    <button class="oe_inline oe_stat_button" type="action" 
+                        name="%(website_crm_score_pageviews)d" icon="fa-tags"
+                        context="{'search_default_lead_id': active_id, 'default_lead_id': active_id}">
+                        <field string="Page views" name="pageviews_count" widget="statinfo"/>
+                    </button>
+                </xpath>
+                <field name="priority" position="after">
+                    <field name="score" />
+                </field>
+                <xpath expr="//group[@string='Misc']" position="after">
+                    <group string="Scoring">
+                        <field name="score_ids"
+                            widget="many2many_tags"
+                            domain="[('object_id.model','=','crm.lead')]"
+                            context="{'object_name': 'crm.lead'}"
+                            readonly="1"
+                        />
+                        <field name="lang_id" readonly="1"/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- SALESTEAM -->
         <!-- SalesTeam Kanban View - Lead information added -->
         <record id="crm_case_section_salesteams_view_kanban_inherit" model="ir.ui.view">
             <field name="name">crm.case.section.kanban.inherit</field>
@@ -50,24 +99,13 @@
             </field>
         </record>
 
-
-<!--         <record id="crm_score_lead_filter" model="ir.ui.view">
-            <field name="name">crm_lead_sales_search</field>
-            <field name="model">crm.lead</field>
-            <field name="arch" type="xml">
-                <search string="Leads Search">
-                    <field name="user_id"/>
-                </search>
-            </field>
-        </record>
- -->
+        <!-- LEADS VIA SALESTEAM -->
         <record model="ir.ui.view" id="crm_case_graph_view_leads_sales">
             <field name="name">Unassigned leads</field>
             <field name="model">crm.lead</field>
             <field name="arch" type="xml">
                 <graph string="Opportunities" type="line">
                     <field name="create_date" type="row"/>
-                    <!-- <field name="planned_revenue" type="measure"/> -->
                 </graph>
             </field>
         </record>
@@ -78,8 +116,6 @@
             <field name="view_type">form</field>
             <field name="view_mode">graph,tree,form</field>
             <field name="view_id" ref="crm_case_graph_view_leads_sales"/>
-            <!-- <field name="search_view_id" ref="crm_score_lead_filter"/> -->
-            <!-- <field name="context" eval="{}"/> -->
         </record>
 
 
@@ -90,7 +126,6 @@
                 <graph string="Opportunities" type="pivot">
                     <field name="stage_id" type="col"/>
                     <field name="user_id" type="row"/>
-                    <!-- <field name="planned_revenue" type="measure"/> -->
                 </graph>
             </field>
         </record>
@@ -101,8 +136,6 @@
             <field name="view_type">form</field>
             <field name="view_mode">graph,tree,form</field>
             <field name="view_id" ref="crm_case_table_view_leads_sales"/>
-            <!-- <field name="search_view_id" ref="crm_score_lead_filter"/> -->
-            <!-- <field name="context" eval="{}"/> -->
         </record>
 
         <!-- SalesTeam Form View - Lead information and page Assignation added -->
