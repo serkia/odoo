@@ -41,7 +41,7 @@ class pageview(models.Model):
                     fetch = pv_cr.fetchone()
                     if fetch:
                         # a new pageview has been created, a message is posted
-                        body = 'The user visited <br/><a href="' + url + '" target="_blank"><b>' + url + '</b></a>'
+                        body = '<a href="' + url + '" target="_blank"><b>' + url + '</b></a>'
                         request.registry['crm.lead'].message_post(cr, SUPERUSER_ID, [lead_id], body=body, subject="Page visited", context=context)
                         return True
                 except IntegrityError:

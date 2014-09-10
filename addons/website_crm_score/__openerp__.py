@@ -7,12 +7,10 @@
     'description': """\
     Lead scoring""",
     'data': [
-        # 'views/lead.xml',
         'views/website_crm_score.xml',
         'views/reporting.xml',
         'views/sales.xml',
         'views/marketing.xml',
-        # 'views/template.xml',
         'security/ir.model.access.csv',
     ],
     'demo': [

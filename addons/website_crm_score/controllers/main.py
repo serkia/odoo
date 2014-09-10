@@ -114,7 +114,7 @@ class ContactController(addons.website_crm.controllers.main.contactus):
                 urls = ''
                 for url in url_list:
                     urls += '<br/><a href="' + url + '" target="_blank"><b>' + url + '</b></a>'
-                body = 'The user visited ' + urls
+                body = urls
 
             new_lead_id = super(ContactController, self).create_lead(request, values, kwargs)
 

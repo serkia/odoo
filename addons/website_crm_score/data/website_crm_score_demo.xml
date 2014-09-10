@@ -159,7 +159,7 @@
                 ['country_id', '=', 'Belgium'], '!', ['lang_id', '!=', 'English']]</field>
             <field name="section_user_domain">[['country_id', '=', 'France']]</field> -->
             <field name="section_user_domain">['|', '|', ['country_id', '=', 'France'], '&amp;', 
-                ['country_id', '=', 'Belgium'], ['country_id', '!=', 'China'], ['lang_id', '!=', 'English']]</field>
+                ['country_id', '=', 'Belgium'], ['country_id', '=', 'China'], ['lang_id', '!=', 'English']]</field>
         </record>
 <!--         <record id="wcs_section_user_8" model="section.user">
             <field name="user_id" ref="wcs_user_3"/>

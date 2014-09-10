@@ -254,7 +254,8 @@ openerp.website_crm_score = function(instance) {
                         a[1] : tip
                         a[2] : tag
                 */
-                var span = '<span class="label label-info" style="border-style: solid; border-width: 1px; border-color:#666" title="' + a[1] + '">'+ a[2] +'</span>';
+                var span = '<span class="oe_tag" title="' + a[1] + '">'+ a[2] +'</span>';
+                // var span = '<span class="label label-info" style="border-style: solid; border-width: 1px; border-color:#666" title="' + a[1] + '">'+ a[2] +'</span>';
                 // color = '#5bc0de'
                 // var span = '<span style="background-color:' + color + '; ' + style + '" title="' + a[1] + '">'+ a[2] +'</span>';
                 return span;

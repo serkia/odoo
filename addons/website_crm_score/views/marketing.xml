@@ -5,7 +5,7 @@
     <data>
 
         <!-- Scheduler for Lead Assign-->
-        <record forcecreate="True" id="ir_cron_lead_assign" model="ir.cron">
+<!--         <record forcecreate="True" id="ir_cron_lead_assign" model="ir.cron">
             <field name="name">Lead Assign Cron</field>
             <field eval="True" name="active" />
             <field name="user_id" ref="base.user_root" />
@@ -15,10 +15,10 @@
             <field eval="False" name="doall" />
             <field eval="'crm.case.section'" name="model" />
             <field eval="'assign_leads'" name="function" />
-        </record>
+        </record> -->
 
         <!-- Scheduler for Lead Scoring -->
-        <record forcecreate="True" id="ir_cron_lead_scoring" model="ir.cron">
+<!--         <record forcecreate="True" id="ir_cron_lead_scoring" model="ir.cron">
             <field name="name">Lead Scoring Cron</field>
             <field eval="True" name="active" />
             <field name="user_id" ref="base.user_root" />
@@ -28,7 +28,7 @@
             <field eval="False" name="doall" />
             <field eval="'website.crm.score'" name="model" />
             <field eval="'assign_scores_to_leads'" name="function" />
-        </record>
+        </record> -->
 
         <!-- Score Menu Item -->
         <menuitem id="leads_menu" name="Leads Management" parent="base.marketing_menu" />
@@ -82,6 +82,7 @@
                 <tree string="Scores">
                     <field name="name"/>
                     <field name="value"/>
+                    <field name="leads_count"/>
                     <field name="domain"/>
                     <field name="running"/>
                 </tree>
@@ -140,7 +141,7 @@
             </field>
         </record>
 
-        <!-- Mega Moche !!! -->
+        <!-- Section User Kanban View -->
         <record model="ir.ui.view" id="section_user_kanban">
             <field name="name">section.user.kanban</field>
             <field name="model">section.user</field>
