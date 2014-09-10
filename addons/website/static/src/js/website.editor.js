@@ -133,10 +133,8 @@
                     if (mergeFilter.call(dom, prev, cur)) {
                         for (var i=0; i<cur.childNodes.length; i++) {
                             cur.parentNode.insertBefore(cur.childNodes[i], cur);
-                            console.log("child", cur.childNodes[i]);
                             k--;
                         }
-                        console.log(cur.parentNode);
                         cur.parentNode.removeChild(cur);
                     }
                     prev = cur;
@@ -275,15 +273,20 @@
     dom.pasteTextApply = "h1 h2 h3 h4 h5 h6 li ol".split(" ");
     dom.pasteTextClose = "h1 h2 h3 h4 h5 h6 p b bold i u code sup strong small li".split(" ");
     dom.pasteText = function (textNode, offset, text, isOnlyText) {
+        // clean the node
+        var data = dom.merge(textNode.parentElement, textNode, offset, textNode, offset, null, true);
+        data = dom.removeSpace(textNode.parentElement, data.sc, data.so, data.ec, data.eo);
         var node = textNode.parentNode;
         while(!node.tagName) {node = node.parentNode;}
-        var $parent = $(node).parent();
-        // clean the node
-        var data = dom.merge($parent[0], textNode, offset, textNode, offset, null, true);
-        data = dom.removeSpace($parent[0], data.sc, data.so, data.ec, data.eo);
         // Break the text node up
         if (data.sc.tagName) {
-            data.sc = data.sc.appendChild(document.createTextNode(""));
+            if (data.sc.tagName.toLowerCase() === "br") {
+                data.sc = data.sc.parentNode.insertBefore(document.createTextNode(" "), data.sc);
+            } else if (data.sc.firstChild) {
+                data.sc = data.sc.insertBefore(document.createTextNode(" "), data.sc.firstChild);
+            } else {
+                data.sc = data.sc.appendChild(document.createTextNode(" "));
+            }
             data.so = 0;
         }
         data.sc.splitText(data.so);
@@ -318,8 +321,8 @@
         }
 
         // clean the dom content
-        data = dom.merge($parent[0], last, 0, last, 0, null, true);
-        data = dom.removeSpace($parent[0], data.sc, data.so, data.ec, data.eo);
+        data = dom.merge(node.parentElement, last, 0, last, 0, null, true);
+        data = dom.removeSpace(node.parentElement, data.sc, data.so, data.ec, data.eo);
 
         // move caret
         range.create(data.sc, data.so, data.ec, data.eo).select();
@@ -386,6 +389,8 @@
             return true;
         }
 
+        var mergeOnDelete = ['P', 'SPAN', 'LI'];
+
         var $editable = $(event.currentTarget);
         $editable.data('NoteHistory').recordUndo($editable);
 
@@ -393,10 +398,14 @@
         var node = event.keyCode === 8 ? r.sc : r.ec;
         while (!node.nextSibling && !node.previousSibling) {node = node.parentNode;}
         
+        if (r.so !== r.eo || r.sc !== r.oc) {
+            return true;
+        }
+
         if (event.keyCode === 8) { // backspace
 
             // empty tag
-            if (r.sc===r.ec && !r.sc.textContent.length && node.previousSibling) {
+            if (r.sc===r.ec && !r.sc.textContent.replace(/\s+$/, '').length && node.previousSibling) {
                 var next = node.previousSibling;
                 while (next.tagName && next.lastChild) {next = next.lastChild;}
                 node.parentNode.removeChild(node);
@@ -406,43 +415,53 @@
             else if (r.sc===r.ec && r.so || r.eo) return true;
             // merge with the previous text node
             else if (r.sc.previousSibling && !r.sc.previousSibling.tagName) return true;
-
-            else if (r.sc===r.ec && r.so===r.eo && !r.eo && ['P', 'SPAN'].indexOf(r.sc.parentNode.tagName) !== -1) {
+            //merge with the previous block
+            else if (r.sc===r.ec && r.so===r.eo && !r.eo && mergeOnDelete.indexOf(r.sc.parentNode.tagName) !== -1) {
                 summernote_keydown_clean("sc");
-                return true;
+                var prev = r.sc.parentNode.previousElementSibling;
+                var style = window.getComputedStyle(prev);
+                if (prev && (r.sc.parentNode.tagName === prev.tagName || style.display !== "block" || !parseInt(style.height))) {
+                    return true;
+                }
             }
-
         }
 
         if (event.keyCode === 46) { // delete
 
+            var content = r.ec.textContent.replace(/\s+$/, '');
+
             // empty tag
-            if (r.sc===r.ec && !r.sc.textContent.length && node.nextSibling) {
+            if (r.sc===r.ec && !content.length && node.nextSibling) {
                 var next = node.nextSibling;
                 while (next.tagName && next.firstChild) {next = next.firstChild;}
                 node.parentNode.removeChild(node);
                 range.create(next, 0, next, 0).select();
             }
             // normal feature if same tag and not the end
-            else if (r.sc===r.ec && r.eo!==r.ec.length && r.ec.textContent.match(/\S/)) return true;
+            else if (r.sc===r.ec && r.eo<content.length && content.match(/\S/)) return true;
             // merge with the next text node
             else if (r.ec.nextSibling && !r.ec.nextSibling.tagName) return true;
-
-            else if (r.sc===r.ec && r.so===r.eo && r.eo===r.eo.length && ['P', 'SPAN'].indexOf(r.ec.parentNode.tagName) !== -1) {
+            //merge with the next block
+            else if (r.sc===r.ec && r.so===r.eo && r.eo>=content.length && mergeOnDelete.indexOf(r.ec.parentNode.tagName) !== -1) {
                 summernote_keydown_clean("ec");
-                return true;
+                var next = r.ec.parentNode.nextElementSibling;
+                var style = window.getComputedStyle(next);
+                if (next && (r.sc.parentNode.tagName === next.tagName || style.display !== "block" || !parseInt(style.height))) {
+                    return true;
+                }
             }
-        }
-
-        if (r.so !== r.eo || r.sc !== r.oc) {
-            return true;
         }
 
         setTimeout(function () {
             var r = range.create();
             r = dom.merge(r.sc.parentElement, r.sc, r.so, r.sc, r.so, null, true);
-            //r = dom.removeSpace(r.sc.parentElement, r.sc, r.so, r.sc, r.so);
-            range.create(r.sc, r.so, r.ec, r.eo).select();
+            r = dom.removeSpace(r.sc.parentElement, r.sc, r.so, r.sc, r.so);
+            var node = r.sc;
+            var cur = r.eo > r.ec.textContent.length ? r.ec.textContent.length : r.eo;
+            if (r.ec.tagName === "BR") {
+                node = r.sc.previousSibling || r.sc.parentNode;
+            }
+            range.create(node, cur, node, cur).select();
         },0);
 
         event.preventDefault();
