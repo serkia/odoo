@@ -116,7 +116,64 @@
                 self.$el.css('top', editor.get('height'));
             });
             this.$el.css('top', this.parent.get('height'));
+
+
+
+            var editables = this.parent.rte.fetch_editables().get();
+            $(document).on('mouseup', this.reRangeSelect);
         },
+
+        reRangeSelect: function (event) {
+            var r = $.summernote.objects.range.create();
+            if (!r.isCollapsed()) {
+
+                // check if the user move the caret on up or down
+                var ref = false;
+                var node = r.sc;
+                while (node) {
+                    if(event.target === node) {
+                        ref = true;
+                        break;
+                    }
+                    node = node.parentNode;
+                }
+
+                // search the first snippet editable node
+                var node = ref ? r.ec : r.sc;
+                while (node) {
+                    if ($(node).is(website.snippet.globalSelector)) {
+                        break;
+                    }
+                    node = node.parentNode;
+                }
+                // check if the end caret have the same node
+                var last = ref ? r.sc : r.ec;
+                while (last) {
+                    if (node === last) {
+                        break;
+                    }
+                    last = last.parentNode;
+                }
+
+                if (last) {
+                    return;
+                }
+
+                // if not the same node, resize the select area
+                if (ref) {
+                    while (node.firstChild) {
+                        node = node.firstChild;
+                    }
+                    $.summernote.objects.range.create(node, 0, r.ec, r.eo).select();
+                } else {
+                    while (node.lastChild) {
+                        node = node.lastChild;
+                    }
+                    $.summernote.objects.range.create(r.sc, r.so, node, node.textContent.length).select();
+                }
+            }
+        },
+
         show_blocks: function () {
             var self = this;
             this.make_active(false);

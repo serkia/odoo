@@ -420,11 +420,7 @@
             r = dom.merge(parent, r.sc, r.so, r.sc, r.so, null, true);
             r = dom.removeSpace(parent, r.sc, r.so, r.sc, r.so);
             if (r.ec.tagName === "BR") {
-                if (r.sc.previousSibling) {
-                    r.sc = r.ec = r.sc.previousSibling || r.sc.parentNode;
-                } else {
-                    r.sc = r.ec = r.sc.previousSibling;
-                }
+                r.sc = r.ec = r.sc.previousSibling || r.sc.parentNode;
             }
             r.eo = r.eo > r.ec.textContent.length ? r.ec.textContent.length : r.eo;
             if (r.so > r.eo) r.so = r.eo;
@@ -432,7 +428,7 @@
         },0);
 
         var r = range.create();
-        if (r.so !== r.eo || r.sc !== r.ec) {
+        if (!r.isCollapsed()) {
             return true;
         }
 
@@ -453,7 +449,7 @@
             // merge with the previous text node
             else if (r.sc.previousSibling && !r.sc.previousSibling.tagName) return true;
             //merge with the previous block
-            else if (r.sc===r.ec && r.so===r.eo && !r.eo && mergeOnDelete.indexOf(r.sc.parentNode.tagName.toLowerCase()) !== -1) {
+            else if (r.isCollapsed() && !r.eo && mergeOnDelete.indexOf(r.sc.parentNode.tagName.toLowerCase()) !== -1) {
 
                 summernote_keydown_clean("sc");
                 var prev = r.sc.parentNode.previousElementSibling;
@@ -491,7 +487,7 @@
             // merge with the next text node
             else if (r.ec.nextSibling && !r.ec.nextSibling.tagName) return true;
             //merge with the next block
-            else if (r.sc===r.ec && r.so===r.eo && r.eo>=content.length && mergeOnDelete.indexOf(r.ec.parentNode.tagName.toLowerCase()) !== -1) {
+            else if (r.isCollapsed() && r.eo>=content.length && mergeOnDelete.indexOf(r.ec.parentNode.tagName.toLowerCase()) !== -1) {
 
                 summernote_keydown_clean("ec");
                 var next = r.ec.parentNode.nextElementSibling;
@@ -536,7 +532,7 @@
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     /* Change History to have a global History for all summernote instances */
 
-    var History = $.summernote.objects.History = function History () {
+    var History = function History () {
         function re_enable_snippet (r) {
             $("#wrapwrap").trigger("click");
             $(".oe_overlay").remove();
@@ -987,7 +983,7 @@
             observer.disconnect();
             // console.log(this.rte.editor);
             // var editor = $('.note-air-editor, .note-editable');
-            var defs = this.rte.fetch_editables(this.editor)
+            var defs = this.rte.fetch_editables()
                 .filter('.o_dirty')
                 .removeAttr('contentEditable')
                 .removeClass('o_dirty o_editable cke_focus oe_carlos_danger')
@@ -1224,7 +1220,7 @@
         },
         tableNavigation: function (root) {
             var self = this;
-            $(root).on('keydown', function (e) {
+            this.fetch_editables().on('keydown', function (e) {
                 // ignore non-TAB
                 if (e.which !== 9) { return; }
 
@@ -1305,12 +1301,6 @@
          */
         start_edition: function (restart) {
             var self = this;
-            // create a single editor for the whole page
-            var root = document.getElementById('wrapwrap');
-
-            this.editable = $('#wrapwrap [data-oe-model = "ir.ui.view"]')
-                .not('link, script')
-                .not('.oe_snippet_editor');
 
             this.history = new History();
 
@@ -1341,12 +1331,12 @@
                     $last = $editable;
 
                     if (!range.create()) {
-                        range.create($editable[0].firstChild,0,$editable[0].firstChild,0).select();
+                        range.create($editable[0].firstChild || $editable[0],0,$editable[0].firstChild || $editable[0],0).select();
                     }
                 }
             });
 
-            this.editable.each(function () {
+            this.fetch_editables().each(function () {
                 var node = this;
                 var $node = $(node);
                 // start element observation
@@ -1359,13 +1349,15 @@
             });
 
             if (!restart) {
-                this.tableNavigation(root);
+                this.tableNavigation();
             }
 
             self.trigger('rte:ready');
         },
         fetch_editables: function (root) {
-            return this.editable;
+            return $('#wrapwrap [data-oe-model = "ir.ui.view"]')
+                .not('link, script')
+                .not('.oe_snippet_editor');
         },
         _config: function () {
             return {
@@ -2850,7 +2842,7 @@
                         var change = _.union(_.difference(oldClasses, newClasses),
                                              _.difference(newClasses, oldClasses));
                         // ignore mutation to create editable zone and add dirty class
-                        var change = _.difference(change, ["note-air-editor", "note-editable", "o_dirty"]);
+                        var change = _.difference(change, ["note-air-editor", "note-editable", "o_dirty", "o_editable", ""]);
                         return !!change.length;
                     case 'childList':
                         setTimeout(function () {
