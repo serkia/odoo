@@ -499,7 +499,7 @@
 
                 if (next && (r.sc.parentNode.tagName === next.tagName || style.display !== "block" || !parseInt(style.height))) {
 
-                    dom.doMerge(next, r.sc.parentNode);
+                    dom.doMerge(r.sc.parentNode, next);
                     range.create(r.sc, r.so, r.sc, r.so).select();
 
                 } else if (!next && mergeOnDelete.indexOf(r.ec.parentNode.parentNode.tagName.toLowerCase()) !== -1 &&
@@ -1339,6 +1339,10 @@
                     // $editable.data('summernote', $summernote);
                     $editable.data('NoteHistory', self.history);
                     $last = $editable;
+
+                    if (!range.create()) {
+                        range.create($editable[0].firstChild,0,$editable[0].firstChild,0).select();
+                    }
                 }
             });
 
@@ -1366,7 +1370,7 @@
         _config: function () {
             return {
                 airMode : true,
-                focus: true,
+                focus: false,
                 airPopover: [
                     ['style', ['style']],
                     ['font', ['bold', 'italic', 'underline', 'clear']],
