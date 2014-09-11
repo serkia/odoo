@@ -2,8 +2,8 @@
 <openerp>
     <data>
         <!-- Attachment -->
-        <menuitem id="main_slides" parent="knowledge.menu_document" name="Odoo Presentations"/>
-
+        <menuitem name="Presentations" id="website_slides.document" groups="base.group_system" sequence="116"/>
+        <menuitem id="main_slides" parent="website_slides.document" name="Odoo Presentations"/>
         <record model="ir.ui.view" id="view_slides_attachment_kanban">
             <field name="name">ir.attachment kanban</field>
             <field name="model">ir.attachment</field>
