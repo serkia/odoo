@@ -127,6 +127,8 @@
             var r = $.summernote.objects.range.create();
             if (!r.isCollapsed()) {
 
+                r = r.clean();
+
                 // check if the user move the caret on up or down
                 var ref = false;
                 var node = r.sc;
@@ -171,6 +173,14 @@
                     }
                     $.summernote.objects.range.create(r.sc, r.so, node, node.textContent.length).select();
                 }
+
+                setTimeout(function () {
+                    $(".note-control-selection").hide();
+                    $(".note-link-popover").hide();
+                    $(".note-image-popover").hide();
+                },0);
+                event.preventDefault();
+                return false;
             }
         },
 
