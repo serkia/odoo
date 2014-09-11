@@ -495,8 +495,8 @@
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     /* Change History to have a global History for all summernote instances */
 
-    var History = function History () {
-        function re_enable_snippet () {
+    var History = $.summernote.objects.History = function History () {
+        function re_enable_snippet (r) {
             $("#wrapwrap").trigger("click");
             $(".oe_overlay").remove();
             $("#wrapwrap *").filter(function () {
@@ -507,7 +507,7 @@
             });
 
             setTimeout(function () {
-                $(range.create().sc.parentElement).trigger("click");
+                $(r.sc.parentElement).trigger("click");
             },0);
         }
 
@@ -528,11 +528,12 @@
         var applySnap = function (oSnap) {
             var $editable = $(oSnap.editable);
             $editable.html(oSnap.contents).scrollTop(oSnap.scrollTop);
-            range.createFromBookmark($editable[0], oSnap.bookmark).select();
+            var r = range.createFromBookmark($editable[0], oSnap.bookmark);
+            r.select();
+            re_enable_snippet(r);
         };
 
         this.undo = function ($editable) {
-            re_enable_snippet();
             if (!aUndo.length) { return; }
             var oSnap = makeSnap($editable);
             applySnap(aUndo.pop());
@@ -540,7 +541,6 @@
         };
 
         this.redo = function ($editable) {
-            re_enable_snippet();
             if (!aRedo.length) { return; }
             var oSnap = makeSnap($editable);
             applySnap(aRedo.pop());
@@ -1243,6 +1243,19 @@
             return true;
         },
         /**
+         * Add a record undo to history
+         * @param {DOM} target where the dom is changed is editable zone
+         */
+        historyRecordUndo: function ($target) {
+            var $editable = $target.is('[data-oe-model = "ir.ui.view"]') ? $target : $target.closest('#wrapwrap [data-oe-model = "ir.ui.view"]');
+            $target.mousedown();
+            if (!range.create()) {
+                range.create($target[0],0,$target[0],0).select();
+            }
+            this.history.recordUndo( $editable );
+            $target.mousedown();
+        },
+        /**
          * Makes the page editable
          *
          * @param {Boolean} [restart=false] in case the edition was already set
@@ -1312,6 +1325,7 @@
         _config: function () {
             return {
                 airMode : true,
+                focus: true,
                 airPopover: [
                     ['style', ['style']],
                     ['font', ['bold', 'italic', 'underline', 'clear']],
@@ -2751,7 +2765,7 @@
         },
     });
 
-    website.Observer = window.MutationObserver || window.WebkitMutationObserver || window.JsMutationObserver;
+    website.Observer = window.MutationObserver || window.WebKitMutationObserver || window.JsMutationObserver;
     var OBSERVER_CONFIG = {
         childList: true,
         attributes: true,
@@ -2894,3 +2908,4 @@
         }
     }
 })();
+

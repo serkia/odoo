@@ -316,6 +316,20 @@
             this.cover_target($snippet.data('overlay'), $snippet);
         },
 
+        historyRecordUndoDrop: function ($toInsert) {
+            if ($toInsert.prev().length) {
+                var $prev = $toInsert.prev();
+                $toInsert.detach();
+                this.parent.rte.historyRecordUndo($prev);
+                $toInsert.insertAfter($prev);
+            } else {
+                var $parent = $toInsert.parent();
+                $toInsert.detach();
+                this.parent.rte.historyRecordUndo($parent);
+                $parent.prepend($toInsert);
+            }
+        },
+
         // activate drag and drop for the snippets in the snippet toolbar
         make_snippet_draggable: function($snippets){
             var self = this;
@@ -416,6 +430,9 @@
                     $("#wrapwrap").find('.oe_drop_zone').droppable('destroy').remove();
                     
                     if (dropped) {
+
+                        self.historyRecordUndoDrop($toInsert);
+
                         var $target = false;
                         $target = $toInsert;
 
@@ -750,6 +767,10 @@
                 el = $li[0],
                 $el;
             clearTimeout(this.reset_time);
+
+            if (type==="click") {
+                this.BuildingBlock.parent.rte.historyRecordUndo(this.$target);
+            }
 
             function filter (k) { return k !== 'oeId' && k !== 'oeModel' && k !== 'oeField' && k !== 'oeXpath' && k !== 'oeSourceId';}
             function hasData(el) {
