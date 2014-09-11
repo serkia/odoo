@@ -75,6 +75,9 @@
         return true;
     };
     dom.mergeFilter = function (prev, cur) {
+        if (prev && !prev.tagName && !cur.tagName) {
+            return true;
+        }
         if (prev && !cur.tagName && !cur.textContent.match(/\S/) && (!prev.tagName || prev.textContent.match(/\S/))) {
             return true;
         }
@@ -85,6 +88,28 @@
         }
         if (cur.tagName === "SPAN" && !cur.className) {
             return true;
+        }
+    };
+    dom.doMerge = function (prev, cur) {
+        if (prev.tagName) {
+            if (cur.tagName) {
+                for (var i=0; i<cur.childNodes.length; i++) {
+                    prev.appendChild(cur.childNodes[i]);
+                }
+                cur.parentNode.removeChild(cur);
+            } else {
+                prev.appendChild(cur);
+            }
+        } else {
+            if (cur.tagName) {
+                var deep = cur;
+                while (deep.tagName && deep.firstChild) {deep = deep.firstChild;}
+                prev.appendData(deep.textContent);
+                cur.parentNode.removeChild(cur);
+            } else {
+                prev.appendData(cur.textContent);
+                cur.parentNode.removeChild(cur);
+            }
         }
     };
     dom.merge = function (node, begin, so, end, eo, mergeFilter, all) {
@@ -141,47 +166,40 @@
                     continue;
                 }
 
-                // merge text nodes
-                if (!prev.tagName && !cur.tagName) {
-                    merged = true;
-                    if ((!afterBegin && begin.parentNode === cur.parentNode) || cur === begin) {
-                        so += prev.textContent.length;
-                    }
-                    if ((!afterEnd && begin.parentNode === cur.parentNode) || cur === end) {
-                        eo += prev.textContent.length;
-                    }
-                    prev.appendData(cur.textContent);
-                    if (cur === begin) begin = prev;
-                    if (cur === end) end = prev;
-                    cur.parentNode.removeChild(cur);
-                    k--;
-                    continue;
-                }
-
                 // merge nodes
                 if (mergeFilter.call(dom, prev, cur)) {
-                    merged = true;
+                    var p = prev;
+                    var c = cur;
+                    // compute prev/end and offset
                     if (prev.tagName) {
                         if (cur.tagName) {
-                            for (var i=0; i<cur.childNodes.length; i++) {
-                                prev.appendChild(cur.childNodes[i]);
+                            if (cur === begin) begin = prev;
+                            if (cur === end) end = prev;
+                        }
+                    } else {
+                        if (cur.tagName) {
+                            var deep = cur;
+                            while (deep.tagName && deep.lastChild) {deep = deep.lastChild;}
+                            if (!afterBegin || deep === begin) so += prev.textContent.length;
+                            if (!afterEnd || deep === end) eo += prev.textContent.length;
+                            if (deep === begin) begin = prev;
+                            if (deep === end) end = prev;
+                        } else {
+                            // merge text nodes
+                            if ((!afterBegin && begin.parentNode === cur.parentNode) || cur === begin) {
+                                so += prev.textContent.length;
+                            }
+                            if ((!afterEnd && begin.parentNode === cur.parentNode) || cur === end) {
+                                eo += prev.textContent.length;
                             }
                             if (cur === begin) begin = prev;
                             if (cur === end) end = prev;
-                            cur.parentNode.removeChild(cur);
-                        } else {
-                            prev.appendChild(cur);
                         }
-                    } else {
-                        var deep = cur;
-                        while (deep.tagName && deep.lastChild) {deep = deep.lastChild;}
-                        if (!afterBegin || deep === begin) so += prev.textContent.length;
-                        if (!afterEnd || deep === end) eo += prev.textContent.length;
-                        prev.appendData(deep.textContent);
-                        if (deep === begin) begin = prev;
-                        if (deep === end) end = prev;
-                        cur.parentNode.removeChild(cur);
                     }
+
+                    dom.doMerge(p, c);
+
+                    merged = true;
                     k--;
                     continue;
                 }
@@ -387,12 +405,11 @@
             range.create(data.sc, data.so, data.sc, data.so).select();
         },0);
     }
+    var mergeOnDelete = "h1 h2 h3 h4 h5 h6 p b bold i u code sup strong small li a".split(" ");
     function summernote_keydown (event) {
         if (event.keyCode !== 8 && event.keyCode !== 46) {
             return true;
         }
-
-        var mergeOnDelete = ['P', 'SPAN', 'LI'];
 
         var $editable = $(event.currentTarget);
         $editable.data('NoteHistory').recordUndo($editable);
@@ -415,10 +432,10 @@
         },0);
 
         var r = range.create();
-        if (r.so !== r.eo || r.sc !== r.oc) {
+        if (r.so !== r.eo || r.sc !== r.ec) {
             return true;
         }
-        
+
         var node = event.keyCode === 8 ? r.sc : r.ec;
         while (!node.nextSibling && !node.previousSibling) {node = node.parentNode;}
         
@@ -436,12 +453,24 @@
             // merge with the previous text node
             else if (r.sc.previousSibling && !r.sc.previousSibling.tagName) return true;
             //merge with the previous block
-            else if (r.sc===r.ec && r.so===r.eo && !r.eo && mergeOnDelete.indexOf(r.sc.parentNode.tagName) !== -1) {
+            else if (r.sc===r.ec && r.so===r.eo && !r.eo && mergeOnDelete.indexOf(r.sc.parentNode.tagName.toLowerCase()) !== -1) {
+
                 summernote_keydown_clean("sc");
                 var prev = r.sc.parentNode.previousElementSibling;
                 var style = window.getComputedStyle(prev);
+
                 if (prev && (r.sc.parentNode.tagName === prev.tagName || style.display !== "block" || !parseInt(style.height))) {
-                    return true;
+
+                    dom.doMerge(prev, r.sc.parentNode);
+                    range.create(r.sc, 0, r.sc, 0).select();
+
+                } else if (!prev && mergeOnDelete.indexOf(r.ec.parentNode.parentNode.tagName.toLowerCase()) !== -1 &&
+                    r.ec.parentNode.parentNode.tagName === r.ec.parentNode.parentNode.previousElementSibling.tagName) {
+
+                    dom.doMerge(r.ec.parentNode.parentNode.previousElementSibling, r.ec.parentNode.parentNode);
+                    dom.doMerge(r.ec.parentNode.previousElementSibling, r.ec.parentNode);
+                    range.create(r.ec, 0, r.ec, 0).select();
+
                 }
             }
         }
@@ -462,12 +491,24 @@
             // merge with the next text node
             else if (r.ec.nextSibling && !r.ec.nextSibling.tagName) return true;
             //merge with the next block
-            else if (r.sc===r.ec && r.so===r.eo && r.eo>=content.length && mergeOnDelete.indexOf(r.ec.parentNode.tagName) !== -1) {
+            else if (r.sc===r.ec && r.so===r.eo && r.eo>=content.length && mergeOnDelete.indexOf(r.ec.parentNode.tagName.toLowerCase()) !== -1) {
+
                 summernote_keydown_clean("ec");
                 var next = r.ec.parentNode.nextElementSibling;
                 var style = window.getComputedStyle(next);
+
                 if (next && (r.sc.parentNode.tagName === next.tagName || style.display !== "block" || !parseInt(style.height))) {
-                    return true;
+
+                    dom.doMerge(next, r.sc.parentNode);
+                    range.create(r.sc, r.so, r.sc, r.so).select();
+
+                } else if (!next && mergeOnDelete.indexOf(r.ec.parentNode.parentNode.tagName.toLowerCase()) !== -1 &&
+                    r.ec.parentNode.parentNode.tagName === r.ec.parentNode.parentNode.nextElementSibling.tagName) {
+
+                    dom.doMerge(r.ec.parentNode.parentNode, r.ec.parentNode.parentNode.nextElementSibling);
+                    dom.doMerge(r.ec.parentNode, r.ec.parentNode.nextElementSibling);
+                    range.create(r.ec, r.ec.textContent.length, r.ec, r.ec.textContent.length).select();
+
                 }
             }
         }
