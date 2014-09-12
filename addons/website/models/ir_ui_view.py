@@ -26,6 +26,26 @@ class view(osv.osv):
     #         'Key must be unique per website.'),
     # ]
 
+    def _check_key(self, cr, uid, ids, context=None):
+        view_ids = self.search(cr,uid,[('type','=','qweb')],context=context)
+        view_results = self.read(cr,uid,view_ids,['key'],context=context)
+        keys = []
+        for res_v in view_results:
+            key = res_v['key']
+            if not key in keys:
+                keys.append(key)
+                current_ids = self.search(cr,uid,[('key','=',key)],context=context)
+                web_results = self.browse(cr,uid,current_ids,context=context)
+                for i in range(0,len(current_ids)-1):
+                    for j in range(i+1,len(current_ids)):
+                        if web_results[i].website_id.id == web_results[j].website_id.id:
+                            return False
+        return True
+
+    _constraints = [
+        (_check_key, 'This key is already used in this website', ['key','website_id']),
+    ]
+
     _defaults = {
         'page': False,
     }

@@ -3,12 +3,21 @@ from openerp.osv import osv,fields
 from openerp.http import request
 
 
-class ViewVersion(osv.Model):
+class view(osv.Model):
     _inherit = "ir.ui.view"
     
     _columns = {
         'snapshot_id' : fields.many2one('website_version.snapshot',ondelete='cascade', string="Snapshot_id"),
     }
+
+    def _check_key(self, cr, uid, ids, context=None):
+        return True
+
+    _constraints = [
+        (_check_key, 'This key is already used in this website', ['key','website_id']),
+    ]
+
+
 
     _sql_constraints = [
         ('key_website_id_uniq', 'unique(key, snapshot_id, website_id)',
@@ -42,10 +51,10 @@ class ViewVersion(osv.Model):
                     else:
                         copy_id=self.copy(cr,uid, current.id,{'snapshot_id':snapshot_id, 'website_id':website_id},context=ctx)
                         snap_ids.append(copy_id)
-            super(ViewVersion, self).write(cr, uid, snap_ids, vals, context=ctx)
+            super(view, self).write(cr, uid, snap_ids, vals, context=ctx)
         else:
             ctx = dict(context, mykey=True)
-            super(ViewVersion, self).write(cr, uid, ids, vals, context=context)
+            super(view, self).write(cr, uid, ids, vals, context=context)
     
     #To make a snapshot of a snapshot
     def copy_snapshot(self,cr, uid, snapshot_id,new_snapshot_id, context=None):
@@ -72,7 +81,7 @@ class ViewVersion(osv.Model):
         if view.website_id:
             master_id = self.search(cr, uid, [('key','=',key),('website_id','=',False),('snapshot_id','=',False)],context=context)[0]
             deleted_ids.remove(view.id)
-            super(ViewVersion, self).write(cr, uid,[master_id], {'arch': view.arch}, context=ctx)
+            super(view, self).write(cr, uid,[master_id], {'arch': view.arch}, context=ctx)
             self.unlink(cr, uid, deleted_ids, context=context)
         else:
             self.unlink(cr, uid, deleted_ids, context=context)
