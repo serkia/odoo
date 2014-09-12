@@ -7,7 +7,7 @@ class view(osv.Model):
     _inherit = "ir.ui.view"
     
     _columns = {
-        'snapshot_id' : fields.many2one('website_version.snapshot',ondelete='cascade', string="Snapshot_id"),
+        'snapshot_id' : fields.many2one('website_version.snapshot',ondelete='cascade', string="Snapshot_id", copy=False),
     }
 
     def _check_key(self, cr, uid, ids, context=None):
@@ -16,7 +16,7 @@ class view(osv.Model):
     _constraints = [
         (_check_key, 'This key is already used in this website', ['key','website_id']),
     ]
-    
+
     _sql_constraints = [
         ('key_website_id_uniq', 'unique(key, snapshot_id, website_id)',
             'Key must be unique per snapshot.'),
