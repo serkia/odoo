@@ -126,9 +126,6 @@
         reRangeSelect: function (event) {
             var r = $.summernote.objects.range.create();
             if (!r.isCollapsed()) {
-
-                r = r.clean();
-
                 // check if the user move the caret on up or down
                 var ref = false;
                 var node = r.sc;

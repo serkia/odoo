@@ -290,7 +290,7 @@
         };
     };
     dom.pasteTextApply = "h1 h2 h3 h4 h5 h6 li ol".split(" ");
-    dom.pasteTextClose = "h1 h2 h3 h4 h5 h6 p b bold i u code sup strong small li".split(" ");
+    dom.pasteTextClose = "h1 h2 h3 h4 h5 h6 p b bold i u code sup strong small li pre".split(" ");
     dom.pasteText = function (textNode, offset, text, isOnlyText) {
         // clean the node
         var data = dom.merge(textNode.parentElement.parentElement, textNode, offset, textNode, offset, null, true);
@@ -877,34 +877,6 @@
         });
     });
 
-    /**
-     * An editing host is an HTML element with @contenteditable=true, or the
-     * child of a document in designMode=on (but that one's not supported)
-     *
-     * https://dvcs.w3.org/hg/editing/raw-file/tip/editing.html#editing-host
-     */
-    function is_editing_host(element) {
-        return element.attr('contentEditable') === 'true';
-    }
-    /**
-     * Checks that both the element's content *and the element itself* are
-     * editable: an editing host is considered non-editable because its content
-     * is editable but its attributes should not be considered editable
-     */
-    function is_editable_node(element) {
-        return !(element.data('oe-model') === 'ir.ui.view'
-              || element.data('oe-type') === 'html'
-              || (is_editing_host(element) && element.getAttribute('attributeEditable') !== 'true'));
-    }
-
-    function link_dialog(event) {
-        return new website.editor.LinkDialog(false, event, true).appendTo(document.body);
-    }
-
-    function image_dialog(editor, image) {
-        return new website.editor.MediaDialog(editor, image).appendTo(document.body);
-    }
-
     website.init_editor = function () {
         var editor = new website.EditorBar();
         var $body = $(document.body);
@@ -1120,7 +1092,7 @@
         setup_hover_buttons: function () {
             var editor = $('.note-air-editor');
             var $link_button = this.make_hover_button_link(function () {
-                link_dialog(previous);
+                new website.editor.LinkDialog(false, previous, true).appendTo(document.body);
                 previous = null;
             });
 
@@ -1133,7 +1105,16 @@
                 // Back from edit button -> ignore
                 var element = $(this).closest('[data-oe-field]');
                 if (previous && previous === this) { return; }
-                if (is_editable_node(element) || $(this).hasClass('editor-insert-media')) { return; }
+                /**
+                 * Checks that both the element's content *and the element itself* are
+                 * editable: an editing host is considered non-editable because its content
+                 * is editable but its attributes should not be considered editable
+                 */
+                if (!(element.data('oe-model') === 'ir.ui.view'
+                    || element.data('oe-type') === 'html'
+                    || (element.attr('contentEditable') === 'true' && element.getAttribute('attributeEditable') !== 'true'))) { return; }
+
+                if ($(this).hasClass('editor-insert-media')) { return; }
                 previous = this;
                 var $selected = $(this);
                 var position = $selected.offset();
@@ -1212,6 +1193,7 @@
     });
 
     /* ----- RICH TEXT EDITOR ---- */
+
     website.RTE = openerp.Widget.extend({
         init: function (EditorBar) {
             this.EditorBar = EditorBar;
@@ -1380,527 +1362,95 @@
         }
     });
 
-    website.summernote = openerp.Widget.extend({
-        init: function(options) {
-            var self = this ;
-            self.settings = $.extend({}, settings.options, options);
-            self.renderer = new website.summernote.Renderer(self.settings);
-            self.do_render();
-        },
-        do_render: function() {
-            var self = this;
-            self.settings.content.each(function (idx, elHolder) {
-                var $holder = $(elHolder);
-                // createLayout with options
-                self.renderer.createLayout($holder);
+    /* ----- observer ---- */
 
-                var info = self.renderer.layoutInfoFromHolder($holder);
-                var eventHandler = new website.summernote.eventHandler(self.settings);
-                eventHandler.attach(info, self.settings);
-
-                // Textarea: auto filling the code before form submit.
-                if (dom.isTextarea($holder[0])) {
-                    $holder.closest('form').submit(function () {
-                        $holder.html($holder.code());
-                    });
+    website.Observer = window.MutationObserver || window.WebKitMutationObserver || window.JsMutationObserver;
+    var OBSERVER_CONFIG = {
+        childList: true,
+        attributes: true,
+        characterData: true,
+        subtree: true,
+        attributeOldValue: true,
+    };
+    var observer = new website.Observer(function (mutations) {
+        // NOTE: Webkit does not fire DOMAttrModified => webkit browsers
+        //       relying on JsMutationObserver shim (Chrome < 18, Safari < 6)
+        //       will not mark dirty on attribute changes (@class, img/@src,
+        //       a/@href, ...)
+        _(mutations).chain()
+            .filter(function (m) {
+                // ignore any SVG target, these blokes are like weird mon
+                if (m.target && m.target instanceof SVGElement) {
+                    return false;
                 }
-            });
 
-            $.each(self.settings.inlinemedia , function (index,value) {
-                $(value).each(function(i, v){
-                    if (!$(this).next().hasClass('inline-media-link')) {
-                        $(this).after(openerp.qweb.render('website.editor.insert.inline.media', {}));
-                        $(this).next('.inline-media-link').attr('id', 'inline-media-link-'+ i);
-                    }
-                });
+                // ignore any change related to mundane image-edit-button
+                if (m.target && m.target.className
+                        && m.target.className.indexOf('image-edit-button') !== -1) {
+                    return false;
+                }
+                switch(m.type) {
+                    case 'attributes':
+                        // ignore contenteditable modification
+                        if (m.attributeName === 'contenteditable') { return false; }
+                        // ignore id modification
+                        if (m.attributeName === 'id') { return false; }
+                        // if attribute is not a class, can't be .cke_focus change
+                        if (m.attributeName !== 'class') { return true; }
+
+                        // find out what classes were added or removed
+                        var oldClasses = (m.oldValue || '').split(/\s+/);
+                        var newClasses = m.target.className.split(/\s+/);
+                        var change = _.union(_.difference(oldClasses, newClasses),
+                                             _.difference(newClasses, oldClasses));
+                        // ignore mutation to create editable zone and add dirty class
+                        var change = _.difference(change, ["note-air-editor", "note-editable", "o_dirty", "o_editable", ""]);
+                        return !!change.length;
+                    case 'childList':
+                        // Remove ignorable nodes from addedNodes or removedNodes,
+                        // if either set remains non-empty it's considered to be an
+                        // impactful change. Otherwise it's ignored.
+                        return !!remove_mundane_nodes(m.addedNodes).length ||
+                               !!remove_mundane_nodes(m.removedNodes).length;
+                    default:
+                        return true;
+                }
+            })
+            .map(function (m) {
+                var node = m.target;
+                while (node && (!node.className || node.className.indexOf('o_editable')===-1)) {
+                    node = node.parentNode;
+                }
+                return node;
+            })
+            .compact()
+            .uniq()
+            .each(function (node) {
+                $(node).trigger('content_changed');
             });
-            // callback on init
-            if (self.settings.content.length > 0 && self.settings.oninit) {
-                self.settings.oninit();
-            }
-        },
     });
-    website.summernote.eventHandler = openerp.Widget.extend({
-        init: function(settings) {
-            this.editor = new Editor(); //new website.summernote.editor();
-            this.toolbar = new Toolbar(); //new website.summernote.toolbar();
-            this.popover = new Popover(); //new website.summernote.popover();
-            this.handle = new Handle(); //new website.summernote.handle();
-        },
-        insertImages : function ($editable, files) {
-            var self = this ;
-            self.editor.restoreRange($editable);
-            var callbacks = $editable.data('callbacks');
+    function remove_mundane_nodes(nodes) {
+        if (!nodes || !nodes.length) { return []; }
 
-            // If onImageUpload options setted
-            if (callbacks.onImageUpload) {
-                callbacks.onImageUpload(files, editor, $editable);
-            // else insert Image as dataURL
-            } else {
-                $.each(files, function (idx, file) {
-                    async.readFileAsDataURL(file).then(function (sDataURL) {
-                        self.editor.insertImage($editable, sDataURL);
-                    }).fail(function () {
-                        if (callbacks.onImageUploadError) {
-                          callbacks.onImageUploadError();
-                        }
-                    });
-                });
-            }
-        },
-        hMousedown : function (event) {
-            //preventDefault Selection for FF, IE8+
-            if (dom.isImg(event.target)) {
-                event.preventDefault();
-            }
-        },
-        hMouseover : function (event) {
-            var self = this;
-            var element = $(event.target).closest('[data-oe-field]')
-            if(is_editable_node(element)) { element.addClass('note-wrapper-editable'); return;}
-        },
-        hToolbarAndPopoverUpdate : function (event) {
-            var self = this;
-            var element = $(event.target).closest('[data-oe-field]')
-            if(is_editable_node(element) && !$(event.target).hasClass('editor-insert-media')) { return; }
-            // delay for range after mouseup
-            setTimeout(function () {
-                var oLayoutInfo = self.makeLayoutInfo(event.currentTarget || event.target);
-                var oStyle = self.editor.currentStyle(event.target);
-                if (!oStyle) { return; }
-
-                var isAirMode = oLayoutInfo.editor().data('options').airMode;
-                if (!isAirMode) {
-                    self.toolbar.update(oLayoutInfo.toolbar(), oStyle);
-                }
-                self.popover.update(oLayoutInfo.popover(), oStyle, isAirMode);
-                self.handle.update(oLayoutInfo.handle(), oStyle, isAirMode);
-                oLayoutInfo.handle().find('.note-control-selection').hide();
-            }, 0);
-        },
-        hScroll : function (event) {
-            var self = this;
-            var oLayoutInfo = self.makeLayoutInfo(event.currentTarget || event.target);
-            //hide popover and handle when scrolled
-            self.popover.hide(oLayoutInfo.popover());
-            self.handle.hide(oLayoutInfo.handle());
-        },
-        hPasteClipboardImage : function (event) {
-            var self = this;
-            var originalEvent = event.originalEvent;
-            if (!originalEvent.clipboardData ||
-                !originalEvent.clipboardData.items ||
-                !originalEvent.clipboardData.items.length) {return;}
-
-            var oLayoutInfo = self.makeLayoutInfo(event.currentTarget || event.target);
-            var item = list.head(originalEvent.clipboardData.items);
-            var bClipboardImage = item.kind === 'file' && item.type.indexOf('image/') !== -1;
-
-            if (bClipboardImage) {
-                self.insertImages(oLayoutInfo.editable(), [item.getAsFile()]);
-            }
-        },
-        hHandleMousedown : function (event) {
-            var self = this;
-            if (dom.isControlSizing(event.target)) {
-                event.preventDefault();
-                event.stopPropagation();
-
-            }
-        },
-        hToolbarAndPopoverMousedown : function (event) {
-            // prevent default event when insertTable (FF, Webkit)
-            var $btn = $(event.target).closest('[data-event]');
-            if ($btn.length > 0) {
-                event.preventDefault();
-            }
-        },
-        hToolbarAndPopoverClick : function (event) {
-            var self = this;
-            var $btn = $(event.target).closest('[data-event]');
-            if ($btn.length > 0) {
-                var sEvent = $btn.attr('data-event'), sValue = $btn.attr('data-value');
-                var oLayoutInfo = self.makeLayoutInfo(event.target);
-                var $dialog = oLayoutInfo.dialog(),
-                $editable = oLayoutInfo.editable();
-
-                // before command: detect control selection element($target)
-                var $target;
-                if ($.inArray(sEvent, ['resize', 'floatMe', 'removeMedia']) !== -1) {
-                    var $selection = oLayoutInfo.handle().find('.note-control-selection');
-                    $target = $($selection.data('target'));
-                }
-                if (self.editor[sEvent]) { // on command
-                    $editable.trigger('focus');
-                    self.editor[sEvent]($editable, sValue, $target);
-                }
-                // after command
-                if ($.inArray(sEvent, ['backColor', 'foreColor']) !== -1) {
-                    var options = oLayoutInfo.editor().data('options', options);
-                    var module = options.airMode ? attachDragAndDropEventpopover : toolbar;
-                    module.updateRecentColor(list.head($btn), sEvent, sValue);
-                } else if (sEvent === 'showLinkDialog') { // popover to dialog
-                    $editable.focus();
-                    self.editor.saveRange($editable);
-                    return new  website.editor.LinkDialog(self.editor, $editable).appendTo(document.body);
-                } else if (sEvent === 'showImageDialog') {
-                    $editable.focus();
-                    new website.editor.MediaDialog(self.editor, '').appendTo(document.body);
-                    self.editor.restoreRange($editable);
-                }
-                self.hToolbarAndPopoverUpdate(event);
-            }
-        },
-        hStatusbarMousedown : function (event) {
-            var self = this;
-            var EDITABLE_PADDING = 24;
-            event.preventDefault();
-            event.stopPropagation();
-
-            var $editable = self.makeLayoutInfo(event.target).editable();
-            var nEditableTop = $editable.offset().top - $document.scrollTop();
-
-            var oLayoutInfo = self.makeLayoutInfo(event.currentTarget || event.target);
-            var options = oLayoutInfo.editor().data('options');
-
-            $document.on('mousemove', function (event) {
-                var nHeight = event.clientY - (nEditableTop + EDITABLE_PADDING);
-
-                nHeight = (options.minHeight > 0) ? Math.max(nHeight, options.minHeight) : nHeight;
-                nHeight = (options.maxHeight > 0) ? Math.min(nHeight, options.maxHeight) : nHeight;
-
-                $editable.height(nHeight);
-            }).one('mouseup', function () {
-                $document.off('mousemove');
-            });
-        },
-        hDimensionPickerMove : function (event) {
-            var self = this;
-            var PX_PER_EM = 18;
-            var $picker = $(event.target.parentNode); // target is mousecatcher
-            var $dimensionDisplay = $picker.next();
-            var $catcher = $picker.find('.note-dimension-picker-mousecatcher');
-            var $highlighted = $picker.find('.note-dimension-picker-highlighted');
-            var $unhighlighted = $picker.find('.note-dimension-picker-unhighlighted');
-
-            var posOffset;
-            // HTML5 with jQuery - e.offsetX is undefined in Firefox
-            if (event.offsetX === undefined) {
-                var posCatcher = $(event.target).offset();
-                posOffset = {
-                    x: event.pageX - posCatcher.left,
-                    y: event.pageY - posCatcher.top
-                };
-            } else {
-                posOffset = {
-                    x: event.offsetX,
-                    y: event.offsetY
-                };
-            }
-
-            var dim = {
-                c: Math.ceil(posOffset.x / PX_PER_EM) || 1,
-                r: Math.ceil(posOffset.y / PX_PER_EM) || 1
-            };
-
-            $highlighted.css({ width: dim.c + 'em', height: dim.r + 'em' });
-            $catcher.attr('data-value', dim.c + 'x' + dim.r);
-
-            if (3 < dim.c && dim.c < 10) { // 5~10
-                $unhighlighted.css({ width: dim.c + 1 + 'em'});
-            }
-
-            if (3 < dim.r && dim.r < 10) { // 5~10
-                $unhighlighted.css({ height: dim.r + 1 + 'em'});
-            }
-
-            $dimensionDisplay.html(dim.c + ' x ' + dim.r);
-        },
-        attachDragAndDropEvent : function (oLayoutInfo) {
-            var self = this;
-            var collection = $(), $dropzone = oLayoutInfo.dropzone,
-            $dropzoneMessage = oLayoutInfo.dropzone.find('.note-dropzone-message');
-
-            // show dropzone on dragenter when dragging a object to document.
-            $document.on('dragenter', function (e) {
-                var bCodeview = oLayoutInfo.editor.hasClass('codeview');
-                if (!bCodeview && collection.length === 0) {
-                    oLayoutInfo.editor.addClass('dragover');
-                    $dropzone.width(oLayoutInfo.editor.width());
-                    $dropzone.height(oLayoutInfo.editor.height());
-                    $dropzoneMessage.text('Drag Image Here');
-                }
-                collection = collection.add(e.target);
-            }).on('dragleave', function (e) {
-                collection = collection.not(e.target);
-                if (collection.length === 0) {
-                    oLayoutInfo.editor.removeClass('dragover');
-                }
-            }).on('drop', function () {
-                collection = $();
-                oLayoutInfo.editor.removeClass('dragover');
-            });
-            // change dropzone's message on hover.
-            $dropzone.on('dragenter', function () {
-                $dropzone.addClass('hover');
-                $dropzoneMessage.text('Drop Image');
-            }).on('dragleave', function () {
-                $dropzone.removeClass('hover');
-                $dropzoneMessage.text('Drag Image Here');
-            });
-            // attach dropImage
-            $dropzone.on('drop', function (event) {
-                event.preventDefault();
-                var dataTransfer = event.originalEvent.dataTransfer;
-                if (dataTransfer && dataTransfer.files) {
-                    var oLayoutInfo = self.makeLayoutInfo(event.currentTarget || event.target);
-                    oLayoutInfo.editable().focus();
-                    self.insertImages(oLayoutInfo.editable(), dataTransfer.files);
-                }
-            }).on('dragover', false); // prevent default dragover event
-        },
-        bindKeyMap : function (oLayoutInfo, keyMap) {
-            var self = this;
-            var $editor = oLayoutInfo.editor;
-            var $editable = oLayoutInfo.editable;
-            $editable.on('keydown', function (event) {
-                var aKey = [];
-                // modifier
-                if (event.metaKey) { aKey.push('CMD'); }
-                if (event.ctrlKey) { aKey.push('CTRL'); }
-                if (event.shiftKey) { aKey.push('SHIFT'); }
-                // keycode
-                var keyName = key.nameFromCode[event.keyCode];
-                if (keyName) { aKey.push(keyName); }
-                var handler = keyMap[aKey.join('+')];
-                if (handler) {
-                  event.preventDefault();
-                  self.editor[handler]($editable, $editor.data('options'));
-                } 
-            });
-        },
-        attach : function (oLayoutInfo, options) {
-            // handlers for editable
-            var self = this;
-            this.bindKeyMap(oLayoutInfo, options.keyMap[agent.bMac ? 'mac' : 'pc']);
-            oLayoutInfo.editable.on('mousedown', self.hMousedown.bind(self));
-            oLayoutInfo.editable.on('keyup mouseup', self.hToolbarAndPopoverUpdate.bind(self));
-            oLayoutInfo.editable.on('scroll', self.hScroll.bind(self));
-            oLayoutInfo.editable.on('paste', self.hPasteClipboardImage.bind(self));
-            // handler for handle and popover
-            //oLayoutInfo.handle.on('mousedown', self.hHandleMousedown.bind(self));
-            oLayoutInfo.popover.on('click', self.hToolbarAndPopoverClick.bind(self));
-            oLayoutInfo.popover.on('mousedown', self.hToolbarAndPopoverMousedown.bind(self));
-            oLayoutInfo.editable.on('mouseover' , self.hMouseover.bind(self));
-            // handlers for frame mode (toolbar, statusbar)
-            if (!options.airMode) {
-                // handler for drag and drop
-                if (!options.disableDragAndDrop) {
-                    self.attachDragAndDropEvent(oLayoutInfo);
-                }
-                // handler for toolbar
-                oLayoutInfo.toolbar.on('click', self.hToolbarAndPopoverClick.bind(self));
-                oLayoutInfo.toolbar.on('mousedown', self.hToolbarAndPopoverMousedown.bind(self));
-                // handler for statusbar
-                if (!options.disableResizeEditor) {
-                    oLayoutInfo.statusbar.on('mousedown', self.hStatusbarMousedown.bind(self));
+        var output = [];
+        for(var i=0; i<nodes.length; ++i) {
+            var node = nodes[i];
+            if (node.nodeType === document.ELEMENT_NODE) {
+                if (node.nodeName === 'BR' && node.getAttribute('type') === '_moz') {
+                    // <br type="_moz"> appears when focusing RTE in FF, ignore
+                    continue;
+                } else if (node.nodeName === 'DIV' && $(node).hasClass('oe_drop_zone')) {
+                    // ignore dropzone inserted by snippets
+                    continue
                 }
             }
-            // handler for table dimension
-            var $catcherContainer = options.airMode ? oLayoutInfo.popover :
-                                                    oLayoutInfo.toolbar;
-            var $catcher = $catcherContainer.find('.note-dimension-picker-mousecatcher');
-            $catcher.on('mousemove', self.hDimensionPickerMove);
-            // save selection when focusout
-            oLayoutInfo.editable.on('blur', function () {
-                self.editor.saveRange(oLayoutInfo.editable);
-            });
-            // save options on editor
-            oLayoutInfo.editor.data('options', options);
-            // ret styleWithCSS for backColor / foreColor clearing with 'inherit'.
-            if (options.styleWithSpan && !agent.bMSIE) {
-                // protect FF Error: NS_ERROR_FAILURE: Failure
-                setTimeout(function () {
-                    document.execCommand('styleWithCSS', 0, true);
-                }, 0);
-            }
-            // History
-            oLayoutInfo.editable.data('NoteHistory', new History());
-            // basic event callbacks (lowercase)
-            // enter, focus, blur, keyup, keydown
-            if (options.onenter) {
-                oLayoutInfo.editable.keypress(function (event) {
-                    if (event.keyCode === key.ENTER) { options.onenter(event); }
-                });
-            }
-            if (options.onfocus) { oLayoutInfo.editable.focus(options.onfocus); }
-            if (options.onblur) { oLayoutInfo.editable.blur(options.onblur); }
-            if (options.onkeyup) { oLayoutInfo.editable.keyup(options.onkeyup); }
-            if (options.onkeydown) { oLayoutInfo.editable.keydown(options.onkeydown); }
-            if (options.onpaste) { oLayoutInfo.editable.on('paste', options.onpaste); }
-            // callbacks for advanced features (camel)
-            if (options.onToolbarClick) { oLayoutInfo.toolbar.click(options.onToolbarClick); }
-            if (options.onChange) {
-                var hChange = function () {
-                    options.onChange(oLayoutInfo.editable, oLayoutInfo.editable.html());
-                };
-                if (agent.bMSIE) {
-                    var sDomEvents = 'DOMCharacterDataModified, DOMSubtreeModified, DOMNodeInserted';
-                    oLayoutInfo.editable.on(sDomEvents, hChange);
-                } else {
-                    oLayoutInfo.editable.on('input', hChange);
-                }
-            }
-            // All editor status will be saved on editable with jquery's data
-            // for support multiple editor with singleton object.
-            oLayoutInfo.editable.data('callbacks', {
-                onAutoSave: options.onAutoSave,
-                onImageUpload: options.onImageUpload,
-                onImageUploadError: options.onImageUploadError,
-                onFileUpload: options.onFileUpload,
-                onFileUploadError: options.onFileUpload
-            });
-        },
-        dettach : function (oLayoutInfo) {
-            oLayoutInfo.editable.off();
-            oLayoutInfo.popover.off();
-            oLayoutInfo.handle.off();
-            oLayoutInfo.dialog.off();
-            if (oLayoutInfo.editor.data('options').airMode) {
-                oLayoutInfo.dropzone.off();
-                oLayoutInfo.toolbar.off();
-                oLayoutInfo.statusbar.off();
-            }
-        },
-        makeLayoutInfo : function (descendant) {
-            var $target = $(descendant).closest('.note-editor, .note-air-editor, .note-air-layout');
-            if ($target.length === 0) { return null; }
-            var $editor;
-            if ($target.is('.note-editor, .note-air-editor')) {
-                $editor = $target;
-            } else {
-                $editor = $('#note-editor-' + list.last($target.attr('id').split('-')));
-            }
-            return dom.buildLayoutInfo($editor);
+
+            output.push(node);
         }
-    });
-    website.summernote.Renderer = openerp.Widget.extend({
-        init: function(settings) {
-            var self = this ;
-            self.settings = settings;
-        },
-        createLayout : function($holder) {
-            var self = this;
-            if (this.noteEditorFromHolder($holder).length > 0) { return; }
-            if (self.settings.airMode) { self.createLayoutByAirMode($holder); }
-        },
-        createLayoutByAirMode : function ($holder) {
-            var self = this;
-            var keyMap = self.settings.keyMap[agent.bMac ? 'mac' : 'pc'];
-            var langInfo = settings.lang[self.settings.lang];
-            var id = _.uniqueId();
-            $holder.addClass('note-air-editor note-editable');
-            $holder.attr({
-                'id': 'note-editor-' + id,
-                'contentEditable': true
-            });
-            var body = document.body;
-            // create Popover
-            var $popover = $(openerp.qweb.render('website.editor.tplPopovers',{options : self.settings , buttonInfo : tplButtonInfo , lang : langInfo}));
-            $popover.addClass('note-air-layout');
-            $popover.attr('id', 'note-popover-' + id);
-            $popover.appendTo(body);
-            self.createTooltip($popover, keyMap);
-            self.createPalette($popover, self.settings);
-            // create Handle
-            var $handle = $(openerp.qweb.render('website.editor.tplHandles', {}));
-            $handle.addClass('note-air-layout');
-            $handle.attr('id', 'note-handle-' + id);
-            $handle.appendTo(body);
-        },
-        createTooltip : function ($container, keyMap, sPlacement) {
-            var self = this;
-            var invertedKeyMap = func.invertObject(keyMap);
-            var $buttons = $container.find('button');
+        return output;
+    }
 
-            $buttons.each(function (i, elBtn) {
-                var $btn = $(elBtn);
-                var sShortcut = invertedKeyMap[$btn.data('event')];
-                if (sShortcut) {
-                    $btn.attr('title', function (i, v) {
-                        return v + ' (' + self.representShortcut(sShortcut) + ')';
-                    });
-                }
-            // bootstrap tooltip on btn-group bug
-            // https://github.com/twitter/bootstrap/issues/5687
-            }).tooltip({
-                container: 'body',
-                trigger: 'hover',
-                placement: sPlacement || 'top'
-            }).on('click', function () {
-                $(this).tooltip('hide');
-            });
-        },
-        createPalette : function ($container, options) {
-            var aaColor = options.colors;
-            $container.find('.note-color-palette').each(function () {
-                var $palette = $(this), sEvent = $palette.attr('data-target-event');
-                var aPaletteContents = [];
-                for (var row = 0, szRow = aaColor.length; row < szRow; row++) {
-                    var aColor = aaColor[row];
-                    var aButton = [];
-                    for (var col = 0, szCol = aColor.length; col < szCol; col++) {
-                    var sColor = aColor[col];
-                    aButton.push(['<button type="button" class="note-color-btn" style="background-color:', sColor,
-                        ';" data-event="', sEvent,
-                        '" data-value="', sColor,
-                        '" title="', sColor,
-                        '" data-toggle="button" tabindex="-1"></button>'].join(''));
-                    }
-                    aPaletteContents.push('<div>' + aButton.join('') + '</div>');
-                }
-                $palette.html(aPaletteContents.join(''));
-            });
-        },
-        representShortcut : function (str) {
-            if (agent.bMac) {
-                str = str.replace('CMD', '⌘').replace('SHIFT', '⇧');
-            }
-            return str.replace('BACKSLASH', '\\')
-                .replace('SLASH', '/')
-                .replace('LEFTBRACKET', '[')
-                .replace('RIGHTBRACKET', ']');
-        },
-        layoutInfoFromHolder : function ($holder) {
-            var $editor = this.noteEditorFromHolder($holder);
-            if (!$editor.length) { return; }
-
-            var layoutInfo = dom.buildLayoutInfo($editor);
-            // cache all properties.
-            for (var key in layoutInfo) {
-                if (layoutInfo.hasOwnProperty(key)) {
-                    layoutInfo[key] = layoutInfo[key].call();
-                }
-            }
-            return layoutInfo;
-        },
-        noteEditorFromHolder : function($holder) {
-            if ($holder.hasClass('note-air-editor')) {
-                return $holder;
-            } else if ($holder.next().hasClass('note-editor')) {
-                return $holder.next();
-            } else {
-                return $();
-            }
-        },
-        removeLayout : function ($holder) {
-            var info = this.layoutInfoFromHolder($holder);
-            if (!info) { return; }
-            $holder.html(info.editable.html());
-            info.editor.remove();
-            $holder.show();
-        },
-    });
+    /* ----- EDITOR: LINK & MEDIA ---- */
 
     website.editor = { };
     website.editor.Dialog = openerp.Widget.extend({
@@ -2802,147 +2352,5 @@
         },
     });
 
-    website.Observer = window.MutationObserver || window.WebKitMutationObserver || window.JsMutationObserver;
-    var OBSERVER_CONFIG = {
-        childList: true,
-        attributes: true,
-        characterData: true,
-        subtree: true,
-        attributeOldValue: true,
-    };
-    var observer = new website.Observer(function (mutations) {
-        // NOTE: Webkit does not fire DOMAttrModified => webkit browsers
-        //       relying on JsMutationObserver shim (Chrome < 18, Safari < 6)
-        //       will not mark dirty on attribute changes (@class, img/@src,
-        //       a/@href, ...)
-        _(mutations).chain()
-            .filter(function (m) {
-                // ignore any SVG target, these blokes are like weird mon
-                if (m.target && m.target instanceof SVGElement) {
-                    return false;
-                }
-
-                // ignore any change related to mundane image-edit-button
-                if (m.target && m.target.className
-                        && m.target.className.indexOf('image-edit-button') !== -1) {
-                    return false;
-                }
-                switch(m.type) {
-                    case 'attributes':
-                        // ignore contenteditable modification
-                        if (m.attributeName === 'contenteditable') { return false; }
-                        // ignore id modification
-                        if (m.attributeName === 'id') { return false; }
-                        // if attribute is not a class, can't be .cke_focus change
-                        if (m.attributeName !== 'class') { return true; }
-
-                        // find out what classes were added or removed
-                        var oldClasses = (m.oldValue || '').split(/\s+/);
-                        var newClasses = m.target.className.split(/\s+/);
-                        var change = _.union(_.difference(oldClasses, newClasses),
-                                             _.difference(newClasses, oldClasses));
-                        // ignore mutation to create editable zone and add dirty class
-                        var change = _.difference(change, ["note-air-editor", "note-editable", "o_dirty", "o_editable", ""]);
-                        return !!change.length;
-                    case 'childList':
-                        setTimeout(function () {
-                            fixup_browser_crap(m.addedNodes);
-                        }, 0);
-                        // Remove ignorable nodes from addedNodes or removedNodes,
-                        // if either set remains non-empty it's considered to be an
-                        // impactful change. Otherwise it's ignored.
-                        return !!remove_mundane_nodes(m.addedNodes).length ||
-                               !!remove_mundane_nodes(m.removedNodes).length;
-                    default:
-                        return true;
-                }
-            })
-            .map(function (m) {
-                var node = m.target;
-                while (node && (!node.className || node.className.indexOf('o_editable')===-1)) {
-                    node = node.parentNode;
-                }
-                return node;
-            })
-            .compact()
-            .uniq()
-            .each(function (node) {
-                $(node).trigger('content_changed');
-            });
-    });
-    function remove_mundane_nodes(nodes) {
-        if (!nodes || !nodes.length) { return []; }
-
-        var output = [];
-        for(var i=0; i<nodes.length; ++i) {
-            var node = nodes[i];
-            if (node.nodeType === document.ELEMENT_NODE) {
-                if (node.nodeName === 'BR' && node.getAttribute('type') === '_moz') {
-                    // <br type="_moz"> appears when focusing RTE in FF, ignore
-                    continue;
-                } else if (node.nodeName === 'DIV' && $(node).hasClass('oe_drop_zone')) {
-                    // ignore dropzone inserted by snippets
-                    continue
-                }
-            }
-
-            output.push(node);
-        }
-        return output;
-    }
-
-    var programmatic_styles = {
-        float: 1,
-        display: 1,
-        position: 1,
-        top: 1,
-        left: 1,
-        right: 1,
-        bottom: 1,
-    };
-    function fixup_browser_crap(nodes) {
-        if (!nodes || !nodes.length) { return; }
-        /**
-         * Checks that the node only has a @style, not e.g. @class or whatever
-         */
-        function has_only_style(node) {
-            for (var i = 0; i < node.attributes.length; i++) {
-                var attr = node.attributes[i];
-                if (attr.attributeName !== 'style') {
-                    return false;
-                }
-            }
-            return true;
-        }
-        function has_programmatic_style(node) {
-            for (var i = 0; i < node.style.length; i++) {
-              var style = node.style[i];
-              if (programmatic_styles[style]) {
-                  return true;
-              }
-            }
-            return false;
-        }
-
-        for (var i=0; i<nodes.length; ++i) {
-            var node = nodes[i];
-            if (node.nodeType !== document.ELEMENT_NODE) { continue; }
-
-            if (node.nodeName === 'SPAN'
-                    && has_only_style(node)
-                    && !has_programmatic_style(node)) {
-                // On backspace, webkit browsers create a <span> with a bunch of
-                // inline styles "remembering" where they come from. Refs:
-                //    http://www.neotericdesign.com/blog/2013/3/working-around-chrome-s-contenteditable-span-bug
-                //    https://code.google.com/p/chromium/issues/detail?id=226941
-                //    https://bugs.webkit.org/show_bug.cgi?id=114791
-                //    http://dev.ckeditor.com/ticket/9998
-                var child, parent = node.parentNode;
-                while (child = node.firstChild) {
-                    parent.insertBefore(child, node);
-                }
-            }
-        }
-    }
 })();
 
