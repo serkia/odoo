@@ -135,12 +135,6 @@ $(document).ready(function () {
             }
         });
 
-        if($('input.load_tags').length){
-            var tags = $("input.load_tags").val();
-            $("input.load_tags").val("");
-            set_tags(tags);
-        };
-
         function set_tags(tags) {
             $("input.load_tags").textext({
                 plugins: 'tags focus autocomplete ajax',
@@ -199,30 +193,18 @@ $(document).ready(function () {
             });
         }
 
+        if($('input.load_tags').length){
+            var tags = $("input.load_tags").val();
+            $("input.load_tags").val("");
+            set_tags(tags);
+        };
+
         if ($('textarea.load_editor').length) {
             $('textarea.load_editor').each(function () {
                 if (this['id']) {
-                    CKEDITOR.replace(this['id']).on('instanceReady', CKEDITORLoadComplete);
+                    CKEDITOR.replace(this['id']);
                 }
             });
         }
     }
 });
-
-
-function IsKarmaValid(eventNumber,minKarma){
-    "use strict";
-    if(parseInt($("#karma").val()) >= minKarma){
-        CKEDITOR.tools.callFunction(eventNumber,this);
-        return false;
-    } else {
-        alert("Sorry you need more than " + minKarma + " Karma.");
-    }
-}
-
-function CKEDITORLoadComplete(){
-    "use strict";
-    $('.cke_button__link').attr('onclick','IsKarmaValid(33,30)');
-    $('.cke_button__unlink').attr('onclick','IsKarmaValid(37,30)');
-    $('.cke_button__image').attr('onclick','IsKarmaValid(41,30)');
-}
