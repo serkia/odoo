@@ -1564,7 +1564,7 @@ instance.web.View = instance.web.Widget.extend({
     },
     on_sidebar_export: function() {
         var self= this;
-        if (self.get_selected_ids().length === 0) {
+        if (!(get_selected_ids=self.get_selected_ids().length)) {
             this.do_warn(_t("Warning"), _t("You must select at least one record."));
         } else {
             self.do_action({
@@ -1575,7 +1575,7 @@ instance.web.View = instance.web.Widget.extend({
                     model: self.dataset.model,
                     dataset: self.dataset,
                     domain: self.get_active_domain(),
-                    selected_ids: self.get_selected_ids(),
+                    selected_ids: get_selected_ids,
                     context: self.getParent().action.context,
                     view: self.ViewManager.action.name,
                 }

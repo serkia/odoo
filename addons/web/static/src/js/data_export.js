@@ -36,9 +36,7 @@ instance.web.DataExport = instance.web.Widget.extend({
             this.$el.find(".oe_export_file").attr("disabled", "disabled");
         },
         'click .oe_export_file':'on_click_export_data',
-        'click #oe_export_cancel': function () {
-            this.exit();
-        },
+        'click #oe_export_cancel': 'exit',
         'click #export_new_list': 'on_show_save_list',
         'click #move_up':'on_click_move_up',
         'click #move_down':'on_click_move_down',
@@ -47,7 +45,6 @@ instance.web.DataExport = instance.web.Widget.extend({
     init: function(parent, dataset) {
         var self = this;
         this._super(parent);
-        this.ascending = true;
         this.records = {};
         this.dataset = dataset;
         this.domain = dataset.params.domain;
@@ -66,7 +63,6 @@ instance.web.DataExport = instance.web.Widget.extend({
 
         domain=this.dataset.params.domain;
         self.$el.find(".oe_model_name").text(this.model_name);
-        self.$el.removeClass('ui-dialog-content ui-widget-content');
         var got_fields = new $.Deferred();
         if (!export_fields.length) {
             this.$el.find(".oe_export_file").attr("disabled", "disabled");
@@ -142,21 +138,17 @@ instance.web.DataExport = instance.web.Widget.extend({
             next_row.after(selected_rows);
         }
     },
-    on_click_sort_list: function () {
+    on_click_sort_list: function (e) {
         var export_list = this.$el.find("#fields_list");
-        if (this.ascending === true) {
-            this.$el.find("#sort_list").removeClass("glyphicon glyphicon-sort-by-alphabet").addClass("glyphicon glyphicon-sort-by-alphabet-alt").prop("title","Sort Descending");
+       $(e.currentTarget).toggle(function() {
             export_list.find("option").sort(function (a, b) {
                 return $(a).text().localeCompare($(b).text())
             }).appendTo(export_list);
-            this.ascending = false;
-        } else {
-            this.$el.find("#sort_list").removeClass("glyphicon glyphicon-sort-by-alphabet-alt").addClass("glyphicon glyphicon-sort-by-alphabet").prop("title","Sort Ascending");
+        },function() {
             export_list.find("option").sort(function (a, b) {
                 return $(b).text().localeCompare($(a).text())
             }).appendTo(export_list);
-            this.ascending = true;
-        }
+        });
     },
     exit: function () {
         this.do_action({
