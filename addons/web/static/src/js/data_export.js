@@ -67,7 +67,7 @@ instance.web.DataExport = instance.web.Widget.extend({
         if (!export_fields.length) {
             this.$el.find(".oe_export_file").attr("disabled", "disabled");
         }
-        this.$el.find("#import_compat").on('click',function(){
+        this.$el.find("#import_compat").on('change',function(){
             if($(this).is(":checked")){
                 self.$el.find('#field-tree-structure').remove();
                 var import_comp = self.$el.find("#import_compat").val();
@@ -99,15 +99,7 @@ instance.web.DataExport = instance.web.Widget.extend({
                 });
             }
         });
-        self.$el.find('#field-tree-structure').remove();
-        var import_comp = self.$el.find("#import_compat").val();
-        self.rpc("/web/export/get_fields", {
-            model: self.dataset.params.model,
-            import_compat: !!import_comp,
-            }).done(function (records) {
-                got_fields.resolve();
-                self.on_show_data(records);
-            });
+        this.$el.find("#import_compat").trigger('change');
         var got_domain = this.domain.then(function (domain) {
             if (domain === undefined) {
                 self.ids_to_export = self.selected_ids;
