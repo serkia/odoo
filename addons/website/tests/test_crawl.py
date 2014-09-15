@@ -1,17 +1,13 @@
 # -*- coding: utf-8 -*-
 import logging
 import urlparse
-import unittest2
-import urllib2
 import time
-import werkzeug.urls
-
 import lxml.html
-
+import werkzeug.urls
 import openerp
-from openerp import tools
 
 _logger = logging.getLogger(__name__)
+
 
 class Crawler(openerp.tests.HttpCase):
     """ Test suite crawling an openerp CMS instance and checking that all
@@ -25,17 +21,19 @@ class Crawler(openerp.tests.HttpCase):
     post_install = True
 
     def crawl(self, url, seen=None, msg=''):
-        if seen ==  None:
+        if seen == None:
             seen = set()
         if url in seen:
             return seen
         else:
             seen.add(url)
 
+        url = werkzeug.urls.url_fix(url, charset='utf-8')
+
         _logger.info("%s %s", msg, url)
         r = self.url_open(url)
         code = r.getcode()
-        self.assertIn( code, xrange(200, 300), "%s Fetching %s returned error response (%d)" % (msg, url, code))
+        self.assertIn(code, xrange(200, 300), "%s Fetching %s returned error response (%d)" % (msg, url, code))
 
         if r.info().gettype() == 'text/html':
             doc = lxml.html.fromstring(r.read())
@@ -63,7 +61,6 @@ class Crawler(openerp.tests.HttpCase):
 
                 self.crawl(href, seen, msg)
         return seen
-
 
     def test_10_crawl_public(self):
         t0 = time.time()

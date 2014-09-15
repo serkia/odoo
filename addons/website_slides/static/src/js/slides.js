@@ -440,7 +440,12 @@ $(document).ready(function() {
             website.slide.modifyembedcode(currentVal - 1);
         }
     });
-
+    $(".js_follow_btn").on('follow', function(ev, $el, click_ev) {
+        if (click_ev){
+            $el.find(".js_unfollow_btn, .js_follow_email").hide();
+            $el.find(".alert-success").removeClass("hidden");
+        }
+    });
     $('.share-toggle-option').on('click', function (ev) {
         ev.preventDefault();
         var toggleDiv = $(this).data('slide-share');

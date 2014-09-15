@@ -25,12 +25,12 @@
                 $('.js_follow > .input-group-btn.hidden').removeClass("hidden");
                 this.$target.find('.js_follow_btn, .js_unfollow_btn').on('click', function (event) {
                     event.preventDefault();
-                    self.on_click();
+                    self.on_click(event);
                 });
             }
             return;
         },
-        on_click: function () {
+        on_click: function (ev) {
             var self = this;
             var $email = this.$target.find(".js_follow_email");
 
@@ -41,22 +41,19 @@
             this.$target.removeClass('has-error');
 
             var email = $email.length ? $email.val() : false;
-            if (email) {
-                openerp.jsonRpc('/website_mail/follow', 'call', {
-                    'id': +this.$target.data('id'),
-                    'object': this.$target.data('object'),
-                    'message_is_follower': this.$target.attr("data-follow") || "off",
-                    'email': email,
-                }).then(function (follow) {
-                    self.toggle_subscription(follow, email);
-                });
-            }
+            openerp.jsonRpc('/website_mail/follow', 'call', {
+                'id': +this.$target.data('id'),
+                'object': this.$target.data('object'),
+                'message_is_follower': this.$target.attr("data-follow") || "off",
+                'email':  email,
+            }).then(function (follow) {
+                self.toggle_subscription(follow, email, ev);
+            });
         },
-        toggle_subscription: function(follow, email) {
-            console.log(follow, email);
+        toggle_subscription: function(follow, email, ev) {
             follow = follow || (!email && this.$target.attr('data-unsubscribe'));
             if (follow) {
-                this.$target.find(".js_follow_btn").addClass("hidden");
+                this.$target.find(".js_follow_btn").addClass("hidden").trigger('follow', [this.$target, ev]);
                 this.$target.find(".js_unfollow_btn").removeClass("hidden");
             }
             else {
