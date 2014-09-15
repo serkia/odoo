@@ -41,6 +41,8 @@
     *  - paste text and convert into different 'p' tag .
     *  - Close the dom.pasteTextClose list for the parent node of the caret
     *  - All line are converted as 'p' tag by default or by parent node of the caret if the tag is a dom.pasteTextApply
+    * reRange:
+    *  - change the selected range in function off the reRangeFilter to don't break the dom items
     */
 
     dom.orderClass = function (node) {
@@ -612,7 +614,7 @@
             r.select();
         }
         setTimeout(function () {
-            if (r.sc !== r.ec || r.so !== r.eo) {
+            if (r && (r.sc !== r.ec || r.so !== r.eo)) {
                 $(".note-link-popover").hide();
                 $(".note-image-popover").hide();
                 $(".note-video-popover").hide();
@@ -626,6 +628,9 @@
         oLayoutInfo.editor.on("keydown", summernote_keydown);
         oLayoutInfo.editor.on('dragstart', 'img', function (e) { e.preventDefault(); });
         $(document).on('mouseup', reRangeSelect);
+        oLayoutInfo.editor.on('dblclick', 'img', function (event) {
+            new website.editor.MediaDialog(this, event.target).appendTo(document.body);
+        });
     };
     var fn_dettach = eventHandler.dettach;
     eventHandler.dettach = function (oLayoutInfo, options) {
@@ -634,6 +639,7 @@
         oLayoutInfo.editor.off("keydown", summernote_keydown);
         oLayoutInfo.editor.off("dragstart");
         $(document).off('mouseup', reRangeSelect);
+        oLayoutInfo.editor.off("dblclick");
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -661,8 +667,8 @@
                     .tooltip({container: 'body'})
                     .on('click', function () {$(this).tooltip('hide');});
             }
-
         }
+        $popover.children().css('z-index', 1040);
     };
     eventHandler.editor.resize = function ($editable, sValue, $target) {
         $editable.data('NoteHistory').recordUndo($editable);
@@ -677,6 +683,23 @@
             case 'right': $target.addClass('pull-right'); break;
         }
     };
+
+    eventHandler.dialog.showLinkDialog = function ($editable, $dialog, linkInfo) {
+        var editor = new website.editor.LinkDialog($editable, linkInfo);
+        editor.appendTo(document.body);
+
+        var def = new $.Deferred();
+        editor.on("save", this, function (linkInfo) { def.resolve(linkInfo); });
+        editor.on("cancel", this, function () { def.reject(); });
+        return def;
+    };
+
+    var fn_editor_createLink = eventHandler.editor.createLink;
+    eventHandler.editor.createLink = function ($editable, linkInfo, options) {
+        var a = fn_editor_createLink.call(this, $editable, linkInfo, options);
+        $(a).attr("class", linkInfo.className);
+    };
+
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     /* Change History to have a global History for all summernote instances */
@@ -740,8 +763,6 @@
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    // .note-air-popover : z-index: 1040;
 
     website.no_editor = !!$(document.documentElement).data('editable-no-editor');
 
@@ -837,7 +858,6 @@
             this.rte = new website.RTE(this);
             this.rte.on('change', this, this.proxy('rte_changed'));
             this.rte.on('rte:ready', this, function () {
-                self.setup_hover_buttons();
                 self.trigger('rte:ready');
             });
 
@@ -946,100 +966,6 @@
                 $dialog.modal('show');
             }).then(function () {
                 website.reload();
-            })
-        },
-
-        /**
-         * Creates a "hover" button for link edition
-         *
-         * @param {Function} editfn edition function, called when clicking the button
-         * @returns {jQuery}
-         */
-        make_hover_button_link: function (editfn) {
-            return $(openerp.qweb.render('website.editor.hoverbutton.link', {}))
-                .hide()
-                .click(function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    editfn.call(this, e);
-                })
-                .appendTo(document.body);
-        },
-
-        /**
-         * Creates a "hover" button for image
-         *
-         * @param {Function} editfn edition function, called when clicking the button
-         * @param {Function} stylefn edition style function, called when clicking the button
-         * @returns {jQuery}
-         */
-        make_hover_button_image: function (editfn, stylefn) {
-            var $div = $(openerp.qweb.render('website.editor.hoverbutton.media', {}))
-                .hide()
-                .appendTo(document.body);
-
-            $div.find('[data-toggle="dropdown"]').dropdown();
-            $div.find(".hover-edition-button").click(function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                editfn.call(this, e);
-            });
-            if (stylefn) {
-                $div.find(".hover-style-button").click(function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    stylefn.call(this, e);
-                });
-            }
-            return $div;
-        },
-        /**
-         * For UI clarity, during RTE edition when the user hovers links and
-         * images a small button should appear to make the capability clear,
-         * as not all users think of double-clicking the image or link.
-         */
-        setup_hover_buttons: function () {
-            var $link_button = this.make_hover_button_link(function () {
-                new website.editor.LinkDialog(false, previous, true).appendTo(document.body);
-                previous = null;
-            });
-
-            // previous is the state of the button-trigger: it's the
-            // currently-ish hovered element which can trigger a button showing.
-            // -ish, because when moving to the button itself ``previous`` is
-            // still set to the element having triggered showing the button.
-            var previous;
-            $(document).on('mouseover', '.o_editable a', function () {
-                // Back from edit button -> ignore
-                var element = $(this).closest('.o_editable');
-                if (previous && previous === this) { return; }
-                /**
-                 * Checks that both the element's content *and the element itself* are
-                 * editable: an editing host is considered non-editable because its content
-                 * is editable but its attributes should not be considered editable
-                 */
-                if (!(element.data('oe-model') === 'ir.ui.view'
-                    || element.data('oe-type') === 'html'
-                    || (element.attr('contentEditable') === 'true' && element.getAttribute('attributeEditable') !== 'true'))) { return; }
-
-                if ($(this).hasClass('editor-insert-media')) { return; }
-                previous = this;
-                var $selected = $(this);
-                var position = $selected.offset();
-                $link_button.show().offset({
-                    top: $selected.outerHeight()
-                            + position.top,
-                    left: $selected.outerWidth() / 2
-                            + position.left
-                            - $link_button.outerWidth() / 2
-                })
-            }).on('mouseleave', '.o_editable a, .o_editable img, .o_editable .fa', function (e) {
-                var current = document.elementFromPoint(e.clientX, e.clientY);
-                if (current === $link_button[0] || $(current).parent()[0] === $link_button[0]) {
-                    return;
-                }
-                $link_button.hide();
-                previous = null;
             });
         },
     });
@@ -1101,10 +1027,6 @@
     });
 
     /* ----- RICH TEXT EDITOR ---- */
-
-    eventHandler.commands.showLinkDialog = function (oLayoutInfo) {
-        new website.editor.LinkDialog(false, oLayoutInfo.editable(), true).appendTo(document.body);
-    };
 
     website.RTE = openerp.Widget.extend({
         init: function (EditorBar) {
@@ -1362,10 +1284,8 @@
             'click button.save': 'save',
             'click button[data-dismiss="modal"]': 'cancel',
         },
-        init: function (editor, editable) {
+        init: function () {
             this._super();
-            this.editor = editor;
-            this.editable = editable;
         },
         start: function () {
             var sup = this._super();
@@ -1399,21 +1319,14 @@
                 this.preview();
             },
         }),
-        init: function (editor, editable , is_custom) {
-            this._super(editor, editable);
-            this.text = null;
+        init: function (editable, data) {
+            this._super(editable, data);
+            this.editable = editable;
+            this.data = data;
+
             // Store last-performed request to be able to cancel/abort it.
             this.page_exists_req = null;
             this.search_pages_req = null;
-            if(!is_custom){
-                this.editable.focus();
-                this.editor.saveRange(this.editable);
-                this.rng = range.create();
-            } else {
-                this.rng = range.createFromNode(this.editable);
-            }
-            this.is_custom = is_custom;
-
             this.bind_data();
         },
         start: function () {
@@ -1493,60 +1406,19 @@
             var _super = this._super.bind(this);
             return this.get_data()
                 .then(function (url, new_window, label, classes) {
-                    self.make_link(url, new_window, label, classes);
+                    self.data.url = url;
+                    self.data.isNewWindow = new_window;
+                    self.data.text = label;
+                    self.data.className = classes;
+
+                    self.trigger("save", self.data);
                 }).then(_super);
         },
-        make_link : function(url , new_window , label, classes){
-            var self =  this;
-            var href = url;
-            var $a;
-            if (url.indexOf('@') !== -1 && url.indexOf(':') === -1) {
-                href =  'mailto:' + url;
-            } else if (url.indexOf('://') === -1 && url[0] !== "/") {
-                href = 'http://' + url;
-            }
-            if(this.is_custom) {
-                $a = this.editable;
-            } else {
-                this.editor.restoreRange(this.editable);
-                this.editor.recordUndo(this.editable);
-
-                // createLink when range collapsed (IE, Firefox).
-                if ((agent.bMSIE || agent.bFF) && rng.isCollapsed()) {
-                    $a = $('<a href="'+href+'"/>').text(label);
-                    this.rng.insertNode($a[0]);
-                    this.rng = range.createFromNode($anchor[0]);
-                    this.rng.select();
-                } else {
-                    document.execCommand('insertHTML', false, '<a href="' + href + '" id="make_link_editor_LinkDialog">make_link_editor_LinkDialog</a>');
-                    $a = $('a#make_link_editor_LinkDialog').removeAttr("id").text(label);
-                }
-            }
-
-            // update link text
-            this.update_link($a, href, new_window, label, classes);
-        },
-        update_link : function(target , href , new_window , label, classes) {
-            $(target).html(label);
-            $(target).attr('href', href);
-            if (new_window) {
-                $(target).attr('target', '_blank');
-            } else {
-                $(target).removeAttr('target');
-            }
-            $(target).attr("class", classes);
-        },
         bind_data: function () {
-            if (!this.is_custom) {
-                this.$('input#link-text').val(this.rng.toString());
-                return;
-            }
-
-            var elAnchor = this.editable;
-            var href = $(elAnchor).attr('href');
-            var new_window = $(elAnchor).attr('target') === '_blank';
-            var text = $(elAnchor).text();
-            var classes = $(elAnchor).attr("class");
+            var href = this.data.url;
+            var new_window = this.data.isNewWindow;
+            var text = this.data.text;
+            var classes = this.data.className = $(this.data.range.sc).attr("class");
 
             this.$('input#link-text').val(text);
             this.$('input.window-new').prop('checked', new_window);

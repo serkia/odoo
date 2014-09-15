@@ -2029,6 +2029,9 @@
 
       rng = range.createFromNode(anchor);
       rng.select();
+
+      // odoo hack: allow to overwrite the methods
+      return anchor;
     };
 
     /**
