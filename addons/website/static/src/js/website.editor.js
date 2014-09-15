@@ -444,33 +444,6 @@
         return range.create(sc, so, ec, eo);
     };
 
-    range.reRangeSelect = function (event) {
-        var r = $.summernote.objects.range.create();
-        if (r && !r.isCollapsed()) {
-            // check if the user move the caret on up or down
-            var ref = false;
-            var node = r.sc;
-            var parent = r.ec.parentNode;
-            while (node) {
-                if (parent === node) {
-                    break;
-                }
-                if(event.target === node) {
-                    ref = true;
-                    break;
-                }
-                node = node.parentNode;
-            }
-
-            setTimeout(function () {
-                range.reRange(r.sc, r.so, r.ec, r.eo, ref).select();
-            },0);
-
-            event.preventDefault();
-            return false;
-        }
-    };
-
     /* attach event to Summernote
     * paste:
     *  - change the default feature of contentEditable
@@ -616,21 +589,44 @@
         event.preventDefault();
         return false;
     }
+    function reRangeSelect (event) {
+        var r = $.summernote.objects.range.create();
+        if (r && !r.isCollapsed()) {
+            // check if the user move the caret on up or down
+            var ref = false;
+            var node = r.sc;
+            var parent = r.ec.parentNode;
+            while (node) {
+                if (parent === node) {
+                    break;
+                }
+                if(event.target === node || event.target.parentNode === node) { /*check parent node for image, iframe and tag without child text node*/
+                    ref = true;
+                    break;
+                }
+                node = node.parentNode;
+            }
+
+            r = range.reRange(r.sc, r.so, r.ec, r.eo, ref);
+            r.select();
+
+            setTimeout(function () {
+                if (r.sc !== r.ec || r.so !== r.eo) {
+                    $(".note-control-selection").hide();
+                    $(".note-link-popover").hide();
+                    $(".note-image-popover").hide();
+                    $(".note-video-popover").hide();
+                }
+            },0);
+        }
+    }
     var fn_attach = eventHandler.attach;
     eventHandler.attach = function (oLayoutInfo, options) {
         fn_attach.call(this, oLayoutInfo, options);
         oLayoutInfo.editor.on("paste", summernote_paste);
         oLayoutInfo.editor.on("keydown", summernote_keydown);
         oLayoutInfo.editor.on('dragstart', 'img', function (e) { e.preventDefault(); });
-        oLayoutInfo.editor.on('mouseup', function (e) {
-            setTimeout(function () {
-                range.reRangeSelect(e);
-                $(".note-control-selection").hide();
-                $(".note-link-popover").hide();
-                $(".note-image-popover").hide();
-                $(".note-video-popover").hide();
-            },0);
-        });
+        $(document).on('mouseup', reRangeSelect);
     };
     var fn_dettach = eventHandler.dettach;
     eventHandler.dettach = function (oLayoutInfo, options) {
@@ -638,7 +634,7 @@
         oLayoutInfo.editor.off("paste", summernote_paste);
         oLayoutInfo.editor.off("keydown", summernote_keydown);
         oLayoutInfo.editor.off("dragstart");
-        oLayoutInfo.editor.off('mouseup');
+        $(document).off('mouseup', reRangeSelect);
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
