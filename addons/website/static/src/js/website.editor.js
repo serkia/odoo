@@ -390,7 +390,9 @@
             }
             end = end.parentNode;
         }
-        end = lastFilterEnd;
+        if (lastFilterEnd) {
+            end = lastFilterEnd;
+        }
         if (!end) {
             end = document.getElementsByTagName('body')[0];
         }
