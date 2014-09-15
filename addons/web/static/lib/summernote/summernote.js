@@ -2742,6 +2742,7 @@
        * @param {Object} oLayoutInfo
        */
       showLinkDialog: function (oLayoutInfo) {
+        console.log(oLayoutInfo);
         var $editor = oLayoutInfo.editor(),
             $dialog = oLayoutInfo.dialog(),
             $editable = oLayoutInfo.editable(),
@@ -2918,6 +2919,9 @@
         toolbar.updateCodeview(oLayoutInfo.toolbar(), isCodeview);
       }
     };
+    
+    // odoo hack: allow to overwrite the methods
+    this.commands = commands;
 
     var hMousedown = function (event) {
       //preventDefault Selection for FF, IE8+
@@ -4236,6 +4240,8 @@
         renderer.createLayout($holder, options);
 
         var info = renderer.layoutInfoFromHolder($holder);
+        // odoo hack: allow to overwrite the methods
+        $holder.data('summernote', info);
         eventHandler.attach(info, options);
 
         // Textarea: auto filling the code before form submit.

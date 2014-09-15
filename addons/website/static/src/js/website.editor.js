@@ -346,6 +346,7 @@
         // move caret
         range.create(data.sc, data.so, data.ec, data.eo).select();
     };
+
     var fn_rc = range.create;
     range.create = function (sc, so, ec, eo) {
         var wrappedRange = fn_rc.apply(this, arguments);
@@ -365,6 +366,107 @@
             return this;
         };
         return wrappedRange;
+    };
+    range.reRangeFilter = function () { return true; };
+    range.reRange = function (sc, so, ec, eo, keep_end) {
+        // search the first snippet editable node
+        var start = keep_end ? ec : sc;
+        while (start) {
+            if ($(start).filter(range.reRangeFilter).length) {
+                break;
+            }
+            start = start.parentNode;
+        }
+
+        // check if the end caret have the same node
+        var lastFilterEnd;
+        var end = keep_end ? sc : ec;
+        while (end) {
+            if (start === end) {
+                break;
+            }
+            if ($(end).filter(range.reRangeFilter).length) {
+                lastFilterEnd = end;
+            }
+            end = end.parentNode;
+        }
+        end = lastFilterEnd;
+        if (!end) {
+            end = document.getElementsByTagName('body')[0];
+        }
+
+        // if same node, keep range
+        if (start === end) {
+            return range.create(sc, so, ec, eo);
+        }
+
+        // reduce or extend the range to don't break a reRangeFilter area
+        if ($.contains(start, end)) {
+
+            if (keep_end) {
+                while (!end.previousElementSibling) {
+                    end = end.parentNode;
+                }
+                sc = end.previousElementSibling;
+                while (sc.lastChild) {
+                    sc = sc.lastChild;
+                }
+                so = sc.textContent.length;
+            } else {
+                while (!end.nextElementSibling) {
+                    end = end.parentNode;
+                }
+                ec = end.nextElementSibling;
+                while (ec.firstChild) {
+                    ec = ec.firstChild;
+                }
+                eo = 0;
+            }
+        } else {
+
+            if (keep_end) {
+                sc = start;
+                while (sc.firstChild) {
+                    sc = sc.firstChild;
+                }
+                so = 0;
+            } else {
+                ec = start;
+                while (ec.lastChild) {
+                    ec = ec.lastChild;
+                }
+                eo = ec.textContent.length;
+            }
+        }
+
+        return range.create(sc, so, ec, eo);
+    };
+
+    range.reRangeSelect = function (event) {
+        var r = $.summernote.objects.range.create();
+        if (r && !r.isCollapsed()) {
+            // check if the user move the caret on up or down
+            var ref = false;
+            var node = r.sc;
+            var parent = r.ec.parentNode;
+            while (node) {
+                if (parent === node) {
+                    break;
+                }
+                if(event.target === node) {
+                    ref = true;
+                    break;
+                }
+                node = node.parentNode;
+            }
+
+            setTimeout(function () {
+                range.reRange(r.sc, r.so, r.ec, r.eo, ref).select();
+            },0);
+
+            event.preventDefault();
+            return false;
+        }
     };
 
     /* attach event to Summernote
@@ -517,16 +619,24 @@
         fn_attach.call(this, oLayoutInfo, options);
         oLayoutInfo.editor.on("paste", summernote_paste);
         oLayoutInfo.editor.on("keydown", summernote_keydown);
-        oLayoutInfo.editor.on('dragstart', 'img', function (e) {
-            e.preventDefault();
+        oLayoutInfo.editor.on('dragstart', 'img', function (e) { e.preventDefault(); });
+        oLayoutInfo.editor.on('mouseup', function (e) {
+            setTimeout(function () {
+                range.reRangeSelect(e);
+                $(".note-control-selection").hide();
+                $(".note-link-popover").hide();
+                $(".note-image-popover").hide();
+                $(".note-video-popover").hide();
+            },0);
         });
     };
     var fn_dettach = eventHandler.dettach;
     eventHandler.dettach = function (oLayoutInfo, options) {
         fn_dettach.call(this, oLayoutInfo, options);
-        oLayoutInfo.editor.off("paste");
-        oLayoutInfo.editor.off("keydown");
+        oLayoutInfo.editor.off("paste", summernote_paste);
+        oLayoutInfo.editor.off("keydown", summernote_keydown);
         oLayoutInfo.editor.off("dragstart");
+        oLayoutInfo.editor.off('mouseup');
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -594,246 +704,6 @@
 
     // .note-air-popover : z-index: 1040;
 
-    var tplButtonInfo = {
-        picture: function (lang) {
-            return {
-                sLabel : '<i class="fa fa-picture-o icon-picture"></i>',
-                event: 'showImageDialog',
-                title: lang.image.image
-            };
-        },
-        link: function (lang) {
-            return {
-                sLabel : '<i class="fa fa-link icon-link"></i>',
-                event: 'showLinkDialog',
-                title: lang.link.link
-            };
-        },
-        video: function (lang) {
-            return {
-                sLabel : '<i class="fa fa-youtube-play icon-play"></i>',
-                event: 'showVideoDialog',
-                title: lang.video.video
-            };
-        },
-        table: function (lang) {
-            var dropdown = openerp.qweb.render('website.editor.table', {});
-            return {
-                sLabel : '<i class="fa fa-table icon-table"></i>',
-                title: lang.table.table,
-                dropdown: dropdown
-            };
-        },
-        style: function (lang, options) {
-            var items = options.styleTags.reduce(function (memo, v) {
-                var label = lang.style[v === 'p' ? 'normal' : v];
-                return memo + '<li><a data-event="formatBlock" data-value="' + v + '">' +
-                   (
-                     (v === 'p' || v === 'pre') ? label :
-                     '<' + v + '>' + label + '</' + v + '>'
-                   ) +
-                 '</a></li>';
-            }, '');
-
-            return {
-                sLabel : '<i class="fa fa-magic icon-magic"></i>',
-                title: lang.style.style,
-                dropdown: '<ul class="dropdown-menu">' + items + '</ul>'
-            };
-        },
-        fontname: function (lang, options) {
-            var items = options.fontNames.reduce(function (memo, v) {
-                return memo + '<li><a data-event="fontName" data-value="' + v + '">' +
-                          '<i class="fa fa-check icon-ok"></i> ' + v +
-                        '</a></li>';
-            }, '');
-            return {
-                sLabel : '<span class="note-current-fontname">' + options.defaultFontName + '</span>',
-                title: lang.font.name,
-                dropdown: '<ul class="dropdown-menu">' + items + '</ul>'
-            };
-        },
-        fontsize: function (lang, options) {
-            var items = options.fontSizes.reduce(function (memo, v) {
-                return memo + '<li><a data-event="fontSize" data-value="' + v + '">' +
-                          '<i class="fa fa-check icon-ok"></i> ' + v +
-                        '</a></li>';
-            }, '');
-            return {
-                sLabel : '<span class="note-current-fontsize">11</span>',
-                title: lang.font.size,
-                dropdown: '<ul class="dropdown-menu">' + items + '</ul>'
-            };
-        },
-        color: function (lang) {
-            var dropdown = openerp.qweb.render('website.editor.color', {lang : lang});
-            var colorButton = {
-                sLabel : '<i class="fa fa-font icon-font" style="color:black;background-color:yellow;"></i>',
-                className: 'note-recent-color',
-                title: lang.color.recent,
-                value: '{"backColor":"yellow"}',
-                dropdown: dropdown
-            };
-            return colorButton;
-        },
-        bold: function (lang) {
-            return {
-                sLabel : '<i class="fa fa-bold icon-bold"></i>',
-                event: 'bold',
-                title: lang.font.bold
-            };
-        },
-        italic: function (lang) {
-            return {
-                sLabel : '<i class="fa fa-italic icon-italic"></i>',
-                event: 'italic',
-                title: lang.font.italic
-            };
-        },
-        underline: function (lang) {
-            return {
-                sLabel : '<i class="fa fa-underline icon-underline"></i>',
-                event: 'underline',
-                title: lang.font.underline
-            };
-        },
-        strikethrough: function (lang) {
-            return {
-                sLabel : '<i class="fa fa-strikethrough icon-strikethrough"></i>',
-                event: 'strikethrough',
-                title: lang.font.strikethrough
-            };
-        },
-        superscript: function (lang) {
-            return {
-                sLabel : '<i class="fa fa-superscript icon-superscript"></i>',
-                event: 'superscript',
-                title: lang.font.superscript
-            };
-        },
-        subscript: function (lang) {
-            return {
-                sLabel : '<i class="fa fa-subscript icon-subscript"></i>',
-                event: 'subscript',
-                title: lang.font.subscript
-            };
-        },
-        clear: function (lang) {
-        return {
-                sLabel : '<i class="fa fa-eraser icon-eraser"></i>',
-                event: 'removeFormat',
-                title: lang.font.clear
-            };
-        },
-        ul: function (lang) {
-            return {
-                sLabel : '<i class="fa fa-list-ul icon-list-ul"></i>',
-                event: 'insertUnorderedList',
-                title: lang.lists.unordered
-            };
-        },
-        ol: function (lang) {
-            return {
-                sLabel : '<i class="fa fa-list-ol icon-list-ol"></i>',
-                event: 'insertOrderedList',
-                title: lang.lists.ordered
-            };
-        },
-        paragraph: function (lang) {
-            var leftButton = {
-                sLabel : '<i class="fa fa-align-left icon-align-left"></i>',
-                title: lang.paragraph.left,
-                event: 'justifyLeft'
-            };
-            var centerButton = {
-                sLabel : '<i class="fa fa-align-center icon-align-center"></i>',
-                title: lang.paragraph.center,
-                event: 'justifyCenter'
-            };
-            var rightButton = {
-                sLabel : '<i class="fa fa-align-right icon-align-right"></i>',
-                title: lang.paragraph.right,
-                event: 'justifyRight'
-            };
-            var justifyButton = {
-                sLabel : '<i class="fa fa-align-justify icon-align-justify"></i>',
-                title: lang.paragraph.justify,
-                event: 'justifyFull'
-            };
-            var outdentButton = {
-                sLabel : '<i class="fa fa-outdent icon-indent-left"></i>',
-                title: lang.paragraph.outdent,
-                event: 'outdent'
-            };
-            var indentButton = {
-                sLabel : '<i class="fa fa-indent icon-indent-right"></i>',
-                title: lang.paragraph.indent,
-                event: 'indent'
-            };
-
-            var dropdown = openerp.qweb.render('website.editor.paragraph', {leftButton : leftButton, centerButton : centerButton, rightButton : rightButton, justifyButton : justifyButton, indentButton : indentButton, outdentButton : outdentButton});
-
-            return {
-                sLabel : '<i class="fa fa-align-left icon-align-left"></i>',
-                title: lang.paragraph.paragraph,
-                dropdown: dropdown
-            };
-        },
-        height: function (lang, options) {
-            var items = options.lineHeights.reduce(function (memo, v) {
-                return memo + '<li><a data-event="lineHeight" data-value="' + parseFloat(v) + '">' +
-                          '<i class="fa fa-check icon-ok"></i> ' + v +
-                        '</a></li>';
-            }, '');
-            return {
-                sLabel : '<i class="fa fa-text-height icon-text-height"></i>',
-                title: lang.font.height,
-                dropdown: '<ul class="dropdown-menu">' + items + '</ul>'
-            };
-        },
-        help: function (lang) {
-            return {
-                sLabel : '<i class="fa fa-question icon-questiont"></i>',
-                event: 'showHelpDialog',
-                title: lang.options.help
-            };
-        },
-        fullscreen: function (lang) {
-            return {
-                sLabel : '<i class="fa fa-arrows-alt icon-fullscreen"></i>',
-                event: 'fullscreen',
-                title: lang.options.fullscreen
-            };
-        },
-        codeview: function (lang) {
-            return {
-                sLabel : '<i class="fa fa-code icon-code"></i>',
-                event: 'codeview',
-                title: lang.options.codeview
-            };
-        },
-        undo: function (lang) {
-            return {
-                sLabel : '<i class="fa fa-undo icon-undo"></i>',
-                event: 'undo',
-                title: lang.history.undo
-            };
-        },
-        redo: function (lang) {
-            return {
-                sLabel : '<i class="fa fa-repeat icon-repeat"></i>',
-                event: 'redo',
-                title: lang.history.redo
-            };
-        },
-        hr: function (lang) {
-            return {
-                sLabel : '<i class="fa fa-minus icon-hr"></i>',
-                event: 'insertHorizontalRule',
-                title: lang.hr.insert
-            };
-        }
-    };
     website.no_editor = !!$(document.documentElement).data('editable-no-editor');
 
     website.add_template_file('/website/static/src/xml/website.editor.xml');
@@ -955,7 +825,7 @@
             observer.disconnect();
             // console.log(this.rte.editor);
             // var editor = $('.note-air-editor, .note-editable');
-            var defs = this.rte.fetch_editables()
+            var defs = $('.o_editable')
                 .filter('.o_dirty')
                 .removeAttr('contentEditable')
                 .removeClass('o_dirty o_editable cke_focus oe_carlos_danger')
@@ -1090,7 +960,6 @@
          * as not all users think of double-clicking the image or link.
          */
         setup_hover_buttons: function () {
-            var editor = $('.note-air-editor');
             var $link_button = this.make_hover_button_link(function () {
                 new website.editor.LinkDialog(false, previous, true).appendTo(document.body);
                 previous = null;
@@ -1101,9 +970,9 @@
             // -ish, because when moving to the button itself ``previous`` is
             // still set to the element having triggered showing the button.
             var previous;
-            $(editor).on('mouseover', 'a', function () {
+            $(document).on('mouseover', '.o_editable a', function () {
                 // Back from edit button -> ignore
-                var element = $(this).closest('[data-oe-field]');
+                var element = $(this).closest('.o_editable');
                 if (previous && previous === this) { return; }
                 /**
                  * Checks that both the element's content *and the element itself* are
@@ -1125,7 +994,7 @@
                             + position.left
                             - $link_button.outerWidth() / 2
                 })
-            }).on('mouseleave', 'a, img, .fa', function (e) {
+            }).on('mouseleave', '.o_editable a, .o_editable img, .o_editable .fa', function (e) {
                 var current = document.elementFromPoint(e.clientX, e.clientY);
                 if (current === $link_button[0] || $(current).parent()[0] === $link_button[0]) {
                     return;
@@ -1194,6 +1063,10 @@
 
     /* ----- RICH TEXT EDITOR ---- */
 
+    eventHandler.commands.showLinkDialog = function (oLayoutInfo) {
+        new website.editor.LinkDialog(false, oLayoutInfo.editable(), true).appendTo(document.body);
+    };
+
     website.RTE = openerp.Widget.extend({
         init: function (EditorBar) {
             this.EditorBar = EditorBar;
@@ -1202,7 +1075,7 @@
         },
         tableNavigation: function (root) {
             var self = this;
-            this.fetch_editables().on('keydown', function (e) {
+            $('.o_editable').on('keydown', function (e) {
                 // ignore non-TAB
                 if (e.which !== 9) { return; }
 
@@ -1289,7 +1162,7 @@
             var $last;
             $(document).on('mousedown', function (event) {
                 var $target = $(event.target);
-                var $editable = $target.closest('#wrapwrap [data-oe-model = "ir.ui.view"]');
+                var $editable = $target.closest('.o_editable');
 
                 if (!$editable.size()) {
                     return;
@@ -1297,18 +1170,10 @@
 
                 if ($last && (!$editable.size() || $last[0] != $editable[0])) {
                     $last.destroy();
-                    // var id = +$last.attr("id").split("-").pop();
-                    // $("#note-popover-"+id+", #note-handle-"+id+", #note-dialog-"+id).hide();
                     $last = null;
                 }
-                // if ($editable.data('summernote')) {
-                //     var id = +$editable.attr("id").split("-").pop();
-                //     $("#note-popover-"+id+", #note-handle-"+id+", #note-dialog-"+id).show();
-                //     return;
-                // }
                 if ($editable.size() && (!$last || $last[0] != $editable[0])) {
-                    var $summernote = $editable.summernote(self._config());
-                    // $editable.data('summernote', $summernote);
+                    $editable.summernote(self._config());
                     $editable.data('NoteHistory', self.history);
                     $last = $editable;
 
@@ -1318,13 +1183,17 @@
                 }
             });
 
-            this.fetch_editables().each(function () {
+            $('#wrapwrap [data-oe-model = "ir.ui.view"]')
+                .not('link, script')
+                .not('.oe_snippet_editor')
+                .addClass('o_editable');
+
+            $('.o_editable').each(function () {
                 var node = this;
                 var $node = $(node);
                 // start element observation
                 observer.observe(node, OBSERVER_CONFIG);
-                $(node).addClass('o_editable')
-                    .one('content_changed', function () {
+                $(node).one('content_changed', function () {
                     $node.addClass('o_dirty');
                     self.trigger('change');
                 });
@@ -1335,11 +1204,6 @@
             }
 
             self.trigger('rte:ready');
-        },
-        fetch_editables: function (root) {
-            return $('#wrapwrap [data-oe-model = "ir.ui.view"]')
-                .not('link, script')
-                .not('.oe_snippet_editor');
         },
         _config: function () {
             return {
@@ -1362,7 +1226,7 @@
         }
     });
 
-    /* ----- observer ---- */
+    /* ----- OBSERVER ---- */
 
     website.Observer = window.MutationObserver || window.WebKitMutationObserver || window.JsMutationObserver;
     var OBSERVER_CONFIG = {
