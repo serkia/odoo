@@ -76,6 +76,13 @@
     width: 100%;
 }
 
+.openerp .oe_export_fields_selector_center button {
+    white-space: nowrap;
+    margin: 0 10px 5px 10px;
+    width: 90px;
+    padding: 3px 8px;
+}
+
 .openerp .oe_export_fields_selector_center {
     text-align: center;
     padding-top: 50px;

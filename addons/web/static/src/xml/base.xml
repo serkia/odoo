@@ -1797,7 +1797,7 @@
 <div t-name="ExportTreeView" class="oe_export">
     <div class="oe_view_manager oe_view_manager_current ">
         <div class="oe_view_manager_header oe_padding">
-            <strong><span class="oe_export_head">Export Data of <span class="oe_model_name"></span></span></strong><br></br>
+            <strong><span class="oe_export_head">Export <span class="oe_model_name"></span></span></strong><br></br>
             <button type="button" class="oe_button oe_export_file oe_highlight">Export to File</button>
             <span class="oe_fade">or</span>
             <a id="oe_export_cancel" href="#">Cancel</a>
@@ -1828,7 +1828,15 @@
                     </div>
                 </div>
                 <div id="ExistsExportList"></div>
-                <div id="savenewlist"></div>
+                <div class="col-md-3" id="savenewlist">
+                    <div>
+                        <label class="oe_options_head">Save as</label>
+                        <form class="form-inline">
+                            <input class="form-control input-sm oe_options_input" type="text" id="savelist_name"/>
+                            <a class="glyphicon glyphicon-floppy-disk oe_options_icon" id="add_export_list"  title="Save List"></a>
+                        </form>
+                    </div>
+                </div>
             </form>
         </div>
     </div>
@@ -1837,27 +1845,18 @@
             <div class="text-left"><h4>Available fields</h4></div>
                 <div id="left_field_panel"></div>
         </div>
-        <div class="col-md-1 oe_export_fields_selector_center">
-            <br><a class="oe_export_selector_field glyphicon glyphicon-plus" id="add_field" title="Add Selected Field to Export List"></a></br>
-            <br><a class="oe_export_selector_field glyphicon glyphicon-remove" id="remove_field" title="Remove Selected Field from Export List"></a></br>
-            <br><a class="oe_export_selector_field glyphicon glyphicon-trash" id="remove_all_field" title="Clear All Fields From List"></a></br>
-            <br><a class="oe_export_selector_field glyphicon glyphicon-sort-by-alphabet" id="sort_list" title="Sort Ascending"></a></br>
-            <br><a class="oe_export_selector_field glyphicon glyphicon-chevron-up" id="move_up" title="Move Selected Field Up"></a></br>
-            <br><a class="oe_export_selector_field glyphicon glyphicon-chevron-down" id="move_down" title="Move Selected Field Down"></a></br>
+        <div class="col-md-2 oe_export_fields_selector_center">
+            <button id="add_field" title="Add Selected Field to Export List">Add</button>
+            <button class="oe_button_unable" id="remove_field" title="Remove Selected Field from Export List">Remove</button>
+            <button class="oe_button_unable" id="remove_all_field" title="Clear All Fields From List">Remove All</button>
+            <button class="oe_button_unable" id="move_up" title="Move Selected Field Up">Move Up</button>
+            <button class="oe_button_unable" id="move_down" title="Move Selected Field Down">Move Down</button>
+            <button id="sort_list" title="Sort List">Sort</button>
         </div>
         <div class="col-md-5 oe_export_fields_selector_right">
             <div class="text-left"><h4>Fields to export   </h4></div>
             <select class="oe_fields_list" name="fields_list" id="fields_list" multiple="multiple"></select>
         </div>
-    </div>
-</div>
-<div class="col-md-3" t-name="ExportNewList">
-    <div>
-        <label class="oe_options_head">Save as</label>
-        <form class="form-inline">
-            <input class="form-control input-sm oe_options_input" type="text" id="savelist_name"/>
-            <a class="glyphicon glyphicon-floppy-disk oe_options_icon" id="add_export_list"  title="Save List"></a>
-        </form>
     </div>
 </div>
 <t t-name="Exists.ExportList" t-as="val">
