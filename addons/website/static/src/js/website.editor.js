@@ -444,6 +444,7 @@
         return range.create(sc, so, ec, eo);
     };
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
     /* attach event to Summernote
     * paste:
     *  - change the default feature of contentEditable
@@ -609,16 +610,14 @@
 
             r = range.reRange(r.sc, r.so, r.ec, r.eo, ref);
             r.select();
-
-            setTimeout(function () {
-                if (r.sc !== r.ec || r.so !== r.eo) {
-                    $(".note-control-selection").hide();
-                    $(".note-link-popover").hide();
-                    $(".note-image-popover").hide();
-                    $(".note-video-popover").hide();
-                }
-            },0);
         }
+        setTimeout(function () {
+            if (r.sc !== r.ec || r.so !== r.eo) {
+                $(".note-link-popover").hide();
+                $(".note-image-popover").hide();
+                $(".note-video-popover").hide();
+            }
+        },0);
     }
     var fn_attach = eventHandler.attach;
     eventHandler.attach = function (oLayoutInfo, options) {
@@ -635,6 +634,48 @@
         oLayoutInfo.editor.off("keydown", summernote_keydown);
         oLayoutInfo.editor.off("dragstart");
         $(document).off('mouseup', reRangeSelect);
+    };
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /* hack for image editor
+    */
+    var fn_handle_update = eventHandler.handle.update;
+    eventHandler.handle.update = function ($handle, oStyle, isAirMode) {
+        fn_handle_update.call(this, $handle, oStyle, isAirMode);
+        $handle.find('.note-control-selection').hide();
+    };
+    var fn_popover_update = eventHandler.popover.update;
+    eventHandler.popover.update = function ($popover, oStyle, isAirMode) {
+        fn_popover_update.call(this, $popover, oStyle, isAirMode);
+        if (oStyle.image) {
+            var $imgpov = $popover.find(".note-image-popover");
+
+            // add center button for images
+            if (!$imgpov.find('[data-event="floatMe"][data-value="center"]').length) {
+                var $centerbutton = $(renderer.tplIconButton('fa fa-align-center icon-align-center', {
+                        title: _t('Center'),
+                        event: 'floatMe',
+                        value: 'center'
+                    }))
+                    .insertAfter('[data-event="floatMe"][data-value="left"]')
+                    .tooltip({container: 'body'})
+                    .on('click', function () {$(this).tooltip('hide');});
+            }
+
+        }
+    };
+    eventHandler.editor.resize = function ($editable, sValue, $target) {
+        $editable.data('NoteHistory').recordUndo($editable);
+        $target.css("max-width", parseInt((+sValue)*95) + '%');
+    };
+    eventHandler.editor.floatMe = function ($editable, sValue, $target) {
+        $editable.data('NoteHistory').recordUndo($editable);
+        $target.removeClass('pull-right pull-left center-block');
+        switch (sValue) {
+            case 'center': $target.addClass('center-block'); break;
+            case 'left': $target.addClass('pull-left'); break;
+            case 'right': $target.addClass('pull-right'); break;
+        }
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////

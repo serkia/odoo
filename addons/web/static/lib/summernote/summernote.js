@@ -2922,6 +2922,11 @@
     
     // odoo hack: allow to overwrite the methods
     this.commands = commands;
+    this.editor = editor;
+    this.toolbar = toolbar;
+    this.popover = popover;
+    this.handle = handle;
+    this.dialog = dialog;
 
     var hMousedown = function (event) {
       //preventDefault Selection for FF, IE8+
@@ -3393,6 +3398,9 @@
       var sLabel = '<i class="' + sIconClass + '"></i>';
       return tplButton(sLabel, options);
     };
+
+    // odoo hack: allow to overwrite the methods
+    this.tplIconButton = tplIconButton;
 
     /**
      * bootstrap popover template
