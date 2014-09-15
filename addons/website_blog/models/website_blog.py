@@ -1,104 +1,92 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
-import difflib
 import lxml
 import random
 
-from openerp import tools
-from openerp import SUPERUSER_ID
-from openerp.osv import osv, fields
-from openerp.tools.translate import _
+from openerp import models, fields, api, tools, _
 
 
-class Blog(osv.Model):
+class Blog(models.Model):
     _name = 'blog.blog'
     _description = 'Blogs'
     _inherit = ['mail.thread', 'website.seo.metadata']
     _order = 'name'
-    _columns = {
-        'name': fields.char('Blog Name', required=True),
-        'subtitle': fields.char('Blog Subtitle'),
-        'description': fields.text('Description'),
-    }
 
+    name = fields.Char(string='Blog Name', required=True)
+    subtitle = fields.Char(string='Blog Subtitle')
+    description = fields.Text(string='Description')
 
-class BlogTag(osv.Model):
+class BlogTag(models.Model):
     _name = 'blog.tag'
     _description = 'Blog Tag'
     _inherit = ['website.seo.metadata']
     _order = 'name'
-    _columns = {
-        'name': fields.char('Name', required=True),
-    }
+
+    name = fields.Char(string='Name', required=True)
 
 
-class BlogPost(osv.Model):
+class BlogPost(models.Model):
     _name = "blog.post"
     _description = "Blog Post"
     _inherit = ['mail.thread', 'website.seo.metadata']
     _order = 'id DESC'
 
-    def _compute_ranking(self, cr, uid, ids, name, arg, context=None):
-        res = {}
-        for blog_post in self.browse(cr, uid, ids, context=context):
-            age = datetime.now() - datetime.strptime(blog_post.create_date, tools.DEFAULT_SERVER_DATETIME_FORMAT)
-            res[blog_post.id] = blog_post.visits * (0.5+random.random()) / max(3, age.days)
-        return res
+    @api.multi
+    def _compute_ranking(self):
+        for blog_post in self:
+            if blog_post.visits:
+                age = datetime.now() - datetime.strptime(blog_post.create_date, tools.DEFAULT_SERVER_DATETIME_FORMAT)
+                blog_post.ranking = blog_post.visits * (0.5+random.random()) / max(3, age.days)
+            else:
+                blog_post.ranking = 0.0
 
-    _columns = {
-        'name': fields.char('Title', required=True, translate=True),
-        'subtitle': fields.char('Sub Title', translate=True),
-        'author_id': fields.many2one('res.partner', 'Author'),
-        'background_image': fields.binary('Background Image', oldname='content_image'),
-        'blog_id': fields.many2one(
-            'blog.blog', 'Blog',
-            required=True, ondelete='cascade',
-        ),
-        'tag_ids': fields.many2many(
-            'blog.tag', string='Tags',
-        ),
-        'content': fields.html('Content', translate=True, sanitize=False),
-        # website control
-        'website_published': fields.boolean(
-            'Publish', help="Publish on the website", copy=False,
-        ),
-        'website_message_ids': fields.one2many(
-            'mail.message', 'res_id',
-            domain=lambda self: [
-                '&', '&', ('model', '=', self._name), ('type', '=', 'comment'), ('path', '=', False)
-            ],
-            string='Website Messages',
-            help="Website communication history",
-        ),
-        # creation / update stuff
-        'create_date': fields.datetime(
-            'Created on',
-            select=True, readonly=True,
-        ),
-        'create_uid': fields.many2one(
-            'res.users', 'Author',
-            select=True, readonly=True,
-        ),
-        'write_date': fields.datetime(
-            'Last Modified on',
-            select=True, readonly=True,
-        ),
-        'write_uid': fields.many2one(
-            'res.users', 'Last Contributor',
-            select=True, readonly=True,
-        ),
-        'visits': fields.integer('No of Views'),
-        'ranking': fields.function(_compute_ranking, string='Ranking', type='float'),
-    }
+    name = fields.Char(string='Title', required=True, translate=True, default=_('Blog Post Title'))
+    subtitle = fields.Char(string='Sub Title', translate=True, default=_('Subtitle'))
+    author_id = fields.Many2one('res.partner', string='Author', default=lambda self:self.env.user.partner_id)
+    background_image = fields.Binary(string='Background Image', oldname='content_image')
+    blog_id = fields.Many2one(
+        'blog.blog', string='Blog',
+        required=True, ondelete='cascade'
+    )
+    tag_ids = fields.Many2many(
+        'blog.tag', string='Tags'
+    )
+    content = fields.Html(string='Content', translate=True, sanitize=False)
+    # website control
+    website_published = fields.Boolean(
+        string='Publish', help="Publish on the website", copy=False
+    )
+    website_message_ids = fields.One2many(
+        'mail.message', 'res_id',
+        domain=lambda self: [
+            '&', '&', ('model', '=', self._name), ('type', '=', 'comment'), ('path', '=', False)
+        ],
+        string='Website Messages',
+        help="Website communication history"
+    )
+    # creation / update stuff
+    create_date = fields.Datetime(
+        string='Created on',
+        select=True, readonly=True
+    )
+    create_uid = fields.Many2one(
+        'res.users', string='Author',
+        select=True, readonly=True
+    )
+    write_date = fields.Datetime(
+        string='Last Modified on',
+        select=True, readonly=True
+    )
+    write_uid = fields.Many2one(
+        'res.users', string='Last Contributor',
+        select=True, readonly=True
+    )
+    visits = fields.Integer(string='No of Views')
+    ranking = fields.Float(compute='_compute_ranking', string='Ranking')
 
-    _defaults = {
-        'name': _('Blog Post Title'),
-        'subtitle': _('Subtitle'),
-        'author_id': lambda self, cr, uid, ctx=None: self.pool['res.users'].browse(cr, uid, uid, context=ctx).partner_id.id,
-    }
-
-    def html_tag_nodes(self, html, attribute=None, tags=None, context=None):
+    @api.model
+    def html_tag_nodes(self, html, attribute=None, tags=None):
         """ Processing of html content to tag paragraphs and set them an unique
         ID.
         :return result: (html, mappin), where html is the updated html with ID
@@ -140,30 +128,26 @@ class BlogPost(osv.Model):
             html = html[5:-6]
         return html, mapping
 
-    def _postproces_content(self, cr, uid, id, content=None, context=None):
-        if content is None:
-            content = self.browse(cr, uid, id, context=context).content
-        if content is False:
+    @api.model
+    def _postproces_content(self, content=None):
+        if content is False or content is None:
             return content
-        content, mapping = self.html_tag_nodes(content, attribute='data-chatter-id', tags=['p'], context=context)
+        content, mapping = self.html_tag_nodes(content, attribute='data-chatter-id', tags=['p'])
         for old_attribute, new_attribute in mapping:
             if not old_attribute:
                 continue
-            msg_ids = self.pool['mail.message'].search(cr, SUPERUSER_ID, [('path', '=', old_attribute)], context=context)
-            self.pool['mail.message'].write(cr, SUPERUSER_ID, msg_ids, {'path': new_attribute}, context=context)
+            messages = self.env['mail.message'].sudo().search([('path', '=', old_attribute)])
+            messages.write({'path': new_attribute})
         return content
 
-    def create(self, cr, uid, vals, context=None):
-        if context is None:
-            context = {}
+    @api.model
+    def create(self, vals):
         if 'content' in vals:
-            vals['content'] = self._postproces_content(cr, uid, None, vals['content'], context=context)
-        create_context = dict(context, mail_create_nolog=True)
-        post_id = super(BlogPost, self).create(cr, uid, vals, context=create_context)
-        return post_id
+            vals['content'] = self._postproces_content(vals['content'])
+        return super(BlogPost, self.with_context(mail_create_nolog=True)).create(vals)
 
-    def write(self, cr, uid, ids, vals, context=None):
+    @api.multi
+    def write(self, vals):
         if 'content' in vals:
-            vals['content'] = self._postproces_content(cr, uid, None, vals['content'], context=context)
-        result = super(BlogPost, self).write(cr, uid, ids, vals, context)
-        return result
+            vals['content'] = self._postproces_content(vals['content'])
+        return super(BlogPost, self).write(vals)
