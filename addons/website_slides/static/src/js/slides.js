@@ -387,12 +387,18 @@ $(document).ready(function() {
         var link_id = $(this).attr('id');
         var attachment_id = $(this).attr('attachment-id');
         var user_id = $(this).attr('user-id');
+        var $link = $(ev.currentTarget);
         if(localStorage[link_id+'_'+attachment_id] != user_id){
-            var $link = $(ev.currentTarget);
             openerp.jsonRpc($link.data('href'), 'call', {}).then(function(data){
                     $($link.data('count-el')).text(data);
             });
             localStorage[link_id+'_'+attachment_id] = user_id;
+        } else{
+            var $warning = $('<div class="alert alert-danger alert-dismissable oe_forum_alert" id="vote_alert">'+
+            '<button type="button" class="close notification_close" data-dismiss="alert" aria-hidden="true">&times;</button>'+
+            'you have already voted for this slide'+
+            '</div>');
+            $link.parent().append($warning);
         }
     });
     $('.upload').on('click' ,function(ev){
