@@ -1324,6 +1324,8 @@
             this.editable = editable;
             this.data = data;
 
+            this.data.text = this.data.text.replace(/[ \t\r\n]+/, '');
+
             // Store last-performed request to be able to cancel/abort it.
             this.page_exists_req = null;
             this.search_pages_req = null;
