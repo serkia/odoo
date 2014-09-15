@@ -721,11 +721,11 @@
         }
 
         var aUndo = [],
-            aRedo = [],
-            last_id;
+            aRedo = [];
 
-        var makeSnap = function ($editable, id) {
-            var elEditable = $editable[0], rng = range.create();
+        var makeSnap = function ($editable) {
+            var elEditable = $editable[0],
+                rng = range.create();
             return {
                 editable: elEditable,
                 contents: $editable.html(),

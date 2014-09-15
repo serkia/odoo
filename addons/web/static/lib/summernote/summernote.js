@@ -2745,7 +2745,6 @@
        * @param {Object} oLayoutInfo
        */
       showLinkDialog: function (oLayoutInfo) {
-        console.log(oLayoutInfo);
         var $editor = oLayoutInfo.editor(),
             $dialog = oLayoutInfo.dialog(),
             $editable = oLayoutInfo.editable(),
