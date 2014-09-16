@@ -639,7 +639,7 @@
     function summernote_keydown (event) {
         var keyCode = event.keyCode !== 229 && event.keyCode >= 48 ? "visible" : event.keyCode;
 
-        if (!keydown[keyCode]) {
+        if (event.ctrlKey || !keydown[keyCode]) {
             return true;
         }
 
@@ -689,7 +689,8 @@
     }
 
     function summernote_display_editor(event) {
-        if ($(event.target).closest('.note-editable').length) {
+        var r = range.create();
+        if ($(r.sc).closest('[data-oe-model="ir.ui.view"], [data-oe-type="html"]').length && $(event.target).closest('.note-editable').length) {
             setTimeout(function () {
                 if (!$(".note-popover > div:visible").length) {
                     $(".note-popover > .note-air-popover").show();
@@ -700,7 +701,7 @@
         }
     }
     function summernote_mouseup (event) {
-        var r = $.summernote.objects.range.create();
+        var r = range.create();
 
         if (r) {
             if (!r.isCollapsed()) {
@@ -711,7 +712,7 @@
         }
     }
     function summernote_click (event) {
-        if ($.summernote.objects.range.create()) {
+        if (range.create()) {
             summernote_display_editor(event);
         }
     }
@@ -741,7 +742,7 @@
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /* hack for image editor
+    /* hack for image and link editor
     */
     var fn_handle_update = eventHandler.handle.update;
     eventHandler.handle.update = function ($handle, oStyle, isAirMode) {
@@ -817,8 +818,8 @@
             },0);
         }
 
-        var aUndo = [],
-            aRedo = [];
+        var aUndo = [];
+        var pos = -1;
 
         var makeSnap = function ($editable) {
             var elEditable = $editable[0],
@@ -840,27 +841,25 @@
         };
 
         this.undo = function ($editable) {
-            if (!aUndo.length) { return; }
-            var oSnap = makeSnap($editable);
-            applySnap(aUndo.pop());
-            aRedo.push(oSnap);
+            if (!pos) { return; }
+            applySnap(aUndo[--pos]);
         };
 
         this.redo = function ($editable) {
-            if (!aRedo.length) { return; }
-            var oSnap = makeSnap($editable);
-            applySnap(aRedo.pop());
-            aUndo.push(oSnap);
+            if (aUndo.length <= pos+1) { return; }
+            applySnap(aUndo[++pos]);
         };
 
         this.popUndo = function () {
             aUndo.pop();
         };
         this.recordUndo = function ($editable) {
-            aRedo = [];
-            aUndo.push(makeSnap($editable));
+            pos++;
+            aUndo.splice(pos, aUndo.length);
+            aUndo[pos] = makeSnap($editable);
         };
     };
+    var history = new History();
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1199,7 +1198,7 @@
          * @param {DOM} target where the dom is changed is editable zone
          */
         historyRecordUndo: function ($target) {
-            var $editable = $target.is('[data-oe-model = "ir.ui.view"]') ? $target : $target.closest('#wrapwrap [data-oe-model = "ir.ui.view"]');
+            var $editable = $target.is('[data-oe-model]') ? $target : $target.closest('[data-oe-model]');
             $target.mousedown();
             if (!range.create()) {
                 range.create($target[0],0,$target[0],0).select();
@@ -1217,7 +1216,7 @@
         start_edition: function (restart) {
             var self = this;
 
-            this.history = new History();
+            this.history = history;
 
             var $last;
             $(document).on('mousedown', function (event) {
@@ -1243,10 +1242,14 @@
                 }
             });
 
-            $('#wrapwrap [data-oe-model = "ir.ui.view"]')
+            $('#wrapwrap [data-oe-model]:not(:empty)')
                 .not('link, script')
                 .not('.oe_snippet_editor')
                 .addClass('o_editable');
+
+            $('#wrapwrap').on('click', '*', function (event) {
+                event.preventDefault();
+            });
 
             $('.o_editable').each(function () {
                 var node = this;
@@ -1679,6 +1682,8 @@
             return this._super();
         },
         save: function () {
+            this.editor.rte.historyRecordUndo($(this.media));
+
             var self = this;
             if (self.media) {
                 this.media.innerHTML = "";

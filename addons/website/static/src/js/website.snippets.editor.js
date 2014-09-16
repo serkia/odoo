@@ -9,7 +9,7 @@
     website.EditorBar.include({
         start: function () {
             var self = this;
-            $("[data-oe-model]").on('click', function (event) {
+            $(document).on('click', '.o_editable', function (event) {
                 var $this = $(event.srcElement);
                 var tag = $this[0] && $this[0].tagName.toLowerCase();
                 if (!(tag === 'a' || tag === "button") && !$this.parents("a, button").length) {
@@ -20,7 +20,6 @@
         },
         edit: function () {
             var self = this;
-            $("[data-oe-model] *, [data-oe-type=html] *").off('click');
             window.snippets = this.snippets = new website.snippet.BuildingBlock(this);
             this.snippets.appendTo(this.$el);
             website.snippet.stop_animation();
@@ -240,7 +239,7 @@
         bind_snippet_click_editor: function () {
             var self = this;
             var snipped_event_flag;
-            $(document).on('click', "#wrapwrap", function (event) {
+            $(document).on('click', ".o_editable", function (event) {
                 if (snipped_event_flag || !event.target) {
                     return;
                 }
@@ -874,8 +873,7 @@
             $image.attr("src", value);
             $image.appendTo(self.$target);
 
-            self.element = new CKEDITOR.dom.element($image[0]);
-            var editor = new website.editor.MediaDialog(self, self.element);
+            var editor = new website.editor.MediaDialog(self.BuildingBlock.parent, $image[0]);
             editor.appendTo(document.body);
             editor.$('[href="#editor-media-video"], [href="#editor-media-icon"]').addClass('hidden');
 
@@ -1509,14 +1507,13 @@
         },
         edition: function (type, value) {
             if(type !== "click") return;
-            new website.editor.MediaDialog(this, this.$target[0]).appendTo(document.body);
+            new website.editor.MediaDialog(this.BuildingBlock.parent, this.$target[0]).appendTo(document.body);
         },
         on_focus : function () {
             var self = this;
             if (this.$target.parent().data("oe-field") === "image") {
                 this.$overlay.addClass("hidden");
-                self.element = new CKEDITOR.dom.element(self.$target[0]);
-                new website.editor.MediaDialog(self, self.element).appendTo(document.body);
+                new website.editor.MediaDialog(self.BuildingBlock.parent, self.$target[0]).appendTo(document.body);
                 self.BuildingBlock.make_active(false);
             }
         },
