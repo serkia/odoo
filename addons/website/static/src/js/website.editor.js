@@ -668,34 +668,48 @@
 
         }
     }
-    function reRangeSelect (event) {
-        var r = $.summernote.objects.range.create();
-        if (r && !r.isCollapsed()) {
-            // check if the user move the caret on up or down
-            var ref = false;
-            var node = r.sc;
-            var parent = r.ec.parentNode;
-            while (node) {
-                if (parent === node) {
-                    break;
-                }
-                if(event.target === node || event.target.parentNode === node) { /*check parent node for image, iframe and tag without child text node*/
-                    ref = true;
-                    break;
-                }
-                node = node.parentNode;
+    function reRangeSelect (r, event) {
+        // check if the user move the caret on up or down
+        var ref = false;
+        var node = r.sc;
+        var parent = r.ec.parentNode;
+        while (node) {
+            if (parent === node) {
+                break;
             }
-
-            r = range.reRange(r.sc, r.so, r.ec, r.eo, ref);
-            r.select();
+            if(event.target === node || event.target.parentNode === node) { /*check parent node for image, iframe and tag without child text node*/
+                ref = true;
+                break;
+            }
+            node = node.parentNode;
         }
-        setTimeout(function () {
-            if (r && (r.sc !== r.ec || r.so !== r.eo)) {
-                $(".note-link-popover").hide();
-                $(".note-image-popover").hide();
-                $(".note-video-popover").hide();
+
+        r = range.reRange(r.sc, r.so, r.ec, r.eo, ref);
+        r.select();
+    }
+
+    function summernote_mouseup (event) {
+        var r = $.summernote.objects.range.create();
+
+        if (r) {
+            if (!r.isCollapsed()) {
+                reRangeSelect(r, event);
+            } else {
+                setTimeout(function () {
+                     if (!$(".note-popover > div:visible").length) {
+                        $(".note-popover > .note-air-popover").show();
+                     }
+                },0);
             }
-        },0);
+        }
+
+        // setTimeout(function () {
+        //     if (r && (r.sc !== r.ec || r.so !== r.eo)) {
+        //         $(".note-link-popover").hide();
+        //         $(".note-image-popover").hide();
+        //         $(".note-video-popover").hide();
+        //     }
+        // },0);
     }
 
     var fn_attach = eventHandler.attach;
@@ -704,7 +718,7 @@
         oLayoutInfo.editor.on("paste", summernote_paste);
         oLayoutInfo.editor.on("keydown", summernote_keydown);
         oLayoutInfo.editor.on('dragstart', 'img', function (e) { e.preventDefault(); });
-        $(document).on('mouseup', reRangeSelect);
+        $(document).on('mouseup', summernote_mouseup);
         oLayoutInfo.editor.on('dblclick', 'img', function (event) {
             new website.editor.MediaDialog(this, event.target).appendTo(document.body);
         });
@@ -715,7 +729,7 @@
         oLayoutInfo.editor.off("paste", summernote_paste);
         oLayoutInfo.editor.off("keydown", summernote_keydown);
         oLayoutInfo.editor.off("dragstart");
-        $(document).off('mouseup', reRangeSelect);
+        $(document).off('mouseup', summernote_mouseup);
         oLayoutInfo.editor.off("dblclick");
     };
 
