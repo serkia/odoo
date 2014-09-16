@@ -1996,6 +1996,15 @@
         rng = range.createFromNode(elAnchor);
         rng.select();
         document.execCommand('unlink');
+
+        // Odoo fix to remove link with only white-text and <br> node
+        rng = range.create();
+        if (rng.isOnAnchor()) {
+          while(rng.sc.firstChild) {
+            rng.sc.parentNode.insertBefore(rng.sc.firstChild, rng.sc);
+          }
+          rng.sc.parentNode.removeChild(rng.sc);
+        }
       }
     };
 
@@ -2413,7 +2422,10 @@
 
       var $airPopover = $popover.find('.note-air-popover');
       if (isAirMode && !oStyle.range.isCollapsed()) {
-        var bnd = func.rect2bnd(list.last(oStyle.range.getClientRects()));
+        // if = Odoo fix for summernote if remove link with content = <br>
+        var rect = list.last(oStyle.range.getClientRects());
+        if (!rect) return;
+        var bnd = func.rect2bnd(rect);
         showPopover($airPopover, {
           left: Math.max(bnd.left + bnd.width / 2 - PX_POPOVER_ARROW_OFFSET_X, 0),
           top: bnd.top + bnd.height

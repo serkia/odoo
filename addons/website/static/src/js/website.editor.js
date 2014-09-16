@@ -95,8 +95,8 @@
     dom.doMerge = function (prev, cur) {
         if (prev.tagName) {
             if (cur.tagName) {
-                for (var i=0; i<cur.childNodes.length; i++) {
-                    prev.appendChild(cur.childNodes[i]);
+                while (cur.firstChild) {
+                    prev.appendChild(cur.firstChild);
                 }
                 cur.parentNode.removeChild(cur);
             } else {
@@ -115,7 +115,7 @@
         }
     };
     dom.merge = function (node, begin, so, end, eo, mergeFilter, all) {
-        mergeFilter = mergeFilter || this.mergeFilter;
+        mergeFilter = mergeFilter || dom.mergeFilter;
         var _merged = false;
         var afterBegin = false;
         var afterEnd = false;
@@ -451,7 +451,8 @@
     * paste:
     *  - change the default feature of contentEditable
     * keydown: 
-    *  - change the default feature of contentEditable for backspace and delete
+    *  - change the default feature of contentEditable for backspace, delete or visible char
+    *  - prevent the edition of forbidden node (like font awsome node)
     */
 
     function summernote_paste (event) {
@@ -485,49 +486,38 @@
             range.create(data.sc, data.so, data.sc, data.so).select();
         },0);
     }
+
     var mergeOnDelete = "h1 h2 h3 h4 h5 h6 p b bold i u code sup strong small li a".split(" ");
-    function summernote_keydown (event) {
-        if (event.keyCode !== 8 && event.keyCode !== 46) {
-            return true;
-        }
+    var forbiddenWrite = ".fa".split(" ");
 
-        var $editable = $(event.currentTarget);
-        $editable.data('NoteHistory').recordUndo($editable);
-
-        setTimeout(function () {
-           var r = range.create();
-            var parent = r.sc.parentElement.parentElement;
-            r = dom.merge(parent, r.sc, r.so, r.sc, r.so, null, true);
-            r = dom.removeSpace(parent, r.sc, r.so, r.sc, r.so);
-            if (r.ec.tagName === "BR") {
-                r.sc = r.ec = r.sc.previousSibling || r.sc.parentNode;
-            }
-            r.eo = r.eo > r.ec.textContent.length ? r.ec.textContent.length : r.eo;
-            if (r.so > r.eo) r.so = r.eo;
-            range.create(r.sc, r.so, r.ec, r.eo).select();
-        },0);
-
-        var r = range.create();
-        if (!r.isCollapsed()) {
-            return true;
-        }
-
-        var node = event.keyCode === 8 ? r.sc : r.ec;
-        while (!node.nextSibling && !node.previousSibling) {node = node.parentNode;}
-        
-        if (event.keyCode === 8) { // backspace
-
+    var keydown = {
+        // backspace
+        '8': function (r, event) {
+            var node = r.sc;
+            while (!node.nextSibling && !node.previousSibling) {node = node.parentNode;}
+            
             // empty tag
             if (r.sc===r.ec && !r.sc.textContent.replace(/\s+$/, '').length && node.previousSibling) {
                 var next = node.previousSibling;
                 while (next.tagName && next.lastChild) {next = next.lastChild;}
                 node.parentNode.removeChild(node);
                 range.create(next, next.textContent.length, next, next.textContent.length).select();
+                return false;
             }
             // normal feature if same tag and not the begin
             else if (r.sc===r.ec && r.so || r.eo) return true;
             // merge with the previous text node
             else if (r.sc.previousSibling && !r.sc.previousSibling.tagName) return true;
+            // jump to previous node for delete
+            else if (r.sc.previousSibling) {
+                node = r.sc.previousSibling;
+                while (node.lastChild) {
+                    node = node.lastChild;
+                }
+                r = range.create(node, node.textContent.length, node, node.textContent.length);
+                r.select();
+                return keydown[8](r, event);
+            }
             //merge with the previous block
             else if (r.isCollapsed() && !r.eo && mergeOnDelete.indexOf(r.sc.parentNode.tagName.toLowerCase()) !== -1) {
 
@@ -540,19 +530,26 @@
                     dom.doMerge(prev, r.sc.parentNode);
                     range.create(r.sc, 0, r.sc, 0).select();
 
-                } else if (!prev && mergeOnDelete.indexOf(r.ec.parentNode.parentNode.tagName.toLowerCase()) !== -1 &&
-                    r.ec.parentNode.parentNode.tagName === r.ec.parentNode.parentNode.previousElementSibling.tagName) {
+                } else if (!prev && mergeOnDelete.indexOf(r.sc.parentNode.parentNode.tagName.toLowerCase()) !== -1 &&
+                    r.sc.parentNode && r.sc.parentNode.parentNode &&
+                    r.sc.parentNode.parentNode.tagName === r.sc.parentNode.parentNode.previousElementSibling.tagName) {
 
-                    dom.doMerge(r.ec.parentNode.parentNode.previousElementSibling, r.ec.parentNode.parentNode);
-                    dom.doMerge(r.ec.parentNode.previousElementSibling, r.ec.parentNode);
-                    range.create(r.ec, 0, r.ec, 0).select();
+                    dom.doMerge(r.sc.parentNode.parentNode.previousElementSibling, r.sc.parentNode.parentNode);
+                    dom.doMerge(r.sc.parentNode.previousElementSibling, r.sc.parentNode);
+                    if (r.sc.parentNode.previousElementSibling) {
+                        dom.doMerge(r.sc.parentNode.previousElementSibling, r.sc.parentNode);
+                    }
+                    range.create(r.sc, 0, r.sc, 0).select();
 
                 }
+                return false;
             }
-        }
-
-        if (event.keyCode === 46) { // delete
-
+        },
+        // delete
+        '46': function (r, event) {
+            var node = r.ec;
+            while (!node.nextSibling && !node.previousSibling) {node = node.parentNode;}
+            
             var content = r.ec.textContent.replace(/\s+$/, '');
 
             // empty tag
@@ -566,6 +563,16 @@
             else if (r.sc===r.ec && r.eo<content.length && content.match(/\S/)) return true;
             // merge with the next text node
             else if (r.ec.nextSibling && !r.ec.nextSibling.tagName) return true;
+            // jump to next node for delete
+            else if (r.sc.nextSibling) {
+                node = r.sc.nextSibling;
+                while (node.firstChild) {
+                    node = node.firstChild;
+                }
+                r = range.create(node, node.textContent.length, node, node.textContent.length);
+                r.select();
+                return keydown[46](r, event);
+            }
             //merge with the next block
             else if (r.isCollapsed() && r.eo>=content.length && mergeOnDelete.indexOf(r.ec.parentNode.tagName.toLowerCase()) !== -1) {
 
@@ -579,18 +586,87 @@
                     range.create(r.sc, r.so, r.sc, r.so).select();
 
                 } else if (!next && mergeOnDelete.indexOf(r.ec.parentNode.parentNode.tagName.toLowerCase()) !== -1 &&
+                    r.ec.parentNode && r.ec.parentNode.parentNode &&
                     r.ec.parentNode.parentNode.tagName === r.ec.parentNode.parentNode.nextElementSibling.tagName) {
 
                     dom.doMerge(r.ec.parentNode.parentNode, r.ec.parentNode.parentNode.nextElementSibling);
-                    dom.doMerge(r.ec.parentNode, r.ec.parentNode.nextElementSibling);
+                    if (r.ec.parentNode.nextElementSibling) {
+                        dom.doMerge(r.ec.parentNode, r.ec.parentNode.nextElementSibling);
+                    }
                     range.create(r.ec, r.ec.textContent.length, r.ec, r.ec.textContent.length).select();
 
                 }
             }
+        },
+        // enter
+        '13': function (r, event) {
+            if (!r.sc.tagName) return true;
+
+            var $node = $(r.sc);
+            var clone = $node.clone()[0];
+            $node.after(clone);
+            range.createFromNode(clone).select();
+        },
+        // all visible char
+        'visible': function (r, event) {
+            var node = r.sc;
+            var needChange = false;
+            while (node.parentNode) {
+                if ($(node).is(forbiddenWrite.join(","))) {
+                    needChange = true;
+                    break;
+                }
+                node = node.parentNode;
+            }
+
+            if (needChange) {
+                var text = node.previousSibling;
+                if (text && !text.tagName && text.textContent.match(/\S/)) {
+                    range.create(text, text.textContent.length, text, text.textContent.length).select();
+                } else {
+                    text = node.parentNode.insertBefore(document.createTextNode( "_ " ), node);
+                    range.create(text, 0, text, 0).select();
+                    setTimeout(function () {
+                        var text = range.create().sc;
+                        text.textContent = text.textContent.replace(/_ $/, ' ');
+                        range.create(text, text.textContent.length-1, text, text.textContent.length-1).select();
+                    },0);
+                }
+            }
+            return true;
+        }
+    };
+    function summernote_keydown (event) {
+        var keyCode = event.keyCode !== 229 && event.keyCode >= 48 ? "visible" : event.keyCode;
+
+        if (!keydown[keyCode]) {
+            return true;
         }
 
-        event.preventDefault();
-        return false;
+        var $editable = $(event.currentTarget);
+        $editable.data('NoteHistory').recordUndo($editable);
+
+        var r = range.create();
+        if (r.isCollapsed() && !keydown[keyCode](r, event) ) {
+
+            setTimeout(function () {
+                var r = range.create();
+                if (!r) return;
+                var parent = r.sc.parentElement.parentElement;
+                r = dom.merge(parent, r.sc, r.so, r.sc, r.so, null, true);
+                r = dom.removeSpace(parent, r.sc, r.so, r.sc, r.so);
+                if (r.ec.tagName === "BR") {
+                    r.sc = r.ec = r.sc.previousSibling || r.sc.parentNode;
+                }
+                r.eo = r.eo > r.ec.textContent.length ? r.ec.textContent.length : r.eo;
+                if (r.so > r.eo) r.so = r.eo;
+                range.create(r.sc, r.so, r.ec, r.eo).select();
+            },0);
+
+            event.preventDefault();
+            return false;
+
+        }
     }
     function reRangeSelect (event) {
         var r = $.summernote.objects.range.create();
@@ -621,6 +697,7 @@
             }
         },0);
     }
+
     var fn_attach = eventHandler.attach;
     eventHandler.attach = function (oLayoutInfo, options) {
         fn_attach.call(this, oLayoutInfo, options);
@@ -700,7 +777,6 @@
         $(a).attr("class", linkInfo.className);
     };
 
-
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     /* Change History to have a global History for all summernote instances */
 
@@ -756,6 +832,9 @@
             aUndo.push(oSnap);
         };
 
+        this.popUndo = function () {
+            aUndo.pop();
+        };
         this.recordUndo = function ($editable) {
             aRedo = [];
             aUndo.push(makeSnap($editable));
@@ -1929,7 +2008,7 @@
             if (! this.media.$){
                 var $image = this.$el.find('.font-icons-selected')
                 var rng = range.create()
-                if($('.insert-media')){
+                if($('.insert-media').length){
                     rng = document.createRange();
                     rng.selectNodeContents(document.getElementsByClassName('insert-media')[0])
                     $('p').removeClass('insert-media');
