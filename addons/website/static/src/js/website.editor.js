@@ -688,6 +688,17 @@
         r.select();
     }
 
+    function summernote_display_editor(event) {
+        if ($(event.target).closest('.note-editable').length) {
+            setTimeout(function () {
+                if (!$(".note-popover > div:visible").length) {
+                    $(".note-popover > .note-air-popover").show();
+                }
+            },0);
+        } else {
+            $(".note-popover > div").hide();
+        }
+    }
     function summernote_mouseup (event) {
         var r = $.summernote.objects.range.create();
 
@@ -695,30 +706,24 @@
             if (!r.isCollapsed()) {
                 reRangeSelect(r, event);
             } else {
-                setTimeout(function () {
-                     if (!$(".note-popover > div:visible").length) {
-                        $(".note-popover > .note-air-popover").show();
-                     }
-                },0);
+                summernote_display_editor(event);
             }
         }
-
-        // setTimeout(function () {
-        //     if (r && (r.sc !== r.ec || r.so !== r.eo)) {
-        //         $(".note-link-popover").hide();
-        //         $(".note-image-popover").hide();
-        //         $(".note-video-popover").hide();
-        //     }
-        // },0);
     }
-
+    function summernote_click (event) {
+        if ($.summernote.objects.range.create()) {
+            summernote_display_editor(event);
+        }
+    }
     var fn_attach = eventHandler.attach;
     eventHandler.attach = function (oLayoutInfo, options) {
         fn_attach.call(this, oLayoutInfo, options);
         oLayoutInfo.editor.on("paste", summernote_paste);
         oLayoutInfo.editor.on("keydown", summernote_keydown);
+        oLayoutInfo.editor.on("keyup", summernote_display_editor);
         oLayoutInfo.editor.on('dragstart', 'img', function (e) { e.preventDefault(); });
         $(document).on('mouseup', summernote_mouseup);
+        $(document).on('click', summernote_click);
         oLayoutInfo.editor.on('dblclick', 'img', function (event) {
             new website.editor.MediaDialog(this, event.target).appendTo(document.body);
         });
@@ -728,8 +733,10 @@
         fn_dettach.call(this, oLayoutInfo, options);
         oLayoutInfo.editor.off("paste", summernote_paste);
         oLayoutInfo.editor.off("keydown", summernote_keydown);
+        oLayoutInfo.editor.off("keyup", summernote_display_editor);
         oLayoutInfo.editor.off("dragstart");
         $(document).off('mouseup', summernote_mouseup);
+        $(document).off('click', summernote_click);
         oLayoutInfo.editor.off("dblclick");
     };
 
@@ -956,7 +963,6 @@
 
             this.rte.appendTo(this.$('#website-top-edit .nav.js_editor_placeholder'));
             return this._super.apply(this, arguments);
-            
         },
         edit: function () {
             this.$buttons.edit.prop('disabled', true);
