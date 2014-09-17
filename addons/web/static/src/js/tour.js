@@ -557,18 +557,21 @@ var Tour = {
             
             } else if ($element.is(":visible")) {
 
-                $element.trigger($.Event("mouseenter", { srcElement: $element[0] }));
-                $element.trigger($.Event("mousedown", { srcElement: $element[0] }));
-        
-                var evt = document.createEvent("MouseEvents");
-                evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-                $element[0].dispatchEvent(evt);
+                var click_event = function(type) {
+                    var evt = document.createEvent("MouseEvents");
+                    evt.initMouseEvent(type, true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+                    $element[0].dispatchEvent(evt);
+                };
+
+                click_event("mouseover");
+                click_event("mousedown");
+                click_event("click");
 
                 // trigger after for step like: mouseenter, next step click on button display with mouseenter
                 setTimeout(function () {
                     if (!Tour.getState()) return;
-                    $element.trigger($.Event("mouseup", { srcElement: $element[0] }));
-                    $element.trigger($.Event("mouseleave", { srcElement: $element[0] }));
+                    click_event("mouseup");
+                    click_event("mouseout");
                 }, 1000);
             }
             if (step.sampleText) {
