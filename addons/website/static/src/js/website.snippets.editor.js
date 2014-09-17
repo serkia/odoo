@@ -516,11 +516,10 @@
             var self = this;
             var child_selector = selector.children;
             var sibling_selector = selector.siblings;
-
             var zone_template = $("<div class='oe_drop_zone oe_insert'></div>");
 
             if(child_selector){
-                $(".o_editable").find(child_selector).each(function (){
+                $(child_selector).each(function (){
                     var $zone = $(this);
                     var vertical;
                     var float = window.getComputedStyle(this).float;
@@ -537,7 +536,7 @@
             }
 
             if(sibling_selector){
-                $(".o_editable").find(sibling_selector, true).each(function (){
+                $(sibling_selector).each(function (){
                     var $zone = $(this);
                     var $drop, vertical;
                     var float = window.getComputedStyle(this).float;
@@ -562,6 +561,8 @@
                 });
             }
 
+            var $editable = $(".o_editable");
+
             var count;
             do {
                 count = 0;
@@ -569,13 +570,13 @@
                 // count += $zones.length;
                 // $zones.remove();
 
-                $zones = $(".o_editable").find('.oe_drop_zone > .oe_drop_zone:not(.oe_vertical)').remove();   // no recursive zones
+                $zones = $editable.find('.oe_drop_zone > .oe_drop_zone:not(.oe_vertical)').remove();   // no recursive zones
                 count += $zones.length;
                 $zones.remove();
             } while (count > 0);
 
             // Cleaning up zones placed between floating or inline elements. We do not like these kind of zones.
-            var $zones = $(".o_editable").find('.oe_drop_zone:not(.oe_vertical)');
+            var $zones = $editable.find('.oe_drop_zone:not(.oe_vertical)');
             $zones.each(function (){
                 var zone = $(this);
                 var prev = zone.prev();
