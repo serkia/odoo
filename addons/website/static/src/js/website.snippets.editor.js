@@ -187,11 +187,11 @@
                     var $html = $(html);
 
                     var selector = [];
-                    var $styles = $html.find("[data-option], [data-selector]");
+                    var $styles = $html.find("[data-js], [data-selector]");
                     $styles.each(function () {
                         var $style = $(this);
                         var no_check = $style.data('no-check');
-                        var option_id = $style.data('option');
+                        var option_id = $style.data('js');
                         var option = {
                             'option' : option_id,
                             'base_selector': $style.data('selector'),
@@ -199,7 +199,6 @@
                             '$el': $style,
                             'drop-near': $style.data('drop-near') && self._add_check_selector($style.data('drop-near'), no_check),
                             'drop-in': $style.data('drop-in') && self._add_check_selector($style.data('drop-in'), no_check),
-                            'drop-in-vertical': $style.data('drop-in-vertical') && self._add_check_selector($style.data('drop-in-vertical'), no_check),
                             'data': $style.data()
                         };
                         website.snippet.templateOptions.push(option);
@@ -208,7 +207,20 @@
                     $styles.addClass("hidden");
                     website.snippet.globalSelector = selector.join(",");
 
-                    self.$snippets = $html.find(".tab-content > div > div").addClass("oe_snippet");
+                    self.$snippets = $html.find(".tab-content > div > div")
+                        .addClass("oe_snippet")
+                        .each(function () {
+                            if (!$('.oe_snippet_thumbnail', this).size()) {
+                                var $div = $(
+                                    '<div class="oe_snippet_thumbnail">'+
+                                        '<div class="oe_snippet_thumbnail_img"/>'+
+                                        '<span class="oe_snippet_thumbnail_title"></span>'+
+                                    '</div>');
+                                $div.find('span').text($(this).attr("name"));
+                                $(this).prepend($div);
+                            }
+                            $("> *:not(.oe_snippet_thumbnail)", this).addClass('oe_snippet_body');
+                        });
 
                     self.$el.append($html);
 
@@ -239,16 +251,17 @@
             var self = this;
             var snipped_event_flag;
             $(document).on('click', function (event) {
-                if (!$(event.target).closest(".o_editable").length && $(event.target).closest("#oe_manipulators").length) {
+                var srcElement = event.srcElement || (event.originalEvent && (event.originalEvent.originalTarget || event.originalEvent.target));
+                if (!$(event.target).closest(".o_editable").length && $(srcElement).closest("#oe_manipulators").length) {
                     return;
                 }
-                if (snipped_event_flag || !event.target) {
+                if (snipped_event_flag || !srcElement) {
                     return;
                 }
                 snipped_event_flag = true;
 
                 setTimeout(function () {snipped_event_flag = false;}, 0);
-                var $target = $(event.target);
+                var $target = $(srcElement);
 
                 if ($target.parents(".oe_overlay").length) {
                     return;
@@ -285,12 +298,12 @@
             for (var k in template) {
                 var Option = options[template[k]['option']];
                 if (Option && Option.prototype.clean_for_save !== dummy) {
-                    $("#wrapwrap").find(template[k].selector).each(function () {
+                    $(".o_editable").find(template[k].selector).each(function () {
                         new Option(self, null, $(this), k).clean_for_save();
                     });
                 }
             }
-            $("#wrapwrap").find("*[contentEditable], *[attributeEditable]")
+            $(".o_editable").find("*[contentEditable], *[attributeEditable]")
                 .removeAttr('contentEditable')
                 .removeAttr('attributeEditable');
         },
@@ -341,7 +354,7 @@
         // activate drag and drop for the snippets in the snippet toolbar
         make_snippet_draggable: function($snippets){
             var self = this;
-            var $tumb = $snippets.find(".oe_snippet_thumbnail:first");
+            var $tumb = $snippets.find(".oe_snippet_thumbnail_img:first");
             var left = $tumb.outerWidth()/2;
             var top = $tumb.outerHeight()/2;
             var $toInsert, dropped, $snippet, action, snipped_id;
@@ -360,22 +373,21 @@
                 start: function(){
                     self.hide();
                     dropped = false;
-                    // snippet_selectors => to get drop-near, drop-in, drop-in-vertical
+                    // snippet_selectors => to get drop-near, drop-in
                     $snippet = $(this);
                     var $base_body = $snippet.find('.oe_snippet_body');
                     var selector = [];
                     var selector_siblings = [];
                     var selector_children = [];
-                    var selector_vertical_children = [];
-                    for (var k in website.snippet.templateOptions) {
-                        if ($base_body.is(website.snippet.templateOptions[k].base_selector)) {
-                            selector.push(website.snippet.templateOptions[k].base_selector);
-                            if (website.snippet.templateOptions[k]['drop-near'])
-                                selector_siblings.push(website.snippet.templateOptions[k]['drop-near']);
-                            if (website.snippet.templateOptions[k]['drop-in'])
-                                selector_children.push(website.snippet.templateOptions[k]['drop-in']);
-                            if (website.snippet.templateOptions[k]['drop-in-vertical'])
-                                selector_vertical_children.push(website.snippet.templateOptions[k]['drop-in-vertical']);
+                    var vertical = false;
+                    var temp = website.snippet.templateOptions;
+                    for (var k in temp) {
+                        if ($base_body.is(temp[k].base_selector)) {
+                            selector.push(temp[k].base_selector);
+                            if (temp[k]['drop-near'])
+                                selector_siblings.push(temp[k]['drop-near']);
+                            if (temp[k]['drop-in'])
+                                selector_children.push(temp[k]['drop-in']);
                         }
                     }
 
@@ -383,15 +395,13 @@
                     action = $snippet.find('.oe_snippet_body').size() ? 'insert' : 'mutate';
 
                     if( action === 'insert'){
-                        if (!selector_siblings.length && !selector_children.length && !selector_vertical_children.length) {
-                            console.debug($snippet.find(".oe_snippet_thumbnail_title").text() + " have not insert action: "+
-                                "data-drop-near, data-drop-in or data-drop-in-vertical");
+                        if (!selector_siblings.length && !selector_children.length) {
+                            console.debug($snippet.find(".oe_snippet_thumbnail_title").text() + " have not insert action: data-drop-near or data-drop-in");
                             return;
                         }
                         self.activate_insertion_zones({
                             siblings: selector_siblings.join(","),
                             children: selector_children.join(","),
-                            vertical_children: selector_vertical_children.join(","),
                         });
 
                     } else if( action === 'mutate' ){
@@ -427,15 +437,15 @@
                 stop: function(ev, ui){
                     $toInsert.removeClass('oe_snippet_body');
                     
-                    if (action === 'insert' && ! dropped && $("#wrapwrap").find('.oe_drop_zone') && ui.position.top > 3) {
-                        var el = $("#wrapwrap").find('.oe_drop_zone').nearest({x: ui.position.left, y: ui.position.top}).first();
+                    if (action === 'insert' && ! dropped && $(".o_editable").find('.oe_drop_zone') && ui.position.top > 3) {
+                        var el = $(".o_editable").find('.oe_drop_zone').nearest({x: ui.position.left, y: ui.position.top}).first();
                         if (el.length) {
                             el.after($toInsert);
                             dropped = true;
                         }
                     }
 
-                    $("#wrapwrap").find('.oe_drop_zone').droppable('destroy').remove();
+                    $(".o_editable").find('.oe_drop_zone').droppable('destroy').remove();
                     
                     if (dropped) {
 
@@ -506,57 +516,48 @@
             var self = this;
             var child_selector = selector.children;
             var sibling_selector = selector.siblings;
-            var vertical_child_selector   =  selector.vertical_children;
 
-            var zone_template = "<div class='oe_drop_zone oe_insert'></div>";
+            var zone_template = $("<div class='oe_drop_zone oe_insert'></div>");
 
             if(child_selector){
-                $("#wrapwrap").find(child_selector).each(function (){
+                $(".o_editable").find(child_selector).each(function (){
                     var $zone = $(this);
-                    $zone.find('> *:not(.oe_drop_zone):visible').after(zone_template);
-                    $zone.prepend(zone_template);
-                });
-            }
-
-            if(vertical_child_selector){
-                $("#wrapwrap").find(vertical_child_selector).each(function (){
-                    var $zone = $(this);
-                    var $template = $(zone_template).addClass("oe_vertical");
-                    var nb = 0;
-                    var $lastinsert = false;
-                    var left = 0;
-                    var temp_left = 0;
-                    $zone.find('> *:not(.oe_drop_zone):visible').each(function () {
-                        var $col = $(this);
-                        $template.css('height', ($col.outerHeight() + parseInt($col.css("margin-top")) + parseInt($col.css("margin-bottom")))+'px');
-                        $lastinsert = $template.clone();
-                        $(this).after($lastinsert);
-
-                        temp_left = $col.position().left;
-                        if (left === temp_left) {
-                            $col.prev(".oe_drop_zone.oe_vertical").remove();
-                            $col.before($template.clone().css("clear", "left"));
-                        }
-                        else if (!nb) {
-                            $col.before($template.clone());
-                        }
-                        left = temp_left;
-                        nb ++;
-                    });
-                    if (!nb) {
-                        $zone.prepend($template.css('height', $zone.outerHeight()+'px'));
+                    var vertical;
+                    var float = window.getComputedStyle(this).float;
+                    if (float === "left" || float === "right") {
+                        vertical = $zone.parent().outerHeight()+'px';
                     }
+                    var $drop = zone_template.clone();
+                    if (vertical) {
+                        $drop.addClass("oe_vertical").css('height', vertical);
+                    }
+                    $zone.find('> *:not(.oe_drop_zone):visible').after($drop);
+                    $zone.prepend($drop.clone());
                 });
             }
 
             if(sibling_selector){
-                $("#wrapwrap").find(sibling_selector, true).each(function (){
+                $(".o_editable").find(sibling_selector, true).each(function (){
                     var $zone = $(this);
+                    var $drop, vertical;
+                    var float = window.getComputedStyle(this).float;
+                    if (float === "left" || float === "right") {
+                        vertical = $zone.parent().outerHeight()+'px';
+                    }
+
                     if($zone.prev('.oe_drop_zone:visible').length === 0){
-                        $zone.before(zone_template);
+                        $drop = zone_template.clone();
+                        if (vertical) {
+                            $drop.addClass("oe_vertical").css('height', vertical);
+                        }
+                        $zone.before($drop);
                     }
                     if($zone.next('.oe_drop_zone:visible').length === 0){
-                        $zone.after(zone_template);
+                        $drop = zone_template.clone();
+                        if (vertical) {
+                            $drop.addClass("oe_vertical").css('height', vertical);
+                        }
+                        $zone.after($drop);
                     }
                 });
             }
@@ -568,13 +569,13 @@
                 // count += $zones.length;
                 // $zones.remove();
 
-                $zones = $("#wrapwrap").find('.oe_drop_zone > .oe_drop_zone:not(.oe_vertical)').remove();   // no recursive zones
+                $zones = $(".o_editable").find('.oe_drop_zone > .oe_drop_zone:not(.oe_vertical)').remove();   // no recursive zones
                 count += $zones.length;
                 $zones.remove();
             } while (count > 0);
 
             // Cleaning up zones placed between floating or inline elements. We do not like these kind of zones.
-            var $zones = $("#wrapwrap").find('.oe_drop_zone:not(.oe_vertical)');
+            var $zones = $(".o_editable").find('.oe_drop_zone:not(.oe_vertical)');
             $zones.each(function (){
                 var zone = $(this);
                 var prev = zone.prev();
@@ -598,7 +599,7 @@
         // generate drop zones covering the elements selected by the selector
         // we generate overlay drop zones only to get an idea of where the snippet are, the drop
         activate_overlay_zones: function(selector){
-            var $targets = typeof selector === "string" ? $("#wrapwrap").find(selector) : selector;
+            var $targets = typeof selector === "string" ? $(".o_editable").find(selector) : selector;
             var self = this;
 
             function is_visible($el){
@@ -668,7 +669,7 @@
             var styles = this.$target.data("snippet-option-ids") || {};
             styles[option_id] = this;
             this.$target.data("snippet-option-ids", styles);
-            this.$overlay = this.$target.data('overlay');
+            this.$overlay = this.$target.data('overlay') || $('<div>');
             this.option= option_id;
             this.$el = option.$el.find(">li").clone();
             this.data = option.$el.data();
@@ -723,11 +724,11 @@
         */
         set_active: function () {
             var classes = _.uniq((this.$target.attr("class") || '').split(/\s+/));
-            this.$el.find('[data-check_class], [data-select_class]')
+            this.$el.find('[data-toggle_class], [data-select_class]')
                 .add(this.$el)
-                .filter('[data-check_class], [data-select_class]')
+                .filter('[data-toggle_class], [data-select_class]')
                 .removeClass("active")
-                .filter('[data-check_class="' + classes.join('"], [data-check_class="') + '"] ,'+
+                .filter('[data-toggle_class="' + classes.join('"], [data-toggle_class="') + '"] ,'+
                     '[data-select_class="' + classes.join('"], [data-select_class="') + '"]')
                 .addClass("active");
         },
@@ -752,16 +753,24 @@
         },
 
         reset: function (event) {
-            var self = this, $el, method;
+            var self = this;
+            var lis = self.$el.add(self.$el.find('li')).filter('.active').get();
+            lis.reverse();
+            _.each(lis, function (li) {
+                var $li = $(li);
+                for (var k in self.reset_methods) {
+                    var method = self.reset_methods[k];
+                    if ($li.is('[data-'+method+']') || $li.closest('[data-'+method+']').size()) {
+                        delete self.reset_methods[k];
+                    }
+                }
+                self.select("reset", $li);
+            });
+
             for (var k in self.reset_methods) {
-                method = self.reset_methods[k];
-                var $li = self.$el.find('[data-'+method+']').add(self.$el).filter('.active, :has(.active)');
-                if ($li.size()) {
-                    $li.each(function () {
-                        self.select("reset", $(this));
-                    });
-                } else {
-                    self[method]("reset", null, null);
+                var method = self.reset_methods[k];
+                if (method) {
+                    self[method]("reset", null);
                 }
             }
             self.reset_methods = [];
@@ -811,9 +820,10 @@
             _.each($methods, function (el) {
                 var $el = $(el);
                 var methods = method(el);
+
                 for (var k in methods) {
                     if (self[k]) {
-                        if (self.reset_methods.indexOf(k) === -1) {
+                        if (type !== "reset" && self.reset_methods.indexOf(k) === -1) {
                             self.reset_methods.push(k);
                         }
                         self[k](type, methods[k], $el);
@@ -825,11 +835,11 @@
         },
 
         // default method for snippet
-        check_class: function (type, value, $li) {
-            var $lis = this.$el.find('[data-check_class]').add(this.$el).filter('[data-check_class]');
+        toggle_class: function (type, value, $li) {
+            var $lis = this.$el.find('[data-toggle_class]').add(this.$el).filter('[data-toggle_class]');
 
             function map ($lis) {
-                return $lis.map(function () {return $(this).data("check_class");}).get().join(" ");
+                return $lis.map(function () {return $(this).data("toggle_class");}).get().join(" ");
             }
             var classes = map($lis);
             var active_classes = map($lis.filter('.active, :has(.active)'));
@@ -849,6 +859,10 @@
             this.$target.removeClass(classes.join(" "));
             if(value) this.$target.addClass(value);
         },
+        eval: function (type, value, $li) {
+            var fn = new Function("node", "type", "value", "$li", value);
+            fn.call(this, this, type, value, $li);
+        },
 
         clean_for_save: dummy
     });
@@ -863,8 +877,10 @@
         background: function(type, value, $li) {
             if (value && value.length) {
                 this.$target.css("background-image", 'url(' + value + ')');
+                this.$target.addClass("oe_img_bg");
             } else {
-                this.$target.css("background-image", "").removeClass("oe_img_bg");
+                this.$target.css("background-image", "");
+                this.$target.removeClass("oe_img_bg").removeClass("oe_custom_bg");
             }
         },
         choose_image: function(type, value, $li) {
@@ -882,15 +898,14 @@
             $image.on('saved', self, function (o) {
                 var value = $image.attr("src");
                 self.$target.css("background-image", 'url(' + value + ')');
-                self.$el.find('li[data-select_class="oe_custom_bg"]').data("src", value);
+                self.$el.find('li[data-choose_image]').data("background", value).attr("data-background", value);
                 self.$target.trigger("snippet-option-change", [self]);
                 $image.remove();
-                self.$target.addClass('oe_custom_bg').removeClass('oe_img_bg');
+                self.$target.addClass('oe_custom_bg oe_img_bg');
                 self.set_active();
             });
             editor.on('cancel', self, function () {
-                self.$target.removeClass("oe_img_bg")
-                    .trigger("snippet-option-change", [self]);
+                self.$target.trigger("snippet-option-change", [self]);
                 $image.remove();
             });
         },
@@ -899,21 +914,19 @@
             var src = this.$target.css("background-image").replace(/url\(['"]*|['"]*\)|^none$/g, "");
             this._super();
 
-            this.$el.find('li[data-background]')
-                .filter(':not([data-background=""])')
+            this.$el.find('li[data-background]:not([data-background=""])')
                 .removeClass("active")
                 .each(function () {
-                    var background = $(this).data("background");
+                    var background = $(this).data("background") || $(this).attr("data-background");
                     if ((src.length && background.length && src.indexOf(background) !== -1) || (!src.length && !background.length)) {
                         $(this).addClass("active");
                     }
                 });
-            if(!this.$el.find('li.active').size()) {
-                this.$el.find('li[data-select_class=""][data-background=""], '+
-                    'li[data-select_class=""] li[data-background=""], '+
-                    'li[data-background=""] li[data-select_class=""]').addClass("active");
-                this.$el.filter('li[data-select_class=""]').find('li[data-background=""]').addClass("active");
-                this.$el.filter('li[data-background=""]').find('li[data-select_class=""]').addClass("active");
+
+            if (!this.$el.find('li[data-background].active').size()) {
+                this.$el.find('li[data-background=""]:not([data-choose_image])').addClass("active");
+            } else {
+                this.$el.find('li[data-background=""]:not([data-choose_image])').removeClass("active");
             }
         }
     });
@@ -1518,6 +1531,9 @@
                 new website.editor.MediaDialog(self.BuildingBlock.parent, self.$target[0]).appendTo(document.body);
                 self.BuildingBlock.make_active(false);
             }
+            setTimeout(function () {
+                self.$target.find(".css_editable_mode_display").removeAttr("_moz_abspos");
+            },0);
         },
     });
 
@@ -1586,7 +1602,6 @@
             self.BuildingBlock.activate_insertion_zones({
                 siblings: self.selector_siblings,
                 children: self.selector_children,
-                vertical_children: self.selector_vertical_children,
             });
 
             $("body").addClass('move-important');
@@ -1629,14 +1644,12 @@
             this.styles = {};
             this.selector_siblings = [];
             this.selector_children = [];
-            this.selector_vertical_children = [];
             _.each(website.snippet.templateOptions, function (val, option_id) {
                 if (!self.$target.is(val.selector)) {
                     return;
                 }
                 if (val['drop-near']) self.selector_siblings.push(val['drop-near']);
                 if (val['drop-in']) self.selector_children.push(val['drop-in']);
-                if (val['drop-in-vertical']) self.selector_vertical_children.push(val['drop-in-vertical']);
 
                 var option = val['option'];
                 var Editor = website.snippet.options[option] || website.snippet.Option;
@@ -1649,11 +1662,8 @@
             this.selector_children = this.selector_children.join(",");
             if (this.selector_children === "")
                 this.selector_children = false;
-            this.selector_vertical_children = this.selector_vertical_children.join(",");
-            if (this.selector_vertical_children === "")
-                this.selector_vertical_children = false;
 
-            if (!this.selector_siblings && !this.selector_children && !this.selector_vertical_children) {
+            if (!this.selector_siblings && !this.selector_children) {
                 this.$overlay.find(".oe_snippet_move, .oe_snippet_clone, .oe_snippet_remove").addClass('hidden');
             }
 

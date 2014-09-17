@@ -1066,7 +1066,7 @@
     website.EditorBarCustomize = openerp.Widget.extend({
         events: {
             'mousedown a.dropdown-toggle': 'load_menu',
-            'click li:not(#html_editor):not(#theme_customize):not(#install_apps) a': 'do_customize',
+            'click ul a[data-view-id]': 'do_customize',
         },
         start: function() {
             var self = this;
@@ -1537,8 +1537,14 @@
                 this.$('input.email-address').val(match[1]).change();
             }
             if (href && !$control) {
-                this.$('input.url').val(href).change();
-                this.$('input.window-new').closest("div").show();
+                this.page_exists(href).then(function (exist) {
+                    if (exist) {
+                        self.$('#link-page').select2('data', {'id': href, 'text': href});
+                    } else {
+                        self.$('input.url').val(href).change();
+                        self.$('input.window-new').closest("div").show();
+                    }
+                });
             }
 
             this.page_exists(href).then(function (exist) {
@@ -1638,6 +1644,11 @@
         },
         start: function () {
             var self = this;
+
+            if (this.editor.getSelection) {
+                var selection = this.editor.getSelection();
+                this.range = selection.getRanges(true)[0];
+            }
 
             this.imageDialog = new website.editor.RTEImageDialog(this, this.editor, this.media);
             this.imageDialog.appendTo(this.$("#editor-media-image"));
