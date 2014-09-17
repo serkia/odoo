@@ -1,21 +1,34 @@
 /* ---- SummerNote Minimal Reset ---- {{{ */
 .note-popover .popover {
   position: fixed !important;
-  top: -10px !important;
+  top: -9px !important;
   right: 120px !important;
   left: auto !important;
   border: 0;
+  background: transparent;
 }
 .note-popover .popover-content {
   padding: 0 !important;
   margin: 0 0 0 6px !important;
 }
-.note-popover .popover-content > * {
+.note-popover .popover-content > div {
   padding-top: 0 !important;
   margin-top: 0 !important;
 }
+.note-popover .popover-content > a {
+  border-radius: 3px;
+  background-color: white;
+  border-color: #cccccc;
+  padding: 4px 10px;
+  font-size: 14px;
+  line-height: 1.5;
+}
 .note-popover .arrow {
   display: none;
+}
+
+.o_editable:hover {
+  background-color: yellow;
 }
 
 /* ---- OpenERP Style ---- {{{ */

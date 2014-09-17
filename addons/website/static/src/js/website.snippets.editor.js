@@ -239,7 +239,10 @@
         bind_snippet_click_editor: function () {
             var self = this;
             var snipped_event_flag;
-            $(document).on('click', ".o_editable", function (event) {
+            $(document).on('click', function (event) {
+                if (!$(event.target).closest(".o_editable").length && $(event.target).closest("#oe_manipulators").length) {
+                    return;
+                }
                 if (snipped_event_flag || !event.target) {
                     return;
                 }

@@ -455,6 +455,25 @@
     *  - prevent the edition of forbidden node (like font awsome node)
     */
 
+    function reRangeSelect (r, event) {
+        // check if the user move the caret on up or down
+        var ref = false;
+        var node = r.sc;
+        var parent = r.ec.parentNode;
+        while (node) {
+            if (parent === node) {
+                break;
+            }
+            if(event.target === node || event.target.parentNode === node) { /*check parent node for image, iframe and tag without child text node*/
+                ref = true;
+                break;
+            }
+            node = node.parentNode;
+        }
+
+        r = range.reRange(r.sc, r.so, r.ec, r.eo, ref);
+        r.select();
+    }
     function summernote_paste (event) {
         // keep norma feature if copy a picture
         var clipboardData = event.originalEvent.clipboardData;
@@ -486,10 +505,8 @@
             range.create(data.sc, data.so, data.sc, data.so).select();
         },0);
     }
-
     var mergeOnDelete = "h1 h2 h3 h4 h5 h6 p b bold i u code sup strong small li a".split(" ");
-    var forbiddenWrite = ".fa".split(" ");
-
+    var forbiddenWrite = ".fa img".split(" ");
     var keydown = {
         // backspace
         '8': function (r, event) {
@@ -668,52 +685,17 @@
 
         }
     }
-    function reRangeSelect (r, event) {
-        // check if the user move the caret on up or down
-        var ref = false;
-        var node = r.sc;
-        var parent = r.ec.parentNode;
-        while (node) {
-            if (parent === node) {
-                break;
-            }
-            if(event.target === node || event.target.parentNode === node) { /*check parent node for image, iframe and tag without child text node*/
-                ref = true;
-                break;
-            }
-            node = node.parentNode;
-        }
-
-        r = range.reRange(r.sc, r.so, r.ec, r.eo, ref);
-        r.select();
-    }
-
-    function summernote_display_editor(event) {
-        var r = range.create();
-        if ($(r.sc).closest('[data-oe-model="ir.ui.view"], [data-oe-type="html"]').length && $(event.target).closest('.note-editable').length) {
-            setTimeout(function () {
-                if (!$(".note-popover > div:visible").length) {
-                    $(".note-popover > .note-air-popover").show();
-                }
-            },0);
-        } else {
-            $(".note-popover > div").hide();
-        }
-    }
     function summernote_mouseup (event) {
         var r = range.create();
 
-        if (r) {
-            if (!r.isCollapsed()) {
-                reRangeSelect(r, event);
-            } else {
-                summernote_display_editor(event);
-            }
+        if (r && !r.isCollapsed()) {
+            reRangeSelect(r, event);
         }
     }
     function summernote_click (event) {
-        if (range.create()) {
-            summernote_display_editor(event);
+        var r = range.create();
+        if (!r || !$(r.sc).closest('.note-editable').length) {
+            $(".note-popover > *").hide();
         }
     }
     var fn_attach = eventHandler.attach;
@@ -721,7 +703,6 @@
         fn_attach.call(this, oLayoutInfo, options);
         oLayoutInfo.editor.on("paste", summernote_paste);
         oLayoutInfo.editor.on("keydown", summernote_keydown);
-        oLayoutInfo.editor.on("keyup", summernote_display_editor);
         oLayoutInfo.editor.on('dragstart', 'img', function (e) { e.preventDefault(); });
         $(document).on('mouseup', summernote_mouseup);
         $(document).on('click', summernote_click);
@@ -734,7 +715,6 @@
         fn_dettach.call(this, oLayoutInfo, options);
         oLayoutInfo.editor.off("paste", summernote_paste);
         oLayoutInfo.editor.off("keydown", summernote_keydown);
-        oLayoutInfo.editor.off("keyup", summernote_display_editor);
         oLayoutInfo.editor.off("dragstart");
         $(document).off('mouseup', summernote_mouseup);
         $(document).off('click', summernote_click);
@@ -751,12 +731,15 @@
     };
     var fn_popover_update = eventHandler.popover.update;
     eventHandler.popover.update = function ($popover, oStyle, isAirMode) {
-        fn_popover_update.call(this, $popover, oStyle, isAirMode);
-        if (oStyle.image) {
-            var $imgpov = $popover.find(".note-image-popover");
+        var $imagePopover = $popover.find('.note-image-popover');
+        var $linkPopover = $popover.find('.note-link-popover');
+        var $airPopover = $popover.find('.note-air-popover');
 
+        fn_popover_update.call(this, $popover, oStyle, isAirMode);
+
+        if (oStyle.image) {
             // add center button for images
-            if (!$imgpov.find('[data-event="floatMe"][data-value="center"]').length) {
+            if (!$imagePopover.find('[data-event="floatMe"][data-value="center"]').length) {
                 var $centerbutton = $(renderer.tplIconButton('fa fa-align-center icon-align-center', {
                         title: _t('Center'),
                         event: 'floatMe',
@@ -766,7 +749,20 @@
                     .tooltip({container: 'body'})
                     .on('click', function () {$(this).tooltip('hide');});
             }
+
+            $imagePopover.show();
+            range.create(oStyle.image,0,oStyle.image,0).select();
+
+            if (oStyle.anchor && !$(oStyle.image).closest('a').length) {
+                $linkPopover.hide();
+                oStyle.anchor = false;
+            }
         }
+
+        if (!oStyle.image && !oStyle.anchor && $(oStyle.range.sc).closest('.note-editable').length) {
+            $airPopover.show();
+        }
+
         $popover.children().css('z-index', 1040);
     };
     eventHandler.editor.resize = function ($editable, sValue, $target) {
