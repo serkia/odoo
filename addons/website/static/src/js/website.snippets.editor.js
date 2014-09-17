@@ -26,7 +26,7 @@
             this.on('rte:ready', this, function () {
                 self.snippets.$button.removeClass("hidden");
                 website.snippet.start_animation();
-                $("#wrapwrap *").off('mousedown mouseup click');
+                $(".o_editable *").off('mousedown mouseup click');
             });
 
             return this._super.apply(this, arguments);
@@ -48,10 +48,9 @@
     });
 
     $.extend($.expr[':'],{
-        checkData: function(node,i,m){
-            var dataName = m[3];
+        o_editable: function(node,i,m){
             while (node) {
-                if (node.dataset && node.dataset[dataName]) {
+                if (node.className && node.className.indexOf('o_editable')!==-1) {
                     return true;
                 } else {
                     node = node.parentNode;
@@ -95,12 +94,12 @@
             this.$button.click(_.bind(this.show_blocks, this));
 
             this.$snippet = $("#oe_snippets");
-            $(document).on('click', "#wrapwrap", function () {
+            $(document).on('click', ".o_editable", function () {
                 self.$el.addClass("hidden");
             });
 
             $(window).resize(function () {
-                setTimeout('$("#wrapwrap").click()',0);
+                setTimeout('$(document).click()',0);
             });
 
             this.fetch_snippet_templates();
@@ -151,16 +150,16 @@
                         if ($snippet.is(option.base_selector)) {
 
                             var dropzone = [];
-                            if (option['drop-near']) dropzone.push(option['drop-near']);
-                            if (option['drop-in']) dropzone.push(option['drop-in']);
-                            if (option['drop-in-vertical']) dropzone.push(option['drop-in-vertical']);
+                            if (option['drop-near']) dropzone = dropzone.concat(option['drop-near'].split(","));
+                            if (option['drop-in']) dropzone = dropzone.concat(option['drop-in'].split(","));
+                            if (option['drop-in-vertical']) dropzone = dropzone.concat(option['drop-in-vertical'].split(","));
                             selectors = selectors.concat(dropzone);
                         }
                     }
                     $snippet.data('selectors', selectors.length ? selectors.join(":first, ") + ":first" : "");
                 }
 
-                if ($snippet.data('selectors').length && $("#wrapwrap").find($snippet.data('selectors')).size()) {
+                if ($snippet.data('selectors').length && $($snippet.data('selectors')).size()) {
                     $snippet.closest(".oe_snippet").removeClass("disable");
                 } else {
                     $snippet.closest(".oe_snippet").addClass("disable");
@@ -176,7 +175,7 @@
             var data = selector.split(",");
             var selectors = [];
             for (var k in data) {
-                selectors.push(data[k].replace(/^\s+|\s+$/g, '') + (no_check ? "" : ":checkData(oeModel)"));
+                selectors.push(data[k].replace(/^\s+|\s+$/g, '') + (no_check ? "" : ":o_editable"));
             }
             return selectors.join(", ");
         },

@@ -693,8 +693,7 @@
         }
     }
     function summernote_click (event) {
-        var r = range.create();
-        if (!r || !$(r.sc).closest('.note-editable').length) {
+        if (!$(event.srcElement).closest('.note-editable').length) {
             $(".note-popover > *").hide();
         }
     }
@@ -1238,8 +1237,9 @@
                 }
             });
 
-            $('#wrapwrap [data-oe-model]:not(:empty)')
+            $('#wrapwrap [data-oe-model]')
                 .not('link, script')
+                .not('img[data-oe-field="arch"], br[data-oe-field="arch"], input[data-oe-field="arch"]')
                 .not('.oe_snippet_editor')
                 .addClass('o_editable');
 
