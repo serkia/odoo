@@ -693,7 +693,7 @@
         }
     }
     function summernote_click (event) {
-        if (!$(event.srcElement).closest('.note-editable').length) {
+        if (!$(event.srcElement).closest('.note-editable, .note-popover, .note-link-dialog, .note-image-dialog, .note-air-dialog').length) {
             $(".note-popover > *").hide();
         }
     }
@@ -751,11 +751,11 @@
 
             $imagePopover.show();
             range.create(oStyle.image,0,oStyle.image,0).select();
+        }
 
-            if (oStyle.anchor && !$(oStyle.image).closest('a').length) {
-                $linkPopover.hide();
-                oStyle.anchor = false;
-            }
+        if (oStyle.anchor && ($airPopover.is(':visible') || (oStyle.image && !$(oStyle.image).closest('a').length))) {
+            $linkPopover.hide();
+            oStyle.anchor = false;
         }
 
         if (!oStyle.image && !oStyle.anchor && $(oStyle.range.sc).closest('.note-editable').length) {
@@ -783,7 +783,10 @@
         editor.appendTo(document.body);
 
         var def = new $.Deferred();
-        editor.on("save", this, function (linkInfo) { def.resolve(linkInfo); });
+        editor.on("save", this, function (linkInfo) {
+            def.resolve(linkInfo);
+            $('.note-popover .note-link-popover').show();
+        });
         editor.on("cancel", this, function () { def.reject(); });
         return def;
     };
@@ -1715,7 +1718,7 @@
                 var rng = range.create();
                 if($('.insert-media')){
                     rng = document.createRange();
-                    rng.selectNodeContents(document.getElementsByClassName('insert-media')[0])
+                    rng.selectNodeContents(document.getElementsByClassName('insert-media')[0]);
                 }
                 this.media = document.createElement("img");
                 rng.insertNode(this.media);
@@ -1727,6 +1730,7 @@
             setTimeout(function () {
                 $el.trigger("saved", self.active.media);
                 $(document.body).trigger("media-saved", [$el[0], self.active.media]);
+                $(self.active.media).mouseup();
             },0);
             this._super();
         },
