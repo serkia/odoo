@@ -89,9 +89,9 @@
                 popover:   { fixed: true },
             },
             {
-                waitFor:   'button[data-action=edit]:visible',
+                waitFor:   '#website-top-edit:hidden',
                 element:   'button.btn-danger.js_publish_btn',
-                placement: 'top',
+                placement: 'bottom',
                 title:     _t("Publish Your Post"),
                 content:   _t("Your blog post is not yet published. You can update this draft version and publish it once you are ready."),
             },

@@ -21,37 +21,37 @@
     });
 
     website.EditorBar.include({
-        edit: function () {
-            var self = this;
-            $('.popover').remove();
-            this._super();
-            var vHeight = $(window).height();
-            $('body').on('click','#change_cover',_.bind(this.change_bg, self.rte.editor, vHeight));
-            $('body').on('click', '#clear_cover',_.bind(this.clean_bg, self.rte.editor, vHeight));
-        },
         save : function() {
             var res = this._super();
-            if ($('.cover').length) {
+            var $cover = $('#title.cover');
+            if ($cover.length) {
                 openerp.jsonRpc("/blogpost/change_background", 'call', {
                     'post_id' : $('#blog_post_name').attr('data-oe-id'),
-                    'image' : $('.cover').css('background-image').replace(/url\(|\)|"|'/g,''),
+                    'image' : $cover.css('background-image').replace(/url\(|\)|"|'/g,''),
                 });
             }
             return res;
+        }
+    });
+
+    website.snippet.options.website_blog = website.snippet.Option.extend({
+        clear : function(type, value, $li) {
+            if (type !== 'click') return;
+
+            this.$target.css({"background-image":'none', 'min-height': $(window).height()});
         },
-        clean_bg : function(vHeight) {
-            $('.js_fullheight').css({"background-image":'none', 'min-height': vHeight});
-        },
-        change_bg : function(vHeight) {
+        change : function(type, value, $li) {
+            if (type !== 'click') return;
+
             var self  = this;
-            var element = new CKEDITOR.dom.element(self.element.find('.cover-storage').$[0]);
-            var editor  = new website.editor.MediaDialog(self, element);
-            $(document.body).on('media-saved', self, function (o) {
-                var url = $('.cover-storage').attr('src');
-                $('.js_fullheight').css({"background-image": !_.isUndefined(url) ? 'url(' + url + ')' : "", 'min-height': vHeight});
-                $('.cover-storage').remove();
-            });
+            var $image = this.$target.find('.cover-storage');
+            var editor  = new website.editor.MediaDialog(this.BuildingBlock.parent, $image[0]);
             editor.appendTo('body');
+            $image.on('saved', self, function (o) {
+                var url = $image.attr('src');
+                self.$target.css({"background-image": !_.isUndefined(url) ? 'url(' + url + ')' : "", 'min-height': $(window).height()});
+            });
         },
     });
+
 })();

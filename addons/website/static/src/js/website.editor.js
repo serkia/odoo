@@ -1698,16 +1698,16 @@
                     rng = document.createRange();
                     rng.selectNodeContents(document.getElementsByClassName('insert-media')[0])
                 }
-                this.media = document.createElement("img")
+                this.media = document.createElement("img");
                 rng.insertNode(this.media);
                 this.active.media = this.media;
             }
-            var $el = $(self.active.media.$);
+            var $el = $(self.active.media);
             this.active.save();
             //this.media.className = this.media.className.replace(/\s+/g, ' ');
             setTimeout(function () {
-                $el.trigger("saved", self.active.media.$);
-                $(document.body).trigger("media-saved", [$el[0], self.active.media.$]);
+                $el.trigger("saved", self.active.media);
+                $(document.body).trigger("media-saved", [$el[0], self.active.media]);
             },0);
             this._super();
         },
@@ -2026,7 +2026,7 @@
          * all the new ones if necessary.
          */
         save: function () {
-            if (! this.media.$){
+            if (! this.media){
                 var $image = this.$el.find('.font-icons-selected')
                 var rng = range.create()
                 if($('.insert-media').length){
@@ -2136,7 +2136,7 @@
         }),
         start: function () {
             this.$iframe = this.$("iframe");
-            var $media = $(this.media && this.media.$);
+            var $media = $(this.media && this.media);
             if ($media.hasClass("media_iframe_video")) {
                 var src = $media.data('src');
                 this.$("input#urlvideo").val(src);
