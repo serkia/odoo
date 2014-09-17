@@ -967,6 +967,12 @@
             
             this.rte.start_edition();
             this.trigger('rte:called');
+
+            window.onbeforeunload = function(event) {
+                if ($('.o_editable.o_dirty').length) {
+                    return _t('This document is not saved!');
+                }
+            };
         },
         rte_changed: function () {
             this.$buttons.save.prop('disabled', false);
@@ -1005,6 +1011,7 @@
                     });
                 }).get();
             return $.when.apply(null, defs).then(function () {
+                window.onbeforeunload = null;
                 website.reload();
             }, function (failed) {
                 // If there were errors, re-enable edition
@@ -1058,6 +1065,7 @@
                 });
                 $dialog.modal('show');
             }).then(function () {
+                window.onbeforeunload = null;
                 website.reload();
             });
         },
