@@ -240,7 +240,7 @@
         <field name="model">hr.applicant</field>
         <field name="arch" type="xml">
             <kanban default_group_by="stage_id">
-                <field name="stage_id"/>
+                <field name="stage_id" display_title="1"/>
                 <field name="color"/>
                 <field name="priority"/>
                 <field name="survey"/>
@@ -254,6 +254,8 @@
                 <field name="categ_ids"/>
                 <field name="message_summary"/>
                 <field name="attachment_number"/>
+                <field name="salary_expected" display_title="1"/>
+                <field name="last_stage_id" display_title="1"/>
                 <templates>
                     <t t-name="kanban-tooltip">
                         <ul class="oe_kanban_tooltip">

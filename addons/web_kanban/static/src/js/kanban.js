@@ -28,6 +28,7 @@ instance.web_kanban.KanbanView = instance.web.View.extend({
         this.group_by_field = {};
         this.grouped_by_m2o = false;
         this.many2manys = [];
+        this.tooltip_fields = [];
         this.state = {
             groups : {},
             records : {}
@@ -110,6 +111,9 @@ instance.web_kanban.KanbanView = instance.web.View.extend({
                 this.qweb.add_template(instance.web.json_node_to_xml(child));
                 break;
             } else if (child.tag === 'field') {
+                if (child.attrs.display_title) {
+                    this.tooltip_fields.push(child.attrs.name);
+                }
                 this.extract_aggregates(child);
             }
         }
@@ -902,6 +906,7 @@ instance.web_kanban.KanbanRecord = instance.web.Widget.extend({
         return new_record;
     },
     renderElement: function() {
+        var self = this;
         this.qweb_context = {
             instance: instance,
             record: this.record,
@@ -913,12 +918,29 @@ instance.web_kanban.KanbanRecord = instance.web.Widget.extend({
                 this.qweb_context[p] = _.bind(this[p], this);
             }
         }
+        var title = '';
+        var value = '';
+        _.each(self.record, function(rec, key) {
+            _.each(self.view.tooltip_fields, function(tooltip_field) {
+                if (key == tooltip_field) {
+                    value = rec.value;
+                    if (rec.type == "datetime") {
+                        value = value.split(" ")[0];
+                    }
+                if (value == "") {
+                    value = "  -----  ";
+                }
+                    title += rec.string + " : " + value + "<br/>";
+                }
+            });
+        });
         var $el = instance.web.qweb.render(this.template, {
             'widget': this,
             'content': this.view.qweb.render('kanban-box', this.qweb_context)
         });
         this.replaceElement($el);
         this.replace_fields();
+        self.$el.attr("title", title).tooltip({placement:'bottom'});
     },
     replace_fields: function() {
         var self = this;
