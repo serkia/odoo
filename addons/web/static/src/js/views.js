@@ -1581,6 +1581,7 @@ instance.web.View = instance.web.Widget.extend({
                 }
             });
         }
+        console.log("in views its Self",self);
     },
     sidebar_eval_context: function () {
         return $.when({});

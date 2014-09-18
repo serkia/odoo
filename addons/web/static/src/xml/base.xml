@@ -1831,10 +1831,10 @@
                 <div class="col-md-3" id="savenewlist">
                     <div>
                         <label class="oe_options_head">Save as</label>
-                        <form class="form-inline">
+                        <div class="form-inline">
                             <input class="form-control input-sm oe_options_input" type="text" id="savelist_name"/>
                             <a class="glyphicon glyphicon-floppy-disk oe_options_icon" id="add_export_list"  title="Save List"></a>
-                        </form>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -1851,7 +1851,7 @@
             <button class="oe_button_unable" id="remove_all_field" title="Clear All Fields From List">Remove All</button>
             <button class="oe_button_unable" id="move_up" title="Move Selected Field Up">Move Up</button>
             <button class="oe_button_unable" id="move_down" title="Move Selected Field Down">Move Down</button>
-            <button id="sort_list" title="Sort List">Sort</button>
+            <button class="oe_button_unable" id="sort_list" title="Sort List">Sort</button>
         </div>
         <div class="col-md-5 oe_export_fields_selector_right">
             <div class="text-left"><h4>Fields to export   </h4></div>

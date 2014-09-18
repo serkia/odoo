@@ -20,7 +20,6 @@ instance.web.DataExport = instance.web.Widget.extend({
                     var string = $(this).attr('string');
                     self.add_field(id, string, import_compatible);
                 });
-            this.on_show_save_list();
             this.$el.find(".oe_export_file").removeAttr("disabled");
             this.$el.find(".oe_button_unable").removeAttr("disabled");
         },
@@ -38,10 +37,10 @@ instance.web.DataExport = instance.web.Widget.extend({
         },
         'click .oe_export_file':'on_click_export_data',
         'click #oe_export_cancel': 'exit',
-        'click #export_new_list': 'on_show_save_list',
         'click #move_up':'on_click_move_up',
         'click #move_down':'on_click_move_down',
         'click #sort_list':'on_click_sort_list',
+        'click #add_export_list': 'on_save_export_list',
     },
     init: function(parent, dataset) {
         var self = this;
@@ -102,15 +101,23 @@ instance.web.DataExport = instance.web.Widget.extend({
             }
         });
         this.$el.find("#import_compat").trigger('change');
+        console.log("this---",this);
+        console.log("this.domain",this.domain);
+        console.log("domain---",domain);
         var got_domain = this.domain.then(function (domain) {
+            console.log("in domain",domain);
             if (domain === undefined) {
                 self.ids_to_export = self.selected_ids;
                 self.domain = self.dataset.params.domain;
+                console.log("in undefined",self.ids_to_export,self.domain);
             }else {
                 self.ids_to_export = false;
                 self.domain = domain;
+                console.log("in defined",self.ids_to_export,self.domain);
             }
         });
+
+        console.log("got_domain ---",got_domain);
 
         return $.when(
             got_fields,
@@ -134,6 +141,7 @@ instance.web.DataExport = instance.web.Widget.extend({
     },
     on_click_sort_list: function (e) {
         var export_list = this.$el.find("#fields_list");
+        e.preventDefault();
        $(e.currentTarget).toggle(function() {
             export_list.find("option").sort(function (a, b) {
                 return $(a).text().localeCompare($(b).text())
@@ -210,18 +218,16 @@ instance.web.DataExport = instance.web.Widget.extend({
         this.$el.find(".oe_export_file").removeAttr("disabled");
         this.$el.find(".oe_button_unable").removeAttr("disabled");
     },
-    on_show_save_list: function() {
+    on_save_export_list: function() {
         var self = this;
         var current_node = self.$el.find("#savenewlist");
-        current_node.find("#add_export_list").click(function() {
-            var value = current_node.find("#savelist_name").val();
-            if (value) {
-                self.do_save_export_list(value);
-            } else {
-                alert(_t("Please enter save field list name"));
-            }
-            current_node.find('.oe_options_input').val("");
-        });
+        var value = self.$el.find("#savelist_name").val();
+        if (value) {
+            self.do_save_export_list(value);
+        } else {
+            alert(_t("Please enter save field list name"));
+        }
+            current_node.find('#savelist_name').val("");
     },
     do_save_export_list: function(value) {
         var self = this;
@@ -241,7 +247,6 @@ instance.web.DataExport = instance.web.Widget.extend({
             }
             self.$el.find("#saved_export_list").append( new Option(value, export_list_id) );
         });
-        this.on_show_save_list();
     },
     on_click: function(id, record) {
         var self = this;
@@ -387,7 +392,6 @@ instance.web.DataExport = instance.web.Widget.extend({
                 if (!$o2m_selection.hasClass("oe_export_readonlyfield")) {
                    self.add_field(record.id, $(this).find("a").attr("string"), $(this).find("a").attr("import_compatible"));
                 }
-                self.on_show_save_list();
             });
         });
         self.$el.find('#fields_list').mouseover(function(event) {
@@ -478,6 +482,7 @@ instance.web.DataExport = instance.web.Widget.extend({
             })},
             complete: instance.web.unblockUI,
         });
+                    console.log("in export data --- domain  ",this.domain);
     },
 });
 

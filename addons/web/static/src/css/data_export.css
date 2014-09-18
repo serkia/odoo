@@ -11,13 +11,6 @@
     font-size: 0.8em;
     height: 22px;
 }
-
-.openerp .oe_export_selector_field {
-    padding: 15px;
-    margin-top: -25px;
-    font-size: 25px;
-    color: #000000 !important;
-}
  
 .openerp .oe_comp_checkbox {
     margin-top: 13px;
