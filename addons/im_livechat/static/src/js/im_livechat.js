@@ -52,7 +52,8 @@
     });
 
     im_livechat.LiveSupport = openerp.Widget.extend({
-        init: function(server_url, db, channel, options) {
+        init: function(server_url, db, channel, options, rule) {
+            console.log(rule);
             options = options || {};
             _.defaults(options, {
                 buttonText: _t("Chat with one of our collaborators"),
@@ -75,8 +76,10 @@
                     if(activated){
                         var button = new im_livechat.ChatButton(null, channel, options);
                         button.appendTo($("body"));
-                        if (options.auto){
-                            button.click();
+                        if (rule.action === 'auto_popup'){
+                            setTimeout(function() {
+                                button.click();
+                            }, rule.auto_popup_timer*1000);
                         }
                     }
                 });
