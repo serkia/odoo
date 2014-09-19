@@ -37,7 +37,7 @@
             },
             {
                 waitFor:   '.oe_overlay_options .oe_options:visible',
-                element:   '#wrap .carousel:first div.carousel-content',
+                element:   '#wrapwrap .carousel:first div.carousel-content',
                 placement: 'top',
                 title:     _t("Customize banner's text"),
                 content:   _t("Click in the text and start editing it."),

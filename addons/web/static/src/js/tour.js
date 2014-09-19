@@ -559,7 +559,7 @@ var Tour = {
 
                 var click_event = function(type) {
                     var evt = document.createEvent("MouseEvents");
-                    evt.initMouseEvent(type, true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+                    evt.initMouseEvent(type, true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, $element[0]);
                     $element[0].dispatchEvent(evt);
                 };
 
@@ -572,7 +572,7 @@ var Tour = {
                     if (!Tour.getState()) return;
                     click_event("mouseup");
                     click_event("mouseout");
-                }, 1000);
+                }, self.defaultDelay<<1);
             }
             if (step.sampleText) {
             
@@ -602,7 +602,7 @@ var Tour = {
         $thumbnail.trigger($.Event("mousemove", { which: 1, pageX: document.body.scrollWidth/2, pageY: document.body.scrollHeight/2 }));
         var $dropZone = $(".oe_drop_zone").first();
         var dropPosition = $dropZone.position();
-        $dropZone.trigger($.Event("mouseup", { which: 1, pageX: dropPosition.left, pageY: dropPosition.top }));
+        $thumbnail.trigger($.Event("mouseup", { which: 1, pageX: dropPosition.left, pageY: dropPosition.top }));
     }
 };
 openerp.Tour = Tour;

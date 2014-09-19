@@ -137,7 +137,7 @@
             var args = {
                 xml_id: $(document.documentElement).data('view-xmlid'),
                 full: true,
-                bundles: this.$('.js_include_bundles')[0].checked
+                bundles: !!$('script[src*=".assets_common"]').length
             };
             return openerp
                 .jsonRpc('/website/customize_template_get', 'call', args)
