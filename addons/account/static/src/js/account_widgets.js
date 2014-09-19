@@ -386,7 +386,7 @@ openerp.account = function (instance) {
         
             // Update children if needed
             _.each(self.getChildren(), function(child){
-                if (child.partner_id === partner_id && child !== source_child) {
+                if ((child.partner_id === partner_id || child.st_line.has_no_partner) && child !== source_child) {
                     if (contains_lines(child.get("mv_lines_selected"), line_ids)) {
                         child.set("mv_lines_selected", _.filter(child.get("mv_lines_selected"), function(o){ return line_ids.indexOf(o.id) === -1 }));
                     } else if (contains_lines(child.mv_lines_deselected, line_ids)) {
@@ -411,6 +411,8 @@ openerp.account = function (instance) {
             // Update children if needed
             _.each(self.getChildren(), function(child){
                 if (child.partner_id === partner_id && child !== source_child && (child.get("mode") === "match" || child.$el.hasClass("no_match")))
+                    child.updateMatches();
+                if (child.st_line.has_no_partner && child.get("mode") === "match" || child.$el.hasClass("no_match"))
                     child.updateMatches();
             });
         },
@@ -1012,7 +1014,14 @@ openerp.account = function (instance) {
                 return;
             }
 
-            self.set("mv_lines_selected", self.get("mv_lines_selected").concat(line));
+            // If statement line has no partner, give it the partner of the selected move line
+            if (!this.st_line.partner_id && line.partner_id) {
+                self.changePartner(line.partner_id, function() {
+                    self.selectMoveLine(mv_line);
+                });
+            } else {
+                self.set("mv_lines_selected", self.get("mv_lines_selected").concat(line));
+            }
         },
 
         deselectMoveLine: function(mv_line) {
@@ -1539,9 +1548,12 @@ openerp.account = function (instance) {
             if (offset < 0) offset = 0;
             var limit = (self.get("pager_index")+1) * self.max_move_lines_displayed - deselected_lines_num;
             if (limit > self.max_move_lines_displayed) limit = self.max_move_lines_displayed;
-            var excluded_ids = self.getParent().excluded_move_lines_ids[self.partner_id];
             var excluded_ids = _.collect(self.get("mv_lines_selected").concat(self.mv_lines_deselected), function(o) { return o.id; });
-            var globally_excluded_ids = self.getParent().excluded_move_lines_ids[self.partner_id];
+            var globally_excluded_ids = [];
+            if (self.st_line.has_no_partner)
+                _.each(self.getParent().excluded_move_lines_ids, function(o) { globally_excluded_ids = globally_excluded_ids.concat(o) });
+            else
+                globally_excluded_ids = self.getParent().excluded_move_lines_ids[self.partner_id];
             if (globally_excluded_ids !== undefined)
                 for (var i=0; i<globally_excluded_ids.length; i++)
                     if (excluded_ids.indexOf(globally_excluded_ids[i]) === -1)
@@ -1588,7 +1600,9 @@ openerp.account = function (instance) {
                         self.do_load_reconciliation_proposition = true;
                         self.is_consistent = true;
                         self.set("mode", "match");
-                        if (callback) callback();
+                        window.setTimeout(function() {
+                            if (callback) callback();
+                        }, 100);
                     });
                 });
         },
