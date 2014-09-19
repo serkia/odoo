@@ -2952,7 +2952,7 @@
     var hToolbarAndPopoverUpdate = function (event) {
       // delay for range after mouseup
       setTimeout(function () {
-        var oLayoutInfo = makeLayoutInfo(event.target);
+        var oLayoutInfo = makeLayoutInfo(event.target); // fix odoo
         var oStyle = editor.currentStyle(event.target);
         if (!oStyle) { return; }
 
