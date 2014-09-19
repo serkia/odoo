@@ -347,10 +347,12 @@ openerp.account = function (instance) {
                                     self.$(".reconciliation_lines_container").fadeIn(self.aestetic_animation_speed);
                                 });
                             });
-                    }
-                    // Congratulate the user if the work is done
-                    if (self.reconciled_lines === self.st_lines.length) {
+                    } else if (self.reconciled_lines === self.st_lines.length) {
+                        // Congratulate the user if the work is done
                         self.displayDoneMessage();
+                    } else {
+                        // Some lines weren't persisted because they were't valid
+                        self.$(".reconciliation_lines_container").fadeIn(self.aestetic_animation_speed);
                     }
                 }).fail(function() {
                     self.$(".reconciliation_lines_container").fadeIn(self.aestetic_animation_speed);
