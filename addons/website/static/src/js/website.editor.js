@@ -984,8 +984,6 @@
             var self = this;
 
             observer.disconnect();
-            // console.log(this.rte.editor);
-            // var editor = $('.note-air-editor, .note-editable');
             var defs = $('.o_editable')
                 .filter('.o_dirty')
                 .removeAttr('contentEditable')
