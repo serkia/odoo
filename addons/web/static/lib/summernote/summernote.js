@@ -1754,7 +1754,7 @@
      */
     this.currentStyle = function (elTarget) {
       var rng = range.create();
-      if (rng.sc !== elTarget) { // fix odoo
+      if (rng.sc !== elTarget && !$.contains(elTarget, rng.sc)) { // fix odoo
         rng = range.create(elTarget,0,elTarget,0);
         rng.select();
       }
@@ -3079,8 +3079,10 @@
           var module = options.airMode ? popover : toolbar;
           module.updateRecentColor(list.head($btn), sEvent, sValue);
         }
-        hToolbarAndPopoverUpdate(event);
+      hToolbarAndPopoverUpdate(event);
       }
+
+      console.log(event);
     };
 
     var EDITABLE_PADDING = 24;
