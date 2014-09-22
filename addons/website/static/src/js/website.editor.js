@@ -734,7 +734,13 @@
         var $linkPopover = $popover.find('.note-link-popover');
         var $airPopover = $popover.find('.note-air-popover');
 
+        $popover.children().css('z-index', 1040);
+
         fn_popover_update.call(this, $popover, oStyle, isAirMode);
+
+        if (oStyle.range.sc.tagName === "IMG") {
+            oStyle.image = oStyle.range.sc;
+        }
 
         if (oStyle.image) {
             // add center button for images
@@ -748,7 +754,7 @@
                     .tooltip({container: 'body'})
                     .on('click', function () {$(this).tooltip('hide');});
             }
-
+            $imagePopover.find('[data-event="removeMedia"]').parent().remove();
             $imagePopover.show();
             range.create(oStyle.image,0,oStyle.image,0).select();
         }
@@ -760,9 +766,10 @@
 
         if (!oStyle.image && !oStyle.anchor && $(oStyle.range.sc).closest('.note-editable').length) {
             $airPopover.show();
+        } else {
+            $airPopover.hide();
         }
 
-        $popover.children().css('z-index', 1040);
     };
     eventHandler.editor.resize = function ($editable, sValue, $target) {
         $editable.data('NoteHistory').recordUndo($editable);
@@ -790,11 +797,16 @@
         editor.on("cancel", this, function () { def.reject(); });
         return def;
     };
-
     var fn_editor_createLink = eventHandler.editor.createLink;
     eventHandler.editor.createLink = function ($editable, linkInfo, options) {
         var a = fn_editor_createLink.call(this, $editable, linkInfo, options);
         $(a).attr("class", linkInfo.className);
+    };
+
+    eventHandler.dialog.showImageDialog = function ($editable, $dialog) {
+        var editor = new website.editor.MediaDialog($editable);
+        editor.appendTo(document.body);
+        return new $.Deferred().reject();
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1238,6 +1250,7 @@
                 if ($editable.size() && (!$last || $last[0] != $editable[0])) {
                     $editable.summernote(self._config());
                     $editable.data('NoteHistory', self.history);
+                    $editable.data('rte', self);
                     $last = $editable;
 
                     if (!range.create()) {
@@ -1284,7 +1297,7 @@
                     ['color', ['color']],
                     ['para', ['ul', 'ol', 'paragraph']],
                     ['table', ['table']],
-                    ['insert', ['link']],
+                    ['insert', ['link', 'picture']],
                 ],
                 oninit: function() {
                 },
@@ -1431,7 +1444,7 @@
             this.editable = editable;
             this.data = data;
 
-            this.data.text = this.data.text.replace(/[ \t\r\n]+/, '');
+            this.data.text = this.data.text.replace(/[ \t\r\n]+/g, ' ');
 
             // Store last-performed request to be able to cancel/abort it.
             this.page_exists_req = null;
@@ -1619,10 +1632,9 @@
     });
 
     website.editor.Media = openerp.Widget.extend({
-        init: function (parent, editor, media) {
+        init: function (parent, media) {
             this._super();
             this.parent = parent;
-            this.editor = editor;
             this.media = media;
         },
         start: function () {
@@ -1645,25 +1657,22 @@
         events : _.extend({}, website.editor.Dialog.prototype.events, {
             'input input#icon-search': 'search',
         }),
-        init: function (editor, media) {
-            this._super(editor);
-            this.editor = editor;
-            this.page = 0;
+        init: function ($editable, media) {
+            this._super();
+            this.$editable = $editable;
+            this.rte = this.$editable.rte || this.$editable.data('rte');
             this.media = media;
         },
         start: function () {
             var self = this;
 
-            if (this.editor.getSelection) {
-                var selection = this.editor.getSelection();
-                this.range = selection.getRanges(true)[0];
-            }
+            this.range = range.create();
 
-            this.imageDialog = new website.editor.RTEImageDialog(this, this.editor, this.media);
+            this.imageDialog = new website.editor.RTEImageDialog(this, this.media);
             this.imageDialog.appendTo(this.$("#editor-media-image"));
-            this.iconDialog = new website.editor.FontIconsDialog(this, this.editor, this.media);
+            this.iconDialog = new website.editor.FontIconsDialog(this, this.media);
             this.iconDialog.appendTo(this.$("#editor-media-icon"));
-            this.videoDialog = new website.editor.VideoDialog(this, this.editor, this.media);
+            this.videoDialog = new website.editor.VideoDialog(this, this.media);
             this.videoDialog.appendTo(this.$("#editor-media-video"));
 
             this.active = this.imageDialog;
@@ -1698,7 +1707,8 @@
             return this._super();
         },
         save: function () {
-            this.editor.rte.historyRecordUndo($(this.media));
+            this.rte.historyRecordUndo(this.$editable);
+            this.trigger("save");
 
             var self = this;
             if (self.media) {
@@ -1713,14 +1723,10 @@
                     this.videoDialog.clear();
                 }
             } else {
-                var rng = range.create();
-                if($('.insert-media')){
-                    rng = document.createRange();
-                    rng.selectNodeContents(document.getElementsByClassName('insert-media')[0]);
-                }
                 this.media = document.createElement("img");
-                rng.insertNode(this.media);
+                this.range.insertNode(this.media);
                 this.active.media = this.media;
+                this.media.className = "pull-right";
             }
             var $el = $(self.active.media);
             this.active.save();
@@ -1728,7 +1734,8 @@
             setTimeout(function () {
                 $el.trigger("saved", self.active.media);
                 $(document.body).trigger("media-saved", [$el[0], self.active.media]);
-                $(self.active.media).mouseup();
+                range.create(self.active.media, 0, self.active.media.nextSibling || self.active.media, 0).select();
+                $(self.active.media).trigger("mouseup");
             },0);
             this._super();
         },
@@ -1779,9 +1786,9 @@
             'click .existing-attachments img': 'select_existing',
             'click .existing-attachment-remove': 'try_remove',
         }),
-        init: function (parent, editor, media) {
+        init: function (parent, media) {
             this.page = 0;
-            this._super(parent, editor, media);
+            this._super(parent, media);
         },
         start: function () {
             var self = this;

@@ -27,10 +27,6 @@
   display: none;
 }
 
-.o_editable:hover {
-  background-color: rgba(230, 230, 40, 0.3);
-}
-
 /* ---- OpenERP Style ---- {{{ */
 .oe_website_editorbar {
   position: fixed;
