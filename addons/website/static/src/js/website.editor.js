@@ -1354,6 +1354,8 @@
                         if (m.attributeName === 'contenteditable') { return false; }
                         // ignore id modification
                         if (m.attributeName === 'id') { return false; }
+                        // style not change
+                        if (m.attributeName === 'style' && (m.oldValue || "") === (m.target.attributes.style ? m.target.attributes.style.value : "")) { return false; }
                         // if attribute is not a class, can't be .cke_focus change
                         if (m.attributeName !== 'class') { return true; }
 
