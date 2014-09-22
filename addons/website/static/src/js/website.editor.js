@@ -706,7 +706,7 @@
         $(document).on('mouseup', summernote_mouseup);
         $(document).on('click', summernote_click);
         oLayoutInfo.editor.on('dblclick', 'img', function (event) {
-            new website.editor.MediaDialog(this, event.target).appendTo(document.body);
+            new website.editor.MediaDialog(oLayoutInfo.editor, event.target).appendTo(document.body);
         });
     };
     var fn_dettach = eventHandler.dettach;
@@ -1673,8 +1673,10 @@
         }),
         init: function ($editable, media) {
             this._super();
-            this.$editable = $editable;
-            this.rte = this.$editable.rte || this.$editable.data('rte');
+            if ($editable) {
+                this.$editable = $editable;
+                this.rte = this.$editable.rte || this.$editable.data('rte');
+            }
             this.media = media;
         },
         start: function () {
@@ -1721,7 +1723,7 @@
             return this._super();
         },
         save: function () {
-            this.rte.historyRecordUndo(this.$editable);
+            if(this.rte) this.rte.historyRecordUndo(this.$editable);
             this.trigger("save");
 
             var self = this;

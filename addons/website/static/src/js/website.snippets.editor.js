@@ -897,7 +897,7 @@
             $image.attr("src", value);
             $image.appendTo(self.$target);
 
-            var editor = new website.editor.MediaDialog(self.BuildingBlock.parent, $image[0]);
+            var editor = new website.editor.MediaDialog(null, $image[0]);
             editor.appendTo(document.body);
             editor.$('[href="#editor-media-video"], [href="#editor-media-icon"]').addClass('hidden');
 
@@ -1528,14 +1528,14 @@
         },
         edition: function (type, value) {
             if(type !== "click") return;
-            new website.editor.MediaDialog(this.BuildingBlock.parent, this.$target[0]).appendTo(document.body);
+            new website.editor.MediaDialog(this.$target.closest('.o_editable'), this.$target[0]).appendTo(document.body);
         },
         on_focus : function () {
             var self = this;
             this.$overlay.find(".oe_snippet_remove").removeClass('hidden');
             if (this.$target.parent().data("oe-field") === "image") {
                 this.$overlay.addClass("hidden");
-                new website.editor.MediaDialog(self.BuildingBlock.parent, self.$target[0]).appendTo(document.body);
+                new website.editor.MediaDialog(self.$target.closest('.o_editable'), self.$target[0]).appendTo(document.body);
                 self.BuildingBlock.make_active(false);
             }
             setTimeout(function () {
