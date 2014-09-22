@@ -1459,6 +1459,7 @@ class ExportFormat(object):
         Model = request.session.model(model)
         context = dict(request.context or {}, **params.get('context', {}))
         ids = ids or Model.search(domain, 0, False, False, context)
+        print "#############################",ids
 
         field_names = map(operator.itemgetter('name'), fields)
         import_data = Model.export_data(ids, field_names, self.raw_data, context=context).get('datas',[])

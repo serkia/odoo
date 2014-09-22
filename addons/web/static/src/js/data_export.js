@@ -42,17 +42,18 @@ instance.web.DataExport = instance.web.Widget.extend({
         'click #sort_list':'on_click_sort_list',
         'click #add_export_list': 'on_save_export_list',
     },
-    init: function(parent, dataset) {
+    init: function(parent, action) {
         var self = this;
         this._super(parent);
         this.records = {};
-        this.dataset = dataset;
-        this.domain = dataset.params.domain;
-        this.model_name = dataset.params.view;
-        this.history_back = dataset.params.history_back;
-        this.selected_ids = dataset.params.selected_ids;
+        console.log(action);
+        this.action = action;
+        this.domain = action.params.domain;
+        this.model_name = action.params.view;
+        this.history_back = action.params.history_back;
+        this.selected_ids = action.params.selected_ids;
         this.exports = new instance.web.DataSetSearch(
-            this, 'ir.exports', this.dataset.params.context);
+            this, 'ir.exports', this.action.params.context);
     },
     start: function() {
         var self = this;
@@ -61,7 +62,7 @@ instance.web.DataExport = instance.web.Widget.extend({
             return $(this).val();
         }).get();
 
-        domain=this.dataset.params.domain;
+        domain=this.action.params.domain;
         self.$el.find(".oe_model_name").text(this.model_name);
         var got_fields = new $.Deferred();
         if (!export_fields.length) {
@@ -73,7 +74,7 @@ instance.web.DataExport = instance.web.Widget.extend({
                 self.$el.find('#field-tree-structure').remove();
                 var import_comp = self.$el.find("#import_compat").val();
                 self.rpc("/web/export/get_fields", {
-                    model: self.dataset.params.model,
+                    model: self.action.params.model,
                     import_compat: !!import_comp,
                     }).done(function (records) {
                         var export_list = self.$("#fields_list option").map(function (res) {
@@ -92,7 +93,7 @@ instance.web.DataExport = instance.web.Widget.extend({
                 self.$el.find('#field-tree-structure').remove();
                 var import_comp = "";
                 self.rpc("/web/export/get_fields", {
-                    model: self.dataset.params.model,
+                    model: self.action.params.model,
                     import_compat: !!import_comp,
                 }).done(function (records) {
                     got_fields.resolve();
@@ -104,11 +105,11 @@ instance.web.DataExport = instance.web.Widget.extend({
         console.log("this---",this);
         console.log("this.domain",this.domain);
         console.log("domain---",domain);
-        var got_domain = this.domain.then(function (domain) {
+        var got_domain = domain.then(function (domain) {
             console.log("in domain",domain);
             if (domain === undefined) {
                 self.ids_to_export = self.selected_ids;
-                self.domain = self.dataset.params.domain;
+                self.domain = self.action.params.domain;
                 console.log("in undefined",self.ids_to_export,self.domain);
             }else {
                 self.ids_to_export = false;
@@ -179,7 +180,7 @@ instance.web.DataExport = instance.web.Widget.extend({
             return $.when();
         }
         return this.exports.read_slice(['name'], {
-            domain: [['resource', '=', this.dataset.params.model]]
+            domain: [['resource', '=', this.action.params.model]]
         }).done(function (export_list) {
             self.$el.find('#ExistsExportList').append(QWeb.render('Exists.ExportList', {'existing_exports': export_list}));
             self.$el.find('#saved_export_list').change(function() {
@@ -188,7 +189,7 @@ instance.web.DataExport = instance.web.Widget.extend({
                 if (export_id) {
                     $("#delete_export_list").show();
                     self.rpc('/web/export/namelist', {
-                        'model': self.dataset.params.model, export_id: parseInt(export_id, 10)
+                        'model': self.action.params.model, export_id: parseInt(export_id, 10)
                     }).done(self.do_load_export_field);
                 }else {
                     $('#delete_export_list').hide();
@@ -237,7 +238,7 @@ instance.web.DataExport = instance.web.Widget.extend({
         }
         this.exports.create({
             name: value,
-            resource: this.dataset.params.model,
+            resource: this.action.params.model,
             export_fields: _(fields).map(function (field) {
                 return [0, 0, {name: field}];
             })
@@ -473,16 +474,16 @@ instance.web.DataExport = instance.web.Widget.extend({
         this.session.get_file({
             url: '/web/export/' + export_format,
             data: {data: JSON.stringify({
-                model: this.dataset.params.model,
+                model: this.action.params.model,
                 fields: exported_fields,
                 ids: this.ids_to_export,
                 domain: this.domain,
-                context: this.dataset.context,
+                context: this.action.context,
                 import_compat: !!this.$el.find("#import_compat").val(),
             })},
             complete: instance.web.unblockUI,
         });
-                    console.log("in export data --- domain  ",this.domain);
+                    console.log("in export data --- domain  ",this.domain,"dommmmmmm",domain);
     },
 });
 
