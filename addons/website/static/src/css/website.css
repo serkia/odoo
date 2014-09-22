@@ -79,6 +79,13 @@
   margin-bottom: 0px !important;
 }
 
+img.img-responsive-50, .img.img-responsive-50 {
+  max-width: 50%;
+}
+img.img-responsive-25, .img.img-responsive-25 {
+  max-width: 25%;
+}
+
 /* Extra Styles */
 img.shadow {
   -webkit-border-radius: 3px;
@@ -140,7 +147,7 @@ header a.navbar-brand img {
 }
 
 .css_non_editable_mode_hidden {
-  display: none;
+  display: none !important;
 }
 
 /* ----- BOOTSTRAP FIX ----- */

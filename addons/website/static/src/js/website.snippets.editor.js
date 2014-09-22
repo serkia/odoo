@@ -1532,6 +1532,7 @@
         },
         on_focus : function () {
             var self = this;
+            this.$overlay.find(".oe_snippet_remove").removeClass('hidden');
             if (this.$target.parent().data("oe-field") === "image") {
                 this.$overlay.addClass("hidden");
                 new website.editor.MediaDialog(self.BuildingBlock.parent, self.$target[0]).appendTo(document.body);

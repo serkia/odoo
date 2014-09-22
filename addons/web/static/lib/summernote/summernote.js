@@ -1754,6 +1754,10 @@
      */
     this.currentStyle = function (elTarget) {
       var rng = range.create();
+      if (rng.sc !== elTarget) { // fix odoo
+        rng = range.create(elTarget,0,elTarget,0);
+        rng.select();
+      }
       return rng ? rng.isOnEditable() && style.current(rng, elTarget) : false;
     };
 
@@ -2952,7 +2956,7 @@
     var hToolbarAndPopoverUpdate = function (event) {
       // delay for range after mouseup
       setTimeout(function () {
-        var oLayoutInfo = makeLayoutInfo(event.target); // fix odoo
+        var oLayoutInfo = makeLayoutInfo(event.srcElement || event.target); // fix odoo
         var oStyle = editor.currentStyle(event.target);
         if (!oStyle) { return; }
 
@@ -3075,7 +3079,6 @@
           var module = options.airMode ? popover : toolbar;
           module.updateRecentColor(list.head($btn), sEvent, sValue);
         }
-
         hToolbarAndPopoverUpdate(event);
       }
     };

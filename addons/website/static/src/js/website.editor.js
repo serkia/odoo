@@ -754,9 +754,19 @@
                     .tooltip({container: 'body'})
                     .on('click', function () {$(this).tooltip('hide');});
             }
-            $imagePopover.find('[data-event="removeMedia"]').parent().remove();
+
+            $imagePopover.find('button[data-event="removeMedia"]').parent().remove();
+            $imagePopover.find('button[data-event="floatMe"][data-value="none"]').remove();
             $imagePopover.show();
             range.create(oStyle.image,0,oStyle.image,0).select();
+
+            $imagePopover.find('button[data-event="resize"][data-value="1"]').toggleClass("active", $(oStyle.image).hasClass("img-responsive"));
+            $imagePopover.find('button[data-event="resize"][data-value="0.5"]').toggleClass("active", $(oStyle.image).hasClass("img-responsive-50"));
+            $imagePopover.find('button[data-event="resize"][data-value="0.25"]').toggleClass("active", $(oStyle.image).hasClass("img-responsive-25"));
+
+            $imagePopover.find('button[data-event="floatMe"][data-value="left"]').toggleClass("active", $(oStyle.image).hasClass("pull-left"));
+            $imagePopover.find('button[data-event="floatMe"][data-value="center"]').toggleClass("active", $(oStyle.image).hasClass("center-block"));
+            $imagePopover.find('button[data-event="floatMe"][data-value="right"]').toggleClass("active", $(oStyle.image).hasClass("pull-right"));
         }
 
         if (oStyle.anchor && ($airPopover.is(':visible') || (oStyle.image && !$(oStyle.image).closest('a').length))) {
@@ -769,20 +779,24 @@
         } else {
             $airPopover.hide();
         }
-
     };
     eventHandler.editor.resize = function ($editable, sValue, $target) {
         $editable.data('NoteHistory').recordUndo($editable);
-        $target.css("max-width", parseInt((+sValue)*95) + '%');
+        switch (+sValue) {
+            case 1: $target.toggleClass('img-responsive').removeClass('img-responsive-50 img-responsive-25'); break;
+            case 0.5: $target.toggleClass('img-responsive-50').removeClass('img-responsive img-responsive-25'); break;
+            case 0.25: $target.toggleClass('img-responsive-25').removeClass('img-responsive img-responsive-50'); break;
+        }
+        setTimeout(function () { $target.trigger("mouseup"); },0);
     };
     eventHandler.editor.floatMe = function ($editable, sValue, $target) {
         $editable.data('NoteHistory').recordUndo($editable);
-        $target.removeClass('pull-right pull-left center-block');
         switch (sValue) {
-            case 'center': $target.addClass('center-block'); break;
-            case 'left': $target.addClass('pull-left'); break;
-            case 'right': $target.addClass('pull-right'); break;
+            case 'center': $target.toggleClass('center-block').removeClass('pull-right pull-left'); break;
+            case 'left': $target.toggleClass('pull-left').removeClass('pull-right center-block'); break;
+            case 'right': $target.toggleClass('pull-right').removeClass('pull-left center-block'); break;
         }
+        setTimeout(function () { $target.trigger("mouseup"); },0);
     };
 
     eventHandler.dialog.showLinkDialog = function ($editable, $dialog, linkInfo) {
@@ -1726,7 +1740,7 @@
                 this.media = document.createElement("img");
                 this.range.insertNode(this.media);
                 this.active.media = this.media;
-                this.media.className = "pull-right";
+                this.media.className = "img-responsive pull-right";
             }
             var $el = $(self.active.media);
             this.active.save();
@@ -1988,7 +2002,7 @@
             holder.url = el.getAttribute('src');
         },
         saved: function (data) {
-            var element = document.getElementsByClassName('insert-media')[0]
+            var element = document.getElementsByClassName('insert-media')[0];
             $('p').removeClass('insert-media');
             if (!(element = this.media)) {
                 element = document.createElement('img');
