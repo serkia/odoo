@@ -648,7 +648,7 @@ openerp.account = function (instance) {
             this.presets = this.getParent().presets;
             this.is_valid = true;
             this.is_consistent = true; // Used to prevent bad server requests
-            this.total_move_lines_num = undefined; // Used for pagers
+            this.can_fetch_more_move_lines; // Tell if we can show more move lines
             this.filter = "";
             // In rare cases like when deleting a statement line's partner we don't want the server to
             // look for a reconciliation proposition (in this particular case it might find a move line
@@ -1050,16 +1050,15 @@ openerp.account = function (instance) {
         pagerControlLeftHandler: function() {
             var self = this;
             if (self.$(".pager_control_left").hasClass("disabled")) { return; /* shouldn't happen, anyway*/ }
-            if (self.total_move_lines_num < 0) { return; }
+            if (self.get("pager_index") === 0) { return; }
             self.set("pager_index", self.get("pager_index")-1 );
         },
         
         pagerControlRightHandler: function() {
             var self = this;
-            var new_index = self.get("pager_index")+1;
             if (self.$(".pager_control_right").hasClass("disabled")) { return; /* shouldn't happen, anyway*/ }
-            if ((new_index * self.max_move_lines_displayed) >= self.total_move_lines_num) { return; }
-            self.set("pager_index", new_index );
+            if (! self.can_fetch_more_move_lines) { return; }
+            self.set("pager_index", self.get("pager_index")+1 );
         },
     
         filterHandler: function() {
@@ -1233,7 +1232,7 @@ openerp.account = function (instance) {
                 self.$(".pager_control_left").addClass("disabled");
             else
                 self.$(".pager_control_left").removeClass("disabled");
-            if (self.total_move_lines_num <= ((self.get("pager_index")+1) * self.max_move_lines_displayed))
+            if (! self.can_fetch_more_move_lines)
                 self.$(".pager_control_right").addClass("disabled");
             else
                 self.$(".pager_control_right").removeClass("disabled");
@@ -1334,12 +1333,12 @@ openerp.account = function (instance) {
         mvLinesChanged: function() {
             var self = this;
             // If pager_index is out of range, set it to display the last page
-            if (self.get("pager_index") !== 0 && self.total_move_lines_num <= (self.get("pager_index") * self.max_move_lines_displayed)) {
-                self.set("pager_index", Math.ceil(self.total_move_lines_num/self.max_move_lines_displayed)-1);
+            if (self.get("pager_index") !== 0 && self.get("mv_lines").length === 0 && ! self.can_fetch_more_move_lines) {
+                self.set("pager_index", 0);
             }
         
             // If there is no match to display, disable match view and pass in mode inactive
-            if (self.total_move_lines_num + self.mv_lines_deselected.length === 0 && self.filter === "") {
+            if (self.get("mv_lines").length + self.mv_lines_deselected.length === 0 && !self.can_fetch_more_move_lines && self.filter === "") {
                 self.$el.addClass("no_match");
                 if (self.get("mode") === "match") {
                     self.set("mode", "inactive");
@@ -1545,7 +1544,6 @@ openerp.account = function (instance) {
         updateMatches: function() {
             var self = this;
             var deselected_lines_num = self.mv_lines_deselected.length;
-            var move_lines_num = 0;
             var offset = self.get("pager_index") * self.max_move_lines_displayed - deselected_lines_num;
             if (offset < 0) offset = 0;
             var limit = (self.get("pager_index")+1) * self.max_move_lines_displayed - deselected_lines_num;
@@ -1561,31 +1559,18 @@ openerp.account = function (instance) {
                     if (excluded_ids.indexOf(globally_excluded_ids[i]) === -1)
                         excluded_ids.push(globally_excluded_ids[i]);
             
-            var deferred_move_lines;
-            var move_lines = [];
+            limit += 1; // To see if there's more move lines than we display
             if (limit > 0) {
-                // Load move lines
-                deferred_move_lines = self.model_bank_statement_line
+                return self.model_bank_statement_line
                     .call("get_move_lines_for_reconciliation_by_statement_line_id", [self.st_line.id, excluded_ids, self.filter, offset, limit])
                     .then(function (lines) {
-                        _.each(lines, function(line) {
-                            self.decorateMoveLine(line, self.st_line.currency_id);
-                            move_lines.push(line);
-                        }, self);
+                        _.each(lines, function(line) { self.decorateMoveLine(line, self.st_line.currency_id) }, self);
+                        self.can_fetch_more_move_lines = (lines.length === limit);
+                        self.set("mv_lines", lines.slice(0, limit-1));
                     });
+            } else {
+                self.set("mv_lines", []);
             }
-        
-            // Fetch the number of move lines corresponding to this statement line and this filter
-            var deferred_total_move_lines_num = self.model_bank_statement_line
-                .call("get_move_lines_for_reconciliation_by_statement_line_id", [self.st_line.id, excluded_ids, self.filter, 0, undefined, true])
-                .then(function(num){
-                    move_lines_num = num;
-                });
-        
-            return $.when(deferred_move_lines, deferred_total_move_lines_num).then(function(){
-                self.total_move_lines_num = move_lines_num + deselected_lines_num;
-                self.set("mv_lines", move_lines);
-            });
         },
 
         // Changes the partner_id of the statement_line in the DB and reloads the widget
