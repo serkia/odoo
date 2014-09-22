@@ -703,7 +703,7 @@ class view(osv.osv):
                 relation = None
                 field = Model._fields.get(node.get('name'))
                 if field:
-                    relation = self.pool.get(field._obj)
+                    relation = self.pool.get(field)
                     children = False
                     views = {}
                     for f in node:
