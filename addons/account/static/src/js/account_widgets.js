@@ -1016,14 +1016,7 @@ openerp.account = function (instance) {
                 return;
             }
 
-            // If statement line has no partner, give it the partner of the selected move line
-            if (!this.st_line.partner_id && line.partner_id) {
-                self.changePartner(line.partner_id, function() {
-                    self.selectMoveLine(mv_line);
-                });
-            } else {
-                self.set("mv_lines_selected", self.get("mv_lines_selected").concat(line));
-            }
+            self.set("mv_lines_selected", self.get("mv_lines_selected").concat(line));
         },
 
         deselectMoveLine: function(mv_line) {
