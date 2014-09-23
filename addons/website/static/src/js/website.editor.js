@@ -754,11 +754,7 @@
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /* hack for image and link editor + history button */
-    var formats = ["p", "blockquote", "pre", "h1", "h2", "h3", "h4", "h5", "h6"];
-    function isFormatNode(node) {
-        return node.tagName && formats.indexOf(node.tagName.toLowerCase()) !== -1;
-    }
+    /* update and change the popovers content, and add history button */
 
     var fn_handle_update = eventHandler.handle.update;
     eventHandler.handle.update = function ($handle, oStyle, isAirMode) {
@@ -791,7 +787,8 @@
             var $format = $airPopover.find('[data-event="formatBlock"]');
             var r = range.create();
             var node = r.sc;
-            while (node && (!node.tagName || !isFormatNode(node))) {
+            var formats = $format.map(function () { return $(this).data("value"); }).get();
+            while (node && (!node.tagName || (!node.tagName || formats.indexOf(node.tagName.toLowerCase()) === -1))) {
                 node = node.parentNode;
             }
             $format.parent().removeClass('active');
@@ -876,6 +873,10 @@
             $airPopover.show();
         }
     };
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /* hack for image and link editor */
+
     eventHandler.editor.resize = function ($editable, sValue, $target) {
         $editable.data('NoteHistory').recordUndo($editable);
         switch (+sValue) {
@@ -921,7 +922,14 @@
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     /* hack for list (command create a uggly dom for chrome) */
+
+    function isFormatNode(node) {
+        return node.tagName && "p blockquote pre h1 h2 h3 h4 h5 h6".indexOf(node.tagName.toLowerCase()) !== -1;
+    }
+
     eventHandler.editor.insertUnorderedList = function ($editable, sorted) {
+        history.recordUndo($editable);
+        
         var rng = range.create();
         var node = rng.sc;
         while (node && node !== $editable[0]) {
