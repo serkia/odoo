@@ -472,7 +472,10 @@
         }
 
         r = range.reRange(r.sc, r.so, r.ec, r.eo, ref);
-        r.select();
+        setTimeout(function () {
+            r.select();
+        },0);
+        return r;
     }
     function summernote_paste (event) {
         // keep norma feature if copy a picture
@@ -686,25 +689,28 @@
         }
     }
     function summernote_mouseup (event) {
-        if ($(event.target).closest("#website-top-navbar").length) {
+        if ($(event.target).closest("#website-top-navbar, .note-popover, .o_undo").length) {
             return;
         }
         var r = range.create();
-
         if (r && !r.isCollapsed()) {
-            reRangeSelect(r, event);
+            r = reRangeSelect(r, event);
+            $(r.sc).closest('.o_editable').data('range', r);
         }
     }
     function summernote_mousedown (event) {
-        var $btn = $(event.target).closest('.note-popover');
+        var $btn = $(event.target).closest('.note-popover, .o_undo');
         if ($btn.length) {
             var r = range.create();
             if (r) {
               $(document).one('mouseup', function () {
                 setTimeout(function () {
                     r = range.create() || r;
+                    var node = r.sc.tagName ? r.sc : r.sc.parentNode;
+                    $(node).trigger("mouseup");
                     setTimeout(function () {
                         r.select();
+                        $(node).trigger("keydown");
                     },0);
                 },0);
               });
@@ -742,8 +748,12 @@
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /* hack for image and link editor + history button
-    */
+    /* hack for image and link editor + history button */
+    var formats = ["p", "blockquote", "pre", "h1", "h2", "h3", "h4", "h5", "h6"];
+    function isFormatNode(node) {
+        return node.tagName && formats.indexOf(node.tagName.toLowerCase()) !== -1;
+    }
+
     var fn_handle_update = eventHandler.handle.update;
     eventHandler.handle.update = function ($handle, oStyle, isAirMode) {
         fn_handle_update.call(this, $handle, oStyle, isAirMode);
@@ -774,9 +784,12 @@
         $airPopover.find('.note-style').on('mousedown', function () {
             var $format = $airPopover.find('[data-event="formatBlock"]');
             var r = range.create();
-            var format = (r.sc.tagName || r.sc.parentNode.tagName).toLowerCase();
+            var node = r.sc;
+            while (node && (!node.tagName || !isFormatNode(node))) {
+                node = node.parentNode;
+            }
             $format.parent().removeClass('active');
-            $format.filter('[data-value="'+format+'"]')
+            $format.filter('[data-value="'+node.tagName.toLowerCase()+'"]')
                 .parent().addClass("active");
         });
 
@@ -901,6 +914,72 @@
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /* hack for list (command create a uggly dom for chrome) */
+    eventHandler.editor.insertUnorderedList = function ($editable, sorted) {
+        var rng = range.create();
+        var node = rng.sc;
+        while (node && node !== $editable[0]) {
+            if (node.tagName === (sorted ? "UL" : "OL")) {
+
+                var ul = document.createElement(sorted ? "ol" : "ul");
+                node.parentNode.insertBefore(ul, node);
+                while (node.firstChild) {
+                    ul.appendChild(node.firstChild);
+                }
+                node.parentNode.removeChild(node);
+                rng.select();
+                return;
+
+            } else if (node.tagName === (sorted ? "OL" : "UL")) {
+
+                var lis = $(node).find("li").get();
+                _.each(lis, function (li) {
+                    while (li.firstChild) {
+                        node.parentNode.insertBefore(li.firstChild, node);
+                    }
+                });
+                node.parentNode.removeChild(node);
+                rng.select();
+                return;
+
+            }
+            node = node.parentNode;
+        }
+
+        var p0 = rng.sc;
+        while (p0 && p0 !== $editable[0] && !isFormatNode(p0)) {
+            p0 = p0.parentNode;
+        }
+        if (!p0) return;
+        var p1 = rng.ec;
+        while (p1 && p1 !== $editable[0] && !isFormatNode(p1)) {
+            p1 = p1.parentNode;
+        }
+        if (p0.parentNode !== p1.parentNode) return;
+
+        var parent = p0.parentNode;
+        var ul = document.createElement(sorted ? "ol" : "ul");
+        var childNodes = parent.childNodes;
+        parent.insertBefore(ul, p0);
+        for (var i=0; i<childNodes.length; i++) {
+            if (!isFormatNode(childNodes[i]) || (!ul.firstChild && childNodes[i] !== p0)) {
+                continue;
+            }
+            var li = document.createElement('li');
+            ul.appendChild(li);
+            li.appendChild(childNodes[i]);
+            if (li.firstChild === p1) {
+                break;
+            }
+            i--;
+        }
+        rng.select();
+    };
+    eventHandler.editor.insertOrderedList = function ($editable) {
+        this.insertUnorderedList($editable, true);
+    };
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
     /* Change History to have a global History for all summernote instances */
 
     var History = function History () {
@@ -938,10 +1017,7 @@
             $editable.html(oSnap.contents).scrollTop(oSnap.scrollTop);
             var r = range.createFromBookmark($editable[0], oSnap.bookmark);
             re_enable_snippet(r);
-            setTimeout(function () {
-                r.select();
-                $(r.sc.tagName ? r.sc : r.sc.parentNode).trigger("keydown");
-            },0);
+            r.select();
         };
 
         this.undo = function ($editable) {
