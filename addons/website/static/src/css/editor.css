@@ -23,6 +23,9 @@
   font-size: 14px;
   line-height: 1.5;
 }
+.note-popover .popover .popover-content .note-style a {
+  display: block;
+}
 .note-popover .arrow {
   display: none;
 }

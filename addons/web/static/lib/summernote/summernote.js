@@ -1754,7 +1754,7 @@
      */
     this.currentStyle = function (elTarget) {
       var rng = range.create();
-      if (rng.sc !== elTarget && !$.contains(elTarget, rng.sc)) { // fix odoo
+      if (rng && rng.sc !== elTarget && !$.contains(elTarget, rng.sc)) { // fix odoo
         rng = range.create(elTarget,0,elTarget,0);
         rng.select();
       }

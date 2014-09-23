@@ -695,6 +695,22 @@
             reRangeSelect(r, event);
         }
     }
+    function summernote_mousedown (event) {
+        var $btn = $(event.target).closest('.note-popover');
+        if ($btn.length) {
+            var r = range.create();
+            if (r) {
+              $(document).one('mouseup', function () {
+                setTimeout(function () {
+                    r = range.create() || r;
+                    setTimeout(function () {
+                        r.select();
+                    },0);
+                },0);
+              });
+            }
+        }
+    }
     function summernote_click (event) {
         if (!$(event.srcElement).closest('.o_undo, .note-editable, .note-popover, .note-link-dialog, .note-image-dialog, .note-air-dialog').length) {
             $(".note-popover > *").hide();
@@ -706,6 +722,7 @@
         oLayoutInfo.editor.on("paste", summernote_paste);
         oLayoutInfo.editor.on("keydown", summernote_keydown);
         oLayoutInfo.editor.on('dragstart', 'img', function (e) { e.preventDefault(); });
+        $(document).on('mousedown', summernote_mousedown);
         $(document).on('mouseup', summernote_mouseup);
         $(document).on('click', summernote_click);
         oLayoutInfo.editor.on('dblclick', 'img', function (event) {
@@ -718,6 +735,7 @@
         oLayoutInfo.editor.off("paste", summernote_paste);
         oLayoutInfo.editor.off("keydown", summernote_keydown);
         oLayoutInfo.editor.off("dragstart");
+        $(document).off('mousedown', summernote_mousedown);
         $(document).off('mouseup', summernote_mouseup);
         $(document).off('click', summernote_click);
         oLayoutInfo.editor.off("dblclick");
@@ -751,6 +769,17 @@
         $imagePopover.find('button[data-event="removeMedia"]').parent().remove();
         $imagePopover.find('button[data-event="floatMe"][data-value="none"]').remove();
 
+        //////////////// highlight the text format
+
+        $airPopover.find('.note-style').on('mousedown', function () {
+            var $format = $airPopover.find('[data-event="formatBlock"]');
+            var r = range.create();
+            var format = (r.sc.tagName || r.sc.parentNode.tagName).toLowerCase();
+            $format.parent().removeClass('active');
+            $format.filter('[data-value="'+format+'"]')
+                .parent().addClass("active");
+        });
+
         //////////////// history Undo & Redo
 
         var $prevnext = $('<div class="o_undo btn-group"/>');
@@ -775,15 +804,9 @@
 
         $prev.on('mousedown', function (event) {
             if(!$(this).attr('disabled')) history.undo();
-            setTimeout(function () {
-                $(range.create().sc.parentNode).trigger("click").trigger("keydown");
-            },0);
         });
         $next.on('mousedown', function (event) {
             if(!$(this).attr('disabled')) history.redo();
-            setTimeout(function () {
-                $(range.create().sc.parentNode).trigger("click").trigger("keydown");
-            },0);
         });
 
         $(document).on('click keyup', function () {
@@ -828,10 +851,10 @@
             oStyle.anchor = false;
         }
 
-        if (!oStyle.image && !oStyle.anchor && $(oStyle.range.sc).closest('.note-editable').length) {
-            $airPopover.show();
-        } else {
+        if (oStyle.image || oStyle.anchor || !$(oStyle.range.sc).closest('.note-editable').length) {
             $airPopover.hide();
+        } else {
+            $airPopover.show();
         }
     };
     eventHandler.editor.resize = function ($editable, sValue, $target) {
@@ -892,7 +915,7 @@
             });
 
             setTimeout(function () {
-                $(r.sc.parentElement).trigger("click");
+                $(r.sc.tagName ? r.sc : r.sc.parentNode).trigger("click");
             },0);
         }
 
@@ -914,8 +937,11 @@
             var $editable = $(oSnap.editable);
             $editable.html(oSnap.contents).scrollTop(oSnap.scrollTop);
             var r = range.createFromBookmark($editable[0], oSnap.bookmark);
-            r.select();
             re_enable_snippet(r);
+            setTimeout(function () {
+                r.select();
+                $(r.sc.tagName ? r.sc : r.sc.parentNode).trigger("keydown");
+            },0);
         };
 
         this.undo = function ($editable) {

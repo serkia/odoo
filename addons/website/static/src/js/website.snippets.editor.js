@@ -252,7 +252,7 @@
             var snipped_event_flag;
             $(document).on('click', function (event) {
                 var srcElement = event.srcElement || (event.originalEvent && (event.originalEvent.originalTarget || event.originalEvent.target)) || event.target;
-                if (!$(srcElement).closest(".o_editable").length && $(srcElement).closest("#oe_manipulators").length) {
+                if (!$(srcElement).closest(".o_editable").length && $(srcElement).closest("#oe_manipulators, .o_undo").length) {
                     return;
                 }
                 if (snipped_event_flag || !srcElement) {
