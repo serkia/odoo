@@ -291,7 +291,7 @@
             eo: end && end.textContent.length > offsetEnd ? end.textContent.length - offsetEnd : 0
         };
     };
-    dom.pasteTextApply = "h1 h2 h3 h4 h5 h6 li ol".split(" ");
+    dom.pasteTextApply = "h1 h2 h3 h4 h5 h6 li".split(" ");
     dom.pasteTextClose = "h1 h2 h3 h4 h5 h6 p b bold i u code sup strong small li pre".split(" ");
     dom.pasteText = function (textNode, offset, text, isOnlyText) {
         // clean the node
@@ -513,7 +513,7 @@
             range.create(data.sc, data.so, data.sc, data.so).select();
         },0);
     }
-    var mergeOnDelete = "h1 h2 h3 h4 h5 h6 p b bold i u code sup strong small li a".split(" ");
+    var mergeOnDelete = "h1 h2 h3 h4 h5 h6 p b bold i u code sup strong small li a ul ol".split(" ");
     var forbiddenWrite = ".fa img".split(" ");
     var keydown = {
         // backspace
@@ -555,17 +555,26 @@
                     dom.doMerge(prev, r.sc.parentNode);
                     range.create(r.sc, 0, r.sc, 0).select();
 
-                } else if (!prev && mergeOnDelete.indexOf(r.sc.parentNode.parentNode.tagName.toLowerCase()) !== -1 &&
-                    r.sc.parentNode && r.sc.parentNode.parentNode &&
-                    r.sc.parentNode.parentNode.tagName === r.sc.parentNode.parentNode.previousElementSibling.tagName) {
+                } else {
+                    var check = false;
+                    var node = r.sc;
+                    var nodes = [node];
 
-                    dom.doMerge(r.sc.parentNode.parentNode.previousElementSibling, r.sc.parentNode.parentNode);
-                    dom.doMerge(r.sc.parentNode.previousElementSibling, r.sc.parentNode);
-                    if (r.sc.parentNode.previousElementSibling) {
-                        dom.doMerge(r.sc.parentNode.previousElementSibling, r.sc.parentNode);
+                    do {
+                        nodes.push(node);
+                        node = node.parentNode;
+                        if (node.previousElementSibling && node.previousElementSibling.tagName !== node.tagName) {
+                            break;
+                        }
+                    }  while (node && mergeOnDelete.indexOf(node.tagName.toLowerCase()) !== -1);
+
+                    while (nodes.length) {
+                        node = nodes.pop();
+                        if (node && node.previousElementSibling && node.previousElementSibling.tagName === node.tagName) {
+                            dom.doMerge(node.previousElementSibling, node);
+                        }
                     }
                     range.create(r.sc, 0, r.sc, 0).select();
-
                 }
                 return false;
             }
@@ -610,16 +619,26 @@
                     dom.doMerge(r.sc.parentNode, next);
                     range.create(r.sc, r.so, r.sc, r.so).select();
 
-                } else if (!next && mergeOnDelete.indexOf(r.ec.parentNode.parentNode.tagName.toLowerCase()) !== -1 &&
-                    r.ec.parentNode && r.ec.parentNode.parentNode &&
-                    r.ec.parentNode.parentNode.tagName === r.ec.parentNode.parentNode.nextElementSibling.tagName) {
+                } else {
+                    var check = false;
+                    var node = r.sc;
+                    var nodes = [node];
 
-                    dom.doMerge(r.ec.parentNode.parentNode, r.ec.parentNode.parentNode.nextElementSibling);
-                    if (r.ec.parentNode.nextElementSibling) {
-                        dom.doMerge(r.ec.parentNode, r.ec.parentNode.nextElementSibling);
+                    do {
+                        nodes.push(node);
+                        node = node.parentNode;
+                        if (node.nextElementSibling && node.nextElementSibling.tagName !== node.tagName) {
+                            break;
+                        }
+                    }  while (node && mergeOnDelete.indexOf(node.tagName.toLowerCase()) !== -1);
+
+                    while (nodes.length) {
+                        node = nodes.pop();
+                        if (node && node.nextElementSibling && node.nextElementSibling.tagName === node.tagName) {
+                            dom.doMerge(node, node.nextElementSibling);
+                        }
                     }
                     range.create(r.ec, r.ec.textContent.length, r.ec, r.ec.textContent.length).select();
-
                 }
             }
         },
@@ -924,12 +943,12 @@
     /* hack for list (command create a uggly dom for chrome) */
 
     function isFormatNode(node) {
-        return node.tagName && "p blockquote pre h1 h2 h3 h4 h5 h6".indexOf(node.tagName.toLowerCase()) !== -1;
+        return node.tagName && settings.options.styleTags.indexOf(node.tagName.toLowerCase()) !== -1;
     }
 
     eventHandler.editor.insertUnorderedList = function ($editable, sorted) {
         history.recordUndo($editable);
-        
+
         var rng = range.create();
         var node = rng.sc;
         while (node && node !== $editable[0]) {
