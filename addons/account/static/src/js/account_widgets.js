@@ -1552,12 +1552,13 @@ openerp.account = function (instance) {
                     if (excluded_ids.indexOf(globally_excluded_ids[i]) === -1)
                         excluded_ids.push(globally_excluded_ids[i]);
             
-            limit += 1; // To see if there's more move lines than we display
+            limit += 1; // Let's fetch 1 more item than requested
             if (limit > 0) {
                 return self.model_bank_statement_line
                     .call("get_move_lines_for_reconciliation_by_statement_line_id", [self.st_line.id, excluded_ids, self.filter, offset, limit])
                     .then(function (lines) {
                         _.each(lines, function(line) { self.decorateMoveLine(line, self.st_line.currency_id) }, self);
+                        // If we could fetch 1 more item than what we'll display, that means there are move lines left to be displayed (so we enable the pager)
                         self.can_fetch_more_move_lines = (lines.length === limit);
                         self.set("mv_lines", lines.slice(0, limit-1));
                     });
@@ -1567,7 +1568,7 @@ openerp.account = function (instance) {
         },
 
         // Changes the partner_id of the statement_line in the DB and reloads the widget
-        changePartner: function(partner_id, callback) {
+        changePartner: function(partner_id) {
             var self = this;
             self.is_consistent = false;
             return self.model_bank_statement_line
@@ -1580,9 +1581,6 @@ openerp.account = function (instance) {
                         self.do_load_reconciliation_proposition = true;
                         self.is_consistent = true;
                         self.set("mode", "match");
-                        window.setTimeout(function() {
-                            if (callback) callback();
-                        }, 100);
                     });
                 });
         },
