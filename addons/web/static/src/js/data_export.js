@@ -39,7 +39,6 @@ instance.web.DataExport = instance.web.Widget.extend({
         'click #oe_export_cancel': 'exit',
         'click #move_up':'on_click_move_up',
         'click #move_down':'on_click_move_down',
-        'click #sort_list':'on_click_sort_list',
         'click #add_export_list': 'on_save_export_list',
     },
     init: function(parent, action) {
@@ -69,6 +68,17 @@ instance.web.DataExport = instance.web.Widget.extend({
             this.$el.find(".oe_export_file").attr("disabled", "disabled");
             this.$el.find(".oe_button_unable").attr("disabled","disabled")
         }
+       self.$el.find("#sort_list").toggle(function() {
+        var export_list = self.$el.find("#fields_list");
+            export_list.find("option").sort(function (a, b) {
+                return $(a).text().localeCompare($(b).text())
+            }).appendTo(export_list);
+        }, function() {
+        var export_list = self.$el.find("#fields_list");
+            export_list.find("option").sort(function (a, b) {
+                return $(b).text().localeCompare($(a).text())
+            }).appendTo(export_list);
+        });
         this.$el.find("#import_compat").on('change',function(){
             if($(this).is(":checked")){
                 self.$el.find('#field-tree-structure').remove();
@@ -139,19 +149,6 @@ instance.web.DataExport = instance.web.Widget.extend({
             var selected_rows = self.$('#fields_list option:selected').detach();
             next_row.after(selected_rows);
         }
-    },
-    on_click_sort_list: function (e) {
-        var export_list = this.$el.find("#fields_list");
-        e.preventDefault();
-       $(e.currentTarget).toggle(function() {
-            export_list.find("option").sort(function (a, b) {
-                return $(a).text().localeCompare($(b).text())
-            }).appendTo(export_list);
-        },function() {
-            export_list.find("option").sort(function (a, b) {
-                return $(b).text().localeCompare($(a).text())
-            }).appendTo(export_list);
-        });
     },
     exit: function () {
         this.do_action({
