@@ -3079,10 +3079,8 @@
           var module = options.airMode ? popover : toolbar;
           module.updateRecentColor(list.head($btn), sEvent, sValue);
         }
-      hToolbarAndPopoverUpdate(event);
+        hToolbarAndPopoverUpdate(event);
       }
-
-      console.log(event);
     };
 
     var EDITABLE_PADDING = 24;

@@ -686,6 +686,9 @@
         }
     }
     function summernote_mouseup (event) {
+        if ($(event.target).closest("#website-top-navbar").length) {
+            return;
+        }
         var r = range.create();
 
         if (r && !r.isCollapsed()) {
@@ -693,7 +696,7 @@
         }
     }
     function summernote_click (event) {
-        if (!$(event.srcElement).closest('.note-editable, .note-popover, .note-link-dialog, .note-image-dialog, .note-air-dialog').length) {
+        if (!$(event.srcElement).closest('.o_undo, .note-editable, .note-popover, .note-link-dialog, .note-image-dialog, .note-air-dialog').length) {
             $(".note-popover > *").hide();
         }
     }
@@ -721,13 +724,73 @@
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /* hack for image and link editor
+    /* hack for image and link editor + history button
     */
     var fn_handle_update = eventHandler.handle.update;
     eventHandler.handle.update = function ($handle, oStyle, isAirMode) {
         fn_handle_update.call(this, $handle, oStyle, isAirMode);
         $handle.find('.note-control-selection').hide();
     };
+    function summernote_popover_update ($popover) {
+        var $imagePopover = $popover.find('.note-image-popover');
+        var $linkPopover = $popover.find('.note-link-popover');
+        var $airPopover = $popover.find('.note-air-popover');
+
+        //////////////// image popover
+
+        // add center button for images
+        var $centerbutton = $(renderer.tplIconButton('fa fa-align-center icon-align-center', {
+                title: _t('Center'),
+                event: 'floatMe',
+                value: 'center'
+            }))
+            .insertAfter('[data-event="floatMe"][data-value="left"]')
+            .tooltip({container: 'body'})
+            .on('click', function () {$(this).tooltip('hide');});
+
+        $imagePopover.find('button[data-event="removeMedia"]').parent().remove();
+        $imagePopover.find('button[data-event="floatMe"][data-value="none"]').remove();
+
+        //////////////// history Undo & Redo
+
+        var $prevnext = $('<div class="o_undo btn-group"/>');
+        var $prev = $(renderer.tplIconButton('fa fa-undo fa-inverse', {
+                title: _t('Undo'),
+                event: 'history',
+                value: 'previous'
+            }))
+            .css({'background': 'transparent', 'border-color': '#000'})
+            .appendTo($prevnext);
+        var $next = $(renderer.tplIconButton('fa fa-repeat fa-inverse', {
+                title: _t('Redo'),
+                event: 'history',
+                value: 'next'
+            }))
+            .css({'background': 'transparent', 'border-color': '#000'})
+            .appendTo($prevnext);
+        $prevnext.insertAfter($('#website-top-navbar .btn[data-action="cancel"]'));
+        $prevnext.find("button")
+            .tooltip({container: 'body'})
+            .on('click', function () {$(this).tooltip('hide');});
+
+        $prev.on('mousedown', function (event) {
+            if(!$(this).attr('disabled')) history.undo();
+            setTimeout(function () {
+                $(range.create().sc.parentNode).trigger("click").trigger("keydown");
+            },0);
+        });
+        $next.on('mousedown', function (event) {
+            if(!$(this).attr('disabled')) history.redo();
+            setTimeout(function () {
+                $(range.create().sc.parentNode).trigger("click").trigger("keydown");
+            },0);
+        });
+
+        $(document).on('click keyup', function () {
+            $prev.attr('disabled', !history.hasUndo());
+            $next.attr('disabled', !history.hasRedo());
+        }).click();
+    }
     var fn_popover_update = eventHandler.popover.update;
     eventHandler.popover.update = function ($popover, oStyle, isAirMode) {
         var $imagePopover = $popover.find('.note-image-popover');
@@ -738,25 +801,16 @@
 
         fn_popover_update.call(this, $popover, oStyle, isAirMode);
 
+        if (!summernote_popover_update.loaded) {
+            summernote_popover_update ($popover);
+            summernote_popover_update.loaded = true;
+        }
+
         if (oStyle.range.sc.tagName === "IMG") {
             oStyle.image = oStyle.range.sc;
         }
 
         if (oStyle.image) {
-            // add center button for images
-            if (!$imagePopover.find('[data-event="floatMe"][data-value="center"]').length) {
-                var $centerbutton = $(renderer.tplIconButton('fa fa-align-center icon-align-center', {
-                        title: _t('Center'),
-                        event: 'floatMe',
-                        value: 'center'
-                    }))
-                    .insertAfter('[data-event="floatMe"][data-value="left"]')
-                    .tooltip({container: 'body'})
-                    .on('click', function () {$(this).tooltip('hide');});
-            }
-
-            $imagePopover.find('button[data-event="removeMedia"]').parent().remove();
-            $imagePopover.find('button[data-event="floatMe"][data-value="none"]').remove();
             $imagePopover.show();
             range.create(oStyle.image,0,oStyle.image,0).select();
 
@@ -843,7 +897,7 @@
         }
 
         var aUndo = [];
-        var pos = -1;
+        var pos = 0;
 
         var makeSnap = function ($editable) {
             var elEditable = $editable[0],
@@ -866,21 +920,36 @@
 
         this.undo = function ($editable) {
             if (!pos) { return; }
+            last = null;
+            if (!aUndo[pos]) aUndo[pos] = makeSnap($editable || $('.o_editable.note-editable:first'));
             applySnap(aUndo[--pos]);
         };
+        this.hasUndo = function ($editable) {
+            return pos > 0;
+        };
 
-        this.redo = function ($editable) {
+        this.redo = function () {
             if (aUndo.length <= pos+1) { return; }
             applySnap(aUndo[++pos]);
+        };
+        this.hasRedo = function () {
+            return aUndo.length > pos+1;
         };
 
         this.popUndo = function () {
             aUndo.pop();
         };
+
+        var last;
         this.recordUndo = function ($editable) {
-            pos++;
+            if (event && event.type === "keydown") {
+                var test = event.keyCode === 8 || event.keyCode === 46;
+                if (last === test) return;
+                last = test;
+            }
             aUndo.splice(pos, aUndo.length);
             aUndo[pos] = makeSnap($editable);
+            pos++;
         };
     };
     var history = new History();
