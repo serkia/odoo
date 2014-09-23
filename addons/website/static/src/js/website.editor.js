@@ -455,7 +455,10 @@
     *  - prevent the edition of forbidden node (like font awsome node)
     */
 
-    function reRangeSelect (r, event) {
+    function reRangeSelect (event) {
+        var r = range.create();
+        if (!r || r.isCollapsed()) return;
+
         // check if the user move the caret on up or down
         var ref = false;
         var node = r.sc;
@@ -475,6 +478,8 @@
         setTimeout(function () {
             r.select();
         },0);
+
+        $(r.sc).closest('.o_editable').data('range', r);
         return r;
     }
     function summernote_paste (event) {
@@ -688,17 +693,18 @@
 
         }
     }
+    var cursor_mousedown;
     function summernote_mouseup (event) {
         if ($(event.target).closest("#website-top-navbar, .note-popover, .o_undo").length) {
             return;
         }
-        var r = range.create();
-        if (r && !r.isCollapsed()) {
-            r = reRangeSelect(r, event);
-            $(r.sc).closest('.o_editable').data('range', r);
+        // don't rerange if simple click
+        if (!cursor_mousedown || 10 < Math.pow(cursor_mousedown.clientX-event.clientX, 2)+Math.pow(cursor_mousedown.clientY-event.clientY, 2) ) {
+            reRangeSelect(event);
         }
     }
     function summernote_mousedown (event) {
+        cursor_mousedown = event;
         var $btn = $(event.target).closest('.note-popover, .o_undo');
         if ($btn.length) {
             var r = range.create();
