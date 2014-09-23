@@ -788,17 +788,31 @@
         //////////////// image popover
 
         // add center button for images
-        var $centerbutton = $(renderer.tplIconButton('fa fa-align-center icon-align-center', {
+        var $centerbutton = $(renderer.tplIconButton('fa fa-align-center', {
                 title: _t('Center'),
                 event: 'floatMe',
                 value: 'center'
             }))
-            .insertAfter('[data-event="floatMe"][data-value="left"]')
-            .tooltip({container: 'body'})
-            .on('click', function () {$(this).tooltip('hide');});
+            .insertAfter('[data-event="floatMe"][data-value="left"]');
 
         $imagePopover.find('button[data-event="removeMedia"]').parent().remove();
         $imagePopover.find('button[data-event="floatMe"][data-value="none"]').remove();
+
+        // padding button
+        var $padding = $('<div class="o_undo btn-group"/>');
+        $padding.insertBefore($imagePopover.find('.btn-group:first'));
+
+        var $button = $(renderer.tplIconButton('fa fa-plus-square-o', {
+                title: _t('Padding'),
+                dropdown: true
+            }))
+            .appendTo($padding);
+
+        var $ul = $('<ul class="dropdown-menu"/>').insertAfter($button);
+        $ul.append('<li><a data-event="padding" href="#" data-value="small">'+_t('Small')+'</a></li>');
+        $ul.append('<li><a data-event="padding" href="#" data-value="medium">'+_t('Medium')+'</a></li>');
+        $ul.append('<li><a data-event="padding" href="#" data-value="large">'+_t('Large')+'</a></li>');
+        $ul.append('<li><a data-event="padding" href="#" data-value="xl">'+_t('xl')+'</a></li>');
 
         //////////////// highlight the text format
 
@@ -833,9 +847,6 @@
             .css({'background': 'transparent', 'border-color': '#000'})
             .appendTo($prevnext);
         $prevnext.insertAfter($('#website-top-navbar .btn[data-action="cancel"]'));
-        $prevnext.find("button")
-            .tooltip({container: 'body'})
-            .on('click', function () {$(this).tooltip('hide');});
 
         $prev.on('mousedown', function (event) {
             if(!$(this).attr('disabled')) history.undo();
@@ -844,6 +855,16 @@
             if(!$(this).attr('disabled')) history.redo();
         });
 
+        //////////////// tooltip
+
+        $airPopover.add($linkPopover).add($imagePopover).find("button")
+            .tooltip('destroy')
+            .tooltip({
+                container: 'body',
+                trigger: 'hover',
+                placement: 'bottom'
+            }).on('click', function () {$(this).tooltip('hide');});
+            
         $(document).on('click keyup', function () {
             $prev.attr('disabled', !history.hasUndo());
             $next.attr('disabled', !history.hasRedo());
@@ -872,6 +893,11 @@
             $imagePopover.show();
             range.create(oStyle.image,0,oStyle.image,0).select();
 
+            $imagePopover.find('a[data-event="padding"][data-value="small"]').parent().toggleClass("active", $(oStyle.image).hasClass("padding-small"));
+            $imagePopover.find('a[data-event="padding"][data-value="medium"]').parent().toggleClass("active", $(oStyle.image).hasClass("padding-medium"));
+            $imagePopover.find('a[data-event="padding"][data-value="large"]').parent().toggleClass("active", $(oStyle.image).hasClass("padding-large"));
+            $imagePopover.find('a[data-event="padding"][data-value="xl"]').parent().toggleClass("active", $(oStyle.image).hasClass("padding-xl"));
+
             $imagePopover.find('button[data-event="resize"][data-value="1"]').toggleClass("active", $(oStyle.image).hasClass("img-responsive"));
             $imagePopover.find('button[data-event="resize"][data-value="0.5"]').toggleClass("active", $(oStyle.image).hasClass("img-responsive-50"));
             $imagePopover.find('button[data-event="resize"][data-value="0.25"]').toggleClass("active", $(oStyle.image).hasClass("img-responsive-25"));
@@ -896,6 +922,13 @@
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     /* hack for image and link editor */
 
+    eventHandler.editor.padding = function ($editable, sValue, $target) {
+        var paddings = "small medium large xl".split(/\s+/);
+        paddings.splice(paddings.indexOf(sValue),1);
+        $editable.data('NoteHistory').recordUndo($editable);
+        $target.toggleClass('padding-'+sValue).removeClass("padding-" + paddings.join(" padding-"));
+        setTimeout(function () { $target.trigger("mouseup"); },0);
+    };
     eventHandler.editor.resize = function ($editable, sValue, $target) {
         $editable.data('NoteHistory').recordUndo($editable);
         switch (+sValue) {
@@ -2277,7 +2310,7 @@
          */
         save: function () {
             if (! this.media){
-                var $image = this.$el.find('.font-icons-selected')
+                var $image = this.$el.find('.font-icons-selected');
                 var rng = range.create()
                 if($('.insert-media').length){
                     rng = document.createRange();
@@ -2293,9 +2326,13 @@
                     return cls === 'fa' || /^fa-/.test(cls);
                 });
                 var final_classes = non_fa_classes.concat(this.get_fa_classes());
-                this.media.className = final_classes.join(' ');
-                this.media.renameNode("span");
-                this.media.attributes.style.textContent = style;
+                if (this.media.tagName !== "span") {
+                    var media = document.createElement('span');
+                    this.media.parentNode.insertBefore(media, this.media);
+                    $(this.media).remove();
+                    this.media = media;
+                }
+                $(this.media).addClass(final_classes.join(' ')).attr("style", style);
             }
             this._super();
         },

@@ -85,6 +85,18 @@ img.img-responsive-50, .img.img-responsive-50 {
 img.img-responsive-25, .img.img-responsive-25 {
   max-width: 25%;
 }
+img.padding-small, .img.padding-small {
+  padding: 4px;
+}
+img.padding-medium, .img.padding-medium {
+  padding: 8px;
+}
+img.padding-large, .img.padding-large {
+  padding: 16px;
+}
+img.padding-xl, .img.padding-xl {
+  padding: 32px;
+}
 
 /* Extra Styles */
 img.shadow {

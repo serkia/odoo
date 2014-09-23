@@ -6,6 +6,8 @@
   left: auto !important;
   border: 0;
   background: transparent;
+  box-shadow: none;
+  -webkit-box-shadow: none;
 }
 .note-popover .popover-content {
   padding: 0 !important;
@@ -23,7 +25,7 @@
   font-size: 14px;
   line-height: 1.5;
 }
-.note-popover .popover .popover-content .note-style a {
+.note-popover .popover .popover-content .dropdown-menu a {
   display: block;
 }
 .note-popover .arrow {

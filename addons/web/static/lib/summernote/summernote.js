@@ -3060,7 +3060,7 @@
 
         // before command: detect control selection element($target)
         var $target;
-        if ($.inArray(sEvent, ['resize', 'floatMe', 'removeMedia']) !== -1) {
+        if ($.inArray(sEvent, ['resize', 'floatMe', 'removeMedia', 'padding']) !== -1) { // hack odoo
           var $selection = oLayoutInfo.handle().find('.note-control-selection');
           $target = $($selection.data('target'));
         }
