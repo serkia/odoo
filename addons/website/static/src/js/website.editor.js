@@ -589,7 +589,10 @@
                 do {
                     nodes.push(node);
                     node = node.parentNode;
-                    if (node.nextElementSibling && node.nextElementSibling.tagName !== node.tagName) {
+                    if (node.nextElementSibling) {
+                        if (node.nextElementSibling.tagName === node.tagName) {
+                            nodes.push(node);
+                        }
                         break;
                     }
                 }  while (node && mergeOnDelete.indexOf(node.tagName.toLowerCase()) !== -1);
@@ -654,7 +657,10 @@
                 do {
                     nodes.push(node);
                     node = node.parentNode;
-                    if (node.previousElementSibling && node.previousElementSibling.tagName !== node.tagName) {
+                    if (node.previousElementSibling) {
+                        if (node.previousElementSibling.tagName === node.tagName) {
+                            nodes.push(node);
+                        }
                         break;
                     }
                 }  while (node && mergeOnDelete.indexOf(node.tagName.toLowerCase()) !== -1);
@@ -811,14 +817,14 @@
                 event: 'history',
                 value: 'previous'
             }))
-            .css({'background': 'transparent', 'border-color': '#000'})
+            .css({'background': 'transparent', 'border-color': 'transparent'})
             .appendTo($prevnext);
         var $next = $(renderer.tplIconButton('fa fa-repeat fa-inverse', {
                 title: _t('Redo'),
                 event: 'history',
                 value: 'next'
             }))
-            .css({'background': 'transparent', 'border-color': '#000'})
+            .css({'background': 'transparent', 'border-color': 'transparent'})
             .appendTo($prevnext);
         $prevnext.insertAfter($('#website-top-navbar .btn[data-action="cancel"]'));
 
