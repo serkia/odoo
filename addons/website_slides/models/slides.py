@@ -1,214 +1,321 @@
 # -*- coding: utf-8 -*-
-##############################################################################
-#
-#    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
-import json
 
+import io
+
+import json
 import urllib2
 import requests
+import cStringIO
+from PIL import Image
 
-from openerp.tools.translate import _
-
-from openerp.osv import fields, osv
 from urlparse import urlparse,parse_qs
+
+from openerp import models, fields, api, _
 from openerp.addons.website.models.website import slug
 
-class ir_attachment_tags(osv.osv):
+from openerp.tools import mail
+
+class ir_attachment_tags(models.Model):
     _name = 'ir.attachment.tag'
-    _columns = {
-        'name': fields.char('Name')
-    }
+    name = fields.Char()
 
 
-class document_directory(osv.osv):
-    _name = 'document.directory'
-    _inherit = ['document.directory','mail.thread']
+class Channel(models.Model):
+    _name = 'slide.channel'
+    _inherit = ['mail.thread', 'website.seo.metadata']
 
-    _columns = {
-        'website_published': fields.boolean('Publish', help="Publish on the website", copy=False),
-        'description': fields.text('Website Description', tranalate=True),
-        'website_description': fields.html('Website Description', tranalate=True),
-        'slide_id': fields.many2one('ir.attachment', 'Custom Slide'),
-        'promote': fields.selection([('donot','Do not Promote'), ('latest','Latest Published'), ('mostview','Most Viewed'), ('custom','User Defined')], string="Method")
-    }
+    name = fields.Char(string="Name", tranalate=True, required=True)
 
-    _defaults = {
-        'promote': 'donot'
-    }
+    website_published = fields.Boolean(string='Publish', help="Publish on the website", copy=False)
+    description = fields.Text(string='Website Description', tranalate=True)
+    website_description = fields.Html('Website Description', tranalate=True)
+    slide_id = fields.Many2one('ir.attachment', string='Promoted Presentation')
+    is_channel = fields.Boolean(string='Is Channel', default=False)
+    promote = fields.Selection([('donot','Do not Promote'), ('latest','Newest'), ('mostvoted','Most Popular'), ('mostview','Most Viewed'), ('custom','Promote my Presentation')], string="Promoted Video", default='donot', required=True)
 
-    def get_mostviewed(self, cr, uid, channel, context):
-        attachment = self.pool.get('ir.attachment')
-        
+    presentations = fields.Integer(compute='_compute_presentations', string="Presentations")
+    documents = fields.Integer(compute='_compute_presentations', string="Documents")
+    videos = fields.Integer(compute='_compute_presentations', string="Videos")
+    infographics = fields.Integer(compute='_compute_presentations', string="Infographics")
+
+    total = fields.Integer(compute='_compute_presentations', string="Total")
+
+    sequence = fields.Integer(string="Priority")
+    errormessage = fields.Html('Error Message')
+
+    template_id = fields.Many2one('email.template', 'Email Notify Template')
+
+    visiblity = fields.Selection([('public','Public'), ('private','Hide Channel'), ('semiprivate','Show channel but presentations based on groups')], string='Visiblity', default='public')
+    group_ids = fields.Many2many('res.groups', 'rel_attachments_groups', 'attachment_id', 'group_id', string='Accessible Groups')
+
+    @api.multi
+    def _compute_presentations(self):
+        attachment = self.env['ir.attachment']
+        for record in self:
+            domain = [('is_slide','=',True), ('website_published','=',True), ('channel_id','=',record.id)]
+            counts = attachment.read_group(domain, ['slide_type'], groupby='slide_type')
+            countvals = {}
+            for count in counts:
+                countvals[count.get('slide_type')] = count.get('slide_type_count', 0)
+
+            record.presentations = countvals.get('presentation', 0)
+            record.documents = countvals.get('document', 0)
+            record.videos = countvals.get('video', 0)
+            record.infographics = countvals.get('infographic', 0)
+
+            record.total = countvals.get('presentation', 0) + countvals.get('document', 0) + countvals.get('video', 0) + countvals.get('infographic', 0)
+
+    def get_mostviewed(self):
+        attachment = self.env['ir.attachment']
         famous = None
-        if channel.promote == 'mostview':
-            domain = [('website_published', '=', True), ('parent_id','=',channel.id)]
-            famous_id = attachment._search(cr, uid, domain, limit=1, offset=0, order="slide_views desc", context=context)
-            famous = attachment.browse(cr, uid, famous_id, context=context)
-        elif channel.promote == 'latest':
-            domain = [('website_published', '=', True), ('parent_id','=',channel.id)]
-            famous_id = attachment._search(cr, uid, domain, limit=1, offset=0, order="write_date desc", context=context)
-            famous = attachment.browse(cr, uid, famous_id, context=context)
-        elif channel.promote == 'custom':
-                famous = channel.slide_id
-
+        if self.promote == 'mostview':
+            domain = [('website_published', '=', True), ('channel_id','=',self.id)]
+            famous = attachment.search(domain, limit=1, offset=0, order="total_views desc")
+        elif self.promote == 'mostvoted':
+            domain = [('website_published', '=', True), ('channel_id','=',self.id)]
+            famous = attachment.search(domain, limit=1, offset=0, order="likes desc")
+        elif self.promote == 'latest':
+            domain = [('website_published', '=', True), ('channel_id','=',self.id)]
+            famous = attachment.search(domain, limit=1, offset=0, order="write_date desc")
+        elif self.promote == 'custom':
+                famous = self.slide_id
         return famous
 
-class MailMessage(osv.Model):
-    _inherit = 'mail.message'
 
-    _columns = {
-        'path': fields.char(
-            'Discussion Path', select=1,
-            help='Used to display messages in a paragraph-based chatter using a unique path;'),
-    }
+class Categoty(models.Model):
+    _name = 'ir.attachment.category'
+    _inherit = ['mail.thread', 'website.seo.metadata']
+    _description = "Category of Documents"
+    _order = "sequence"
+
+    channel_id = fields.Many2one('slide.channel', string="Channel")
+    name = fields.Char(string="Category", tranalate=True)
+    sequence = fields.Integer(string='Sequence', default=10)
+
+    presentations = fields.Integer(compute='_compute_presentations', string="Presentations")
+    documents = fields.Integer(compute='_compute_presentations', string="Documents")
+    videos = fields.Integer(compute='_compute_presentations', string="Videos")
+    infographics = fields.Integer(compute='_compute_presentations', string="Infographics")
+
+    total = fields.Integer(compute='_compute_presentations', string="Total")
+
+    @api.multi
+    def _compute_presentations(self):
+        attachment = self.env['ir.attachment']
+        for record in self:
+            domain = [('is_slide','=',True), ('website_published','=',True), ('category_id','=',record.id)]
+            counts = attachment.read_group(domain, ['slide_type'], groupby='slide_type')
+            countvals = {}
+            for count in counts:
+                countvals[count.get('slide_type')] = count.get('slide_type_count')
+
+            record.presentations = countvals.get('presentation', 0)
+            record.documents = countvals.get('document', 0)
+            record.videos = countvals.get('video', 0)
+            record.infographics = countvals.get('infographic', 0)
+
+            record.total = countvals.get('presentation', 0) + countvals.get('document', 0) + countvals.get('video', 0) + countvals.get('infographic', 0)
+
+    @api.multi
+    def get_slides(self, domain, limit, order):
+        slides = self.env['ir.attachment']
+        context_domain = domain + [('category_id', '=', self.id)]
+        slides_ids = slides.search(context_domain, limit=limit, offset=0, order=order)
+        return slides_ids
 
 
-class ir_attachment(osv.osv):
+class EmbededView(models.Model):
+    _name = 'ir.attachment.embed'
+
+    attachment_id = fields.Many2one('ir.attachment', string="Presentation")
+    name = fields.Char('Name')
+    count_views = fields.Integer(string='# Views on Embed', default=0)
+
+    def set_count(self, attachment_id, url):
+        baseurl = url
+        urls = url.split('?')
+        if urls:
+            baseurl = urls[0]
+        domain = [('name','=',baseurl), ('attachment_id','=',int(attachment_id))]
+        count = self.search(domain, limit=1)
+        if count:
+            count.count_views += 1
+        else:
+            vals = {
+                'attachment_id':attachment_id,
+                'name':baseurl,
+                'count_views':1
+            }
+            self.create(vals)
+
+
+class ir_attachment(models.Model):
     _name = 'ir.attachment'
-    _inherit = ['ir.attachment','mail.thread']
+    _inherit = ['ir.attachment','mail.thread', 'website.seo.metadata']
 
-    _order = "id desc"
-    _columns = {
-        'is_slide': fields.boolean('Is Slide'),
-        'slide_type': fields.selection([('infographic','Infographic'), ('presentation', 'Presentation'), ('document', 'Document'), ('video', 'Video')], 'Type'),
-        'tag_ids': fields.many2many('ir.attachment.tag', 'rel_attachments_tags', 'attachment_id', 'tag_id', 'Tags'),
-        'image': fields.binary('Thumb'),
-        'slide_views': fields.integer('Number of Views'),
-        'youtube_id': fields.char(string="Youtube Video ID"),
-        'website_published': fields.boolean(
-            'Publish', help="Publish on the website", copy=False,
-        ),
-        'website_message_ids': fields.one2many(
-            'mail.message', 'res_id',
-            domain=lambda self: [
-                '&', '&', ('model', '=', self._name), ('type', '=', 'comment'), ('path', '=', False)
-            ],
-            string='Website Messages',
-            help="Website communication history",
-        ),
-        'website_description': fields.html('Website Description', tranalate=True),
-        'likes': fields.integer('Likes'),
-        'dislikes': fields.integer('Dislikes'),
-    }
+    category_id = fields.Many2one('ir.attachment.category', string="Category")
+    embedcount_ids = fields.One2many('ir.attachment.embed', 'attachment_id', string="Embed Count")
+    channel_id = fields.Many2one('slide.channel', string="Channel")
+    is_slide = fields.Boolean(string='Is Slide')
+    slide_type = fields.Selection([('infographic','Infographic'), ('presentation', 'Presentation'), ('document', 'Document'), ('video', 'Video')], string='Type', help="Document type will be set automatically depending on the height and width, however you can change it manually.")
+    tag_ids = fields.Many2many('ir.attachment.tag', 'rel_attachments_tags', 'attachment_id', 'tag_id', string='Tags')
 
-    def _get_share_url(self, cr, uid, slide, context):
-        base_url = self.pool['ir.config_parameter'].get_param(cr, uid, 'web.base.url')
-        shareurl = "%s/%s/%s/%s" % (base_url, slug(slide.parent_id), slide.slide_type, slug(slide))
+    image = fields.Binary('Image')
+    image_meduim = fields.Binary('Medium')
+    image_thumb = fields.Binary('Thumbnail')
+
+    youtube_id = fields.Char(string="Youtube Video ID")
+    website_published = fields.Boolean(
+        string='Publish', help="Publish on the website", copy=False, default=False
+    )
+    website_message_ids = fields.One2many(
+        'mail.message', 'res_id',
+        domain=lambda self: [('model', '=', self._name), ('type', '=', 'comment')],
+        string='Website Messages', default=False,
+        help="Website communication history",
+    )
+    website_description = fields.Html('Website Description', tranalate=True)
+    likes = fields.Integer(string='Likes', default=0)
+    dislikes = fields.Integer(string='Dislikes', default=0)
+    index_content = fields.Text('Description', tranalate=True)
+
+    height = fields.Integer(string='Height', default=600)
+    width = fields.Integer(string='Width', default=800)
+
+    slide_views = fields.Integer(string='# Views', default=0)
+    embed_views = fields.Integer(string='# Views on Embed', default=0)
+    youtube_views = fields.Integer(string='# Views on Embed', default=0)
+
+    total_views = fields.Integer(compute='_compute_total', string="Total", store=True)
+
+    @api.multi
+    @api.depends('slide_views',  'embed_views',  'youtube_views')
+    def _compute_total(self):
+        for record in self:
+            record.total_views = record.slide_views + record.embed_views + record.youtube_views
+
+    @api.multi
+    def _get_related_slides(self, limit=20):
+        domain = [('is_slide','=',True), ('website_published', '=', True), ('id','!=',self.id), ('category_id','=',self.category_id.id)]
+        related_ids = self.search(domain, limit=limit, offset=0)
+        return related_ids
+
+    @api.multi
+    def _get_most_viewed_slides(self, limit=20):
+        domain = [('is_slide','=',True), ('website_published', '=', True)]
+        most_viewed_ids = self.search(domain, limit=limit, offset=0, order='total_views desc')
+        return most_viewed_ids
+
+    @api.multi
+    def check_constraint(self, values):
+        if values.get('video_id'):
+            domain = [('channel_id','=',values['channel_id']),('youtube_id','=',values['video_id'])]
+            slide = self.search(domain)
+            if slide:
+                return "/slides/%s/%s/%s" % (slide.channel_id.id, slide.slide_type, slide.id)
+        if values.get('file_name'):
+            domain = [('channel_id','=',values['channel_id']),('name','=',values['file_name'])]
+            if self.search(domain):
+                return True
+        return False
+
+    def _get_share_url(self):
+        base_url = self.env['ir.config_parameter'].get_param('web.base.url')
+        shareurl = "%s/slides/%s/%s/%s" % (base_url, slug(self.channel_id), self.slide_type, slug(self))
         return shareurl
 
-    def _get_embade_code(self, cr, uid, slide, context):
-        base_url = self.pool['ir.config_parameter'].get_param(cr, uid, 'web.base.url')
+    get_share_url = _get_share_url
 
+    def _get_thumb_url(self):
+        base_url = self.env['ir.config_parameter'].get_param('web.base.url')
+        shareurl = "%s/website/image/ir.attachment/%s/image_meduim" % (base_url, self.id)
+        return shareurl
+
+    def _get_embade_code(self):
+        base_url = self.env['ir.config_parameter'].get_param('web.base.url')
         embedcode = False
-        if slide.datas and not slide.youtube_id:
-            embedcode = '<iframe  src="%s/website_slides/static/lib/pdfjs/web/viewer.html?file=%s#page="></iframe>' % (base_url, slide.url)
-        if slide.youtube_id:
-            embedcode = '<iframe src="//www.youtube.com/embed/%s?theme=light"></iframe>' % (slide.youtube_id)
-
+        if self.datas and not self.youtube_id:
+            embedcode = '<iframe  src="%s/slides/embed/%s?page=1" allowFullScreen="true" height="%s" width="%s" frameborder="0"></iframe>' % (base_url, self.id, self.height + 100, self.width)
+        if self.youtube_id:
+            embedcode = '<iframe src="//www.youtube.com/embed/%s?theme=light" frameborder="0"></iframe>' % (self.youtube_id)
         return embedcode
 
-    def _get_slide_setting(self, cr, uid, context):
-        return context.get('is_slide', False)
-
-    def _get_slide_type(self, cr, uid, context):
-        return context.get('slide_type', 'presentation')
-
-    def _get_slide_views(self, cr, uid, context):
-        return context.get('slide_views', 0)
-
-    def get_default_channel(self, cr, uid, context):
-        directory = self.pool.get('document.directory')
-        vals = directory.search(cr, uid, [('name','=','Documents')])
-        return vals
-
-    _defaults = {
-        'is_slide': _get_slide_setting,
-        'slide_type':_get_slide_type,
-        'slide_views':_get_slide_views,
-        'likes': 0,
-        'dislikes':0,
-        'website_published':False
-    }
-
-    def set_viewed(self, cr, uid, ids, context=None):
-        cr.execute("""UPDATE ir_attachment SET slide_views = slide_views+1 WHERE id IN %s""", (tuple(ids),))
+    def set_viewed(self):
+        #TODO: need to decide which one is better API or SQL
+        #self._cr.execute("""UPDATE ir_attachment SET slide_views = slide_views+1 WHERE id IN %s""", (self._ids,))
+        self.slide_views += 1
         return True
 
-    def set_like(self, cr, uid, ids, context=None):
-        cr.execute("""UPDATE ir_attachment SET likes = likes+1 WHERE id IN %s""", (tuple(ids),))
+    def set_embed_viewed(self):
+        #TODO: need to decide which one is better API or SQL
+        #self._cr.execute("""UPDATE ir_attachment SET embed_views = embed_views+1 WHERE id IN %s""", (self._ids,))
+        self.embed_views += 1
         return True
 
-    def set_dislike(self, cr, uid, ids, context=None):
-        cr.execute("""UPDATE ir_attachment SET dislikes = dislikes+1 WHERE id IN %s""", (tuple(ids),))
+    def set_like(self):
+        self._cr.execute("""UPDATE ir_attachment SET likes = likes+1 WHERE id IN %s""", (self._ids,))
         return True
 
-    def trim_lines(self, cr, uid, description, *args):
-        return '<br/>'.join(description.split('\n')[0:14])
+    def set_dislike(self):
+        self._cr.execute("""UPDATE ir_attachment SET dislikes = dislikes+1 WHERE id IN %s""", (self._ids,))
+        return True
 
-    def notify_published(self, cr, uid, slide_id, context):
-        base_url = self.pool['ir.config_parameter'].get_param(cr, uid, 'web.base.url')
-        slide = self.browse(cr, uid, slide_id, context)
+    def get_mail_body(self, message=False):
+        base_url = self.env['ir.config_parameter'].get_param('web.base.url')
+        template = self.env['email.template']
+        image_url = "%s/website/image/ir.attachment/%s/image" % (base_url, self.id)
+        
+        msg_context = {
+            'message': message or '%s has shared %s with you !' % (self.env.user.name, self.slide_type),
+            'image_url': image_url,
+            'access_url':self._get_share_url(),
+            'base_url':base_url
+        }
+        msg_context.update(self._context)
+        
+        message_body = template.with_context(msg_context).render_template(self.channel_id.template_id.body_html, 'ir.attachment', self.id)
+        return message_body
 
-        if not slide.website_published:
+    def sendemail(self, email):
+        result = False
+        body = self.get_mail_body()
+        subject = '%s has shared %s with you !' % (self.env.user.name, self.slide_type)
+
+        if self.env.user.email:
+            result = mail.email_send(email_from=self.env.user.email, email_to=[email], subject=subject, body=body, reply_to=self.env.user.email, subtype="html")
+        
+        return result
+
+    def notify_published(self):
+        base_url = self.env['ir.config_parameter'].get_param('web.base.url')
+        if not self.website_published:
             return False
 
-        body = _(
-            '<p>A new presentation <i>%s</i> has been published under %s channel. <a href="%s/channel/%s/%s/view/%s">Click here to access the presentation.</a></p>' %
-            (slide.name, slide.parent_id.name, base_url, slug(slide.parent_id), slide.slide_type, slug(slide))
-        )
-        partner_ids = []
-        for partner in slide.parent_id.message_follower_ids:
-            partner_ids.append(partner.id)
-        self.pool.get('document.directory').message_post(cr, uid, [slide.parent_id.id], subject=slide.name, body=body, subtype='website_slide.new_slides', partner_ids=partner_ids, context=context)
+        message = "A new %s has been published on %s channel." % (self.slide_type, self.channel_id.name)
+        body = self.get_mail_body(message=message)
+        if self.channel_id:
+            self.channel_id.message_post(subject=self.name, body=body, subtype='website_slides.new_slides')
 
-    def notify_request_to_approve(self, cr, uid, slide_id, context):
-        base_url = self.pool['ir.config_parameter'].get_param(cr, uid, 'web.base.url')
-        slide = self.browse(cr, uid, slide_id, context)
+    def notify_request_to_approve(self):
+        base_url = self.env['ir.config_parameter'].get_param('web.base.url')
+        message = "A new %s has been uploaded and waiting for publish on %s channel." % (self.slide_type, self.channel_id.name)
+        body = self.get_mail_body(message=message)
+        if self.channel_id:
+            self.channel_id.message_post(subject=message, body=body, subtype='website_slides.new_slides_validation')
 
-        body = _(
-            '<p>A new presentation <i>%s</i> has been uplodated under %s channel andwaiting for your review. <a href="%s/channel/%s/%s/view/%s">Click here to review the presentation.</a></p>' %
-            (slide.name, slide.parent_id.name, base_url, slug(slide.parent_id), slide.slide_type, slug(slide))
-        )
-        #Todo: fix me, search only people subscribe for new_slides_validation
-        partner_ids = []
-        for partner in slide.parent_id.message_follower_ids:
-            partner_ids.append(partner.id)
-        self.pool.get('document.directory').message_post(cr, uid, [slide.parent_id.id], subject=slide.name, body=body, subtype='website_slide.new_slides_validation', partner_ids=partner_ids, context=context)
-
-
-    def write(self, cr, uid, ids, values, context=None):
+    @api.multi
+    def write(self, values):
         if values.get('url'):
-            values = self.update_youtube(cr, uid, values, context)
-
-        success = super(ir_attachment, self).write(cr, uid, ids, values, context)
-        
-        for slide_id in ids:
-            self.notify_published(cr, uid, slide_id, context)
+            values = self.update_youtube(values)
+        success = super(ir_attachment, self).write(values)
+        self.notify_published()
         return success
 
-    def update_youtube(self, cr, uid, values, context=None):
-        print 'XXXXXXXX : values', values
+    def update_youtube(self, values):
         values["youtube_id"] = self.extract_youtube_id(values['url'].strip())
         statistics = self.youtube_statistics(values["youtube_id"])
         if statistics:
-            print 'XXXXXXXXXXX : statistics ', statistics
-            if statistics['items'][0].get('snippet') :
+            if statistics['items'][0].get('snippet'):
                 if statistics['items'][0]['snippet'].get('thumbnails'):
                     image_url = statistics['items'][0]['snippet']['thumbnails']['medium']['url']
                     response = requests.get(image_url)
@@ -217,26 +324,86 @@ class ir_attachment(osv.osv):
                 if statistics['items'][0]['snippet'].get('description'):
                         values['description'] = statistics['items'][0]['snippet'].get('description')
             if statistics['items'][0].get('statistics'):
-                values['slide_views'] = statistics['items'][0]['statistics']['viewCount']
-        
+                values['youtube_views'] = int(statistics['items'][0]['statistics']['viewCount'])
         return values
 
-    def create(self, cr, uid, values, context=None):
+    #TODO: to check, may be useful to place this image in to website module
+    def crop_image(self, data, type='top', ratio=False, thumbnail_ratio=None, image_format="PNG"):
+        """ Used for cropping image and create thumbnail
+            :param data: base64 data of image.
+            :param type: Used for cropping position possible
+                Possible Values : 'top', 'center', 'bottom'
+            :param ratio: Cropping ratio
+                e.g for (4,3), (16,9), (16,10) etc
+                send ratio(1,1) to generate square image
+            :param thumbnail_ratio: It is size reduce ratio for thumbnail
+                e.g. thumbnail_ratio=2 will reduce your 500x500 image converted in to 250x250
+            :param image_format: return image format PNG,JPEG etc
+        """
+        
+        image = Image.open(cStringIO.StringIO(data.decode('base64')))
+        output = io.BytesIO()
+        w, h = image.size
+        new_h = h
+        new_w = w
+
+        if ratio:
+            w_ratio, h_ratio = ratio
+            new_h = (w * h_ratio) / w_ratio
+            new_w = w
+            if new_h > h:
+                new_h = h
+                new_w = (h * w_ratio) / h_ratio
+
+        if type == "top":
+            cropped_image = image.crop((0, 0, new_w, new_h))
+            cropped_image.save(output,format=image_format)
+        elif type == "center":
+            cropped_image = image.crop(((w - new_w)/2, (h - new_h)/2, (w + new_w)/2, (h + new_h)/2))
+            cropped_image.save(output,format=image_format)
+        elif type == "bottom":
+            cropped_image = image.crop((0, h - new_h, new_w, h))
+            cropped_image.save(output,format=image_format)
+        else:
+            raise ValueError('ERROR: invalid value for crop_type')
+        if thumbnail_ratio:
+            thumb_image = Image.open(cStringIO.StringIO(output.getvalue()))
+            thumb_image.thumbnail((new_w/thumbnail_ratio, new_h/thumbnail_ratio), Image.ANTIALIAS)
+            output = io.BytesIO()
+            thumb_image.save(output, image_format)
+        return output.getvalue().encode('base64')
+
+    @api.model
+    def create(self, values):
         if values.get('is_slide'):
             if values.get('datas_fname'):
                 values['url'] = "/website_slides/" + values['datas_fname']
             elif values.get('url'):
-                values = self.update_youtube(cr, uid, values, context)
+                values = self.update_youtube(values)
 
-        values['website_published'] = False
-        slide_id = super(ir_attachment, self).create(cr, uid, values, context)
-        self.notify_request_to_approve(cr, uid, slide_id, context)
-        self.notify_published(cr, uid, slide_id, context)
+        if not values.get('index_content'):
+            values['index_content'] = values.get('description')
+
+        if values.get('image') and values.get('slide_type') == 'video':
+            values.update({
+                'image_meduim': values.get('image'),
+                'image_thumb': values.get('image')
+            })
+        elif values.get('image'):
+            image_meduim = self.crop_image(values['image'], thumbnail_ratio=3)
+            image_thumb = self.crop_image(values['image'], thumbnail_ratio=4)
+            image = self.crop_image(values['image'])
+            values.update({
+                'image_meduim': image_meduim,
+                'image_thumb': image_thumb,
+                'image': image
+            })
+
+        values['total_views'] = values.get('slide_views', 0) + values.get('youtube_views', 0)
+        slide_id = super(ir_attachment, self).create(values)
+        slide_id.notify_request_to_approve()
+        slide_id.notify_published()
         return slide_id
-
-    def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
-        ids = super(ir_attachment, self)._search(cr, uid, args, offset=offset, limit=limit, order=order, context=context, count=False)
-        return len(ids) if count else ids
 
     def extract_youtube_id(self, url):
         youtube_id = ""
@@ -253,7 +420,7 @@ class ir_attachment(osv.osv):
                 youtube_id = query.path.split('/')[2]
         return youtube_id
 
-    def youtube_statistics(self,video_id):
+    def youtube_statistics(self, video_id):
         request_url = "https://www.googleapis.com/youtube/v3/videos?id=%s&key=AIzaSyBKDzf7KjjZqwPWAME6JOeHzzBlq9nrpjk&part=snippet,statistics&fields=items(id,snippet,statistics)" % (video_id)
         try:
             req = urllib2.Request(request_url)

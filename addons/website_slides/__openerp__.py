@@ -20,31 +20,32 @@
 ##############################################################################
 
 {
-    'name': 'Odoo Presentation',
+    'name': 'Presentation',
     'version': '1.0',
     'summary': 'Publish Presentations, Videos, Documents and Infographic',
     'category': 'website',
     'description': """
 Publish Presentations, Videos, Documents and Infographic Online
 ================================================================
-You can upload presentations, videos, documents and infographic and moderate and publish on different channels.
+You can upload presentations, videos, documents and infographic and moderate and publish and clasify in different channels by category.
 
 * Channel Management
 * Filters and Tagging
-* Moderations of Channels and contents
+* Staticitc of Presentation
+* Channel Subscription
 * Document Type Supported (pdf and all image type)
 """,
     'author': 'OpenERP SA',
     'website': 'http://www.openerp.com',
-    'depends': ['website', 'website_mail', 'document'],
+    'depends': ['website', 'website_mail'],
     'data': [
         'view/slides_website.xml',
         'view/slides_backend.xml',
         'security/ir.model.access.csv',
-        'data/website_slides_data.xml',
+        'data/website_slides_data.xml'
     ],
     'demo': [
-        'data/website_slides_demo.xml',
+        'data/website_slides_demo.xml'
     ],
     'installable': True,
     'auto_install': False,   

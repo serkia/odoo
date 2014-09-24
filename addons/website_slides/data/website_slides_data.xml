@@ -2,34 +2,128 @@
 <openerp>
     <data noupdate="1">
 
-        <record model="document.directory" id="dir_public">
+        <record id="slide_email_notification" model="email.template">
+            <field name="name">Email Notification for Presentation</field>
+            <field name="email_from">${user.email or ''}</field>
+            <field name="subject">New ${object.slide_type} has been published on ${object.channel_id.name}</field>
+            <field name="model_id" ref="model_ir_attachment"/>
+            <field name="email_to">${('' if object.partner_id and object.partner_id.email and object.partner_id.email==object.email else object.email|safe)}</field>
+            <field name="partner_to">${object.partner_id and object.partner_id.email and object.partner_id.email==object.email and object.partner_id.id or False }</field>
+            <field name="auto_delete" eval="True"/>
+            <field name="body_html"><![CDATA[
+                <div class="snippet_row" style="padding:0px;width:600px;margin:auto;background-color:#fff">
+                <table cellpadding="0" cellspacing="0" style="margin: 0 auto;width:600px">
+                    <tbody>
+                        <tr>
+                            <td style="text-align:center" valign="center"><a href="#" style="text-decoration:none"><img alt="Awesome Co" src="${ctx['base_url']}/logo.png" style="padding:10px;height:auto;max-width:600px"> </a></td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+
+                <div class="snippet_row" style="padding: 20px 0px; width: 600px; margin: auto; color: #fff;background-color:#a24689;">
+                <table cellpadding="0" cellspacing="0" class="force-full-width" style="width:600px;">
+                    <tbody>
+                        <tr>
+                            <td style="text-align:center;padding:5px;" valign="center">
+                            <h4 style="margin:0px;">${ctx['message']}</h4>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+
+                <div class="snippet_row" style="padding:0px;width:600px;margin:auto;background-color:#FFFFFF;color:#8f8f8f">
+                <table cellpadding="0" cellspacing="0">
+                    <tbody>
+                        <tr>
+                            <td class="col_mv" style="vertical-align:top;text-align:center;background-color:#FFFFF;color:#414141">
+                                %if ctx['access_url']:
+                                    <a href="${ctx['access_url']}" style="color:#a24689">
+                                % endif
+                                %if not ctx['access_url']:
+                                    <a href="${object.get_share_url() | safe}" style="color:#a24689">
+                                %endif
+                                    % if ctx['image_url']:
+                                        <img alt="${object.name}" src="${ctx['image_url']}" style="height:auto;width:600px;background-color: #ccc;margine: 0px auto 10px auto">
+                                    % endif
+                                    % if not ctx['image_url']:
+                                        <img alt="${object.name}" src="/website/image?model=ir.attachment&id=${object.id}&field=image" style="height:auto;width:600px;background-color: #ccc;margine: 0px auto 10px auto">
+                                    % endif
+                                </a>
+                                <br>
+                                <br>
+                                <span class="colpick" style="font-size:24px;font-weight:bold">${object.name}</span>
+                                <div class="colpick" style="color: #ccc">Published on ${object.write_date}, ${object.total_views} views</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+                
+                <br>
+                <br>
+
+                <div class="snippet_row" style="padding:0px;width:600px;margin:auto;background-color:#8f8f8f;color:#fff">
+                <table cellpadding="0" cellspacing="0" style="margin: 0 auto;width:100%">
+                    <tbody>
+                        <tr>
+                            <td style="font-size:12px;text-align:center;padding-top:10px;color:#a24689;padding-bottom:5px">
+                            %if ctx['access_url']:
+                                <a href="${ctx['access_url']}" style="color:#a24689">View in browser</a> | 
+                                <a href="${ctx['access_url']}" style="color:#a24689">Unsubscribe</a> | 
+                            % endif
+                            %if not ctx['access_url']:
+                                <a href="${object.get_share_url() | safe}" style="color:#a24689">View in browser</a> | 
+                                <a href="${object.get_share_url() | safe}" style="color:#a24689">Unsubscribe</a> | 
+                            % endif
+                            <a href="#" style="color:#a24689">Contact</a></td>
+                        </tr>
+                        <tr>
+                            <td style="font-size:12px;text-align:center;padding-bottom:35px">2014 All Rights Reserved</td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+            ]]>
+            </field>
+        </record>
+
+        <record model="slide.channel" id="dir_public">
             <field name="name">Public Channel</field>
+            <field name="promote">mostview</field>
+            <field name="template_id" ref="website_slides.slide_email_notification"/>
             <field name="user_id" eval="False"/>
             <field name="website_published" eval="True"/>
             <field name="ressource_id">0</field>
+            <field name="is_channel" eval="True"/>
             <field name="description">Public channel is default channel for slides, all public user can access content of public channel.</field>
         </record>
 
-        <record model="document.directory" id="dir_private">
+        <record model="slide.channel" id="dir_private">
             <field name="name">Partner Channel</field>
             <field name="user_id" eval="False"/>
+            <field name="template_id" ref="website_slides.slide_email_notification"/>
             <field name="website_published" eval="False"/>
             <field name="ressource_id">0</field>
+            <field name="is_channel" eval="True"/>
             <field name="description">Partner channel use to publish slides in partner network privately.</field>
         </record>
         
-        <record model="document.directory" id="dir_employee">
+        <record model="slide.channel" id="dir_employee">
             <field name="name">Employee Channel</field>
             <field name="user_id" eval="False"/>
+            <field name="template_id" ref="website_slides.slide_email_notification"/>
             <field name="website_published" eval="False"/>
             <field name="ressource_id">0</field>
+            <field name="is_channel" eval="True"/>
             <field name="description">Employee channel use to publish internal slides of company.</field>
         </record>
 
         <!-- Channel subtypes -->
         <record id="new_slides" model="mail.message.subtype">
             <field name="name">Presentation Published</field>
-            <field name="res_model">document.directory</field>
+            <field name="res_model">slide.channel</field>
             <field name="default" eval="True"/>
             <field name="description">Presentation Published</field>
         </record>
@@ -37,7 +131,7 @@
         <!-- Channel subtypes -->
         <record id="new_slides_validation" model="mail.message.subtype">
             <field name="name">Presentation Validations</field>
-            <field name="res_model">document.directory</field>
+            <field name="res_model">slide.channel</field>
             <field name="default" eval="False"/>
             <field name="description">Presentation Validations</field>
         </record>
