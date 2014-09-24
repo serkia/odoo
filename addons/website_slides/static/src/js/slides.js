@@ -316,6 +316,7 @@
             this.scale = 1.5;
             this.page_number = 1;
             this.rendering = false;
+            this.loaded = false;
         },
         start: function () {
             this.canvas = this.$('canvas')[0];
@@ -327,9 +328,20 @@
             PDFJS.getDocument(this.file).then(function (file_content) {
                 self.file_content = file_content;
                 self.page_count = file_content.numPages;
+                self.loaded = true;
+                self.$('#PDFLoading, #PDFLoader').hide();
+                self.$('#PDFViewer').show();
                 self.$('#page_count').text(self.page_count);
                 self.render_page();
             });
+        },
+        is_loaded: function(){
+            if(!this.loaded){
+                this.$('#PDFLoading').show();
+                this.$('#PDFViewer-image').css({'opacity':0.2});
+                return false;
+            }
+            return true;
         },
         render_page: function (page_number) {
             var self = this;
@@ -346,7 +358,6 @@
                 self.rendering = true;
                 page.render(renderContext).then(function () {
                     self.rendering = false;
-                    self.$('#PDFLoader').hide();
                     self.$('#page_number').val(page_num);
                     self.page_number = page_num;
                 });
@@ -354,6 +365,9 @@
         },
         next: function (ev) {
             ev.preventDefault();
+            if (!this.is_loaded()){
+                return;
+            }
             if (this.page_number === this.page_count) {
                 this.fetch_next_slide();
             }
@@ -387,6 +401,9 @@
         },
         previous: function (ev) {
             ev.preventDefault();
+            if (!this.is_loaded()){
+                return;
+            }
             if (this.page_number <= 1) {
                 return;
             }
@@ -397,6 +414,9 @@
         },
         first: function (ev) {
             ev.preventDefault();
+            if (!this.is_loaded()){
+                return;
+            }
             this.page_number = 1;
             if (!this.rendering) {
                 this.render_page();
@@ -404,6 +424,9 @@
         },
         last: function (ev) {
             ev.preventDefault();
+            if (!this.is_loaded()){
+                return;
+            }
             this.page_number = this.page_count;
             if (!this.rendering) {
                 this.render_page();
