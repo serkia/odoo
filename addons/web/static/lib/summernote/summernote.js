@@ -3230,14 +3230,24 @@
         if (keyName) { aKey.push(keyName); }
 
         var sEvent = keyMap[aKey.join('+')];
+
+        if (!sEvent && event.keyCode !== 229 && event.keyCode >= 48) { // hack odoo
+          sEvent = 'visible';
+        }
+
         if (sEvent) {
-          event.preventDefault();
+          var res = false;
 
           if (editor[sEvent]) {
-            editor[sEvent]($editable, $editor.data('options'));
+            res = editor[sEvent]($editable, $editor.data('options'));
           } else if (commands[sEvent]) {
-            commands[sEvent].call(this, oLayoutInfo);
+            res = commands[sEvent].call(this, oLayoutInfo);
           }
+
+          if (!res) { // hack odoo
+            event.preventDefault();
+          }
+
         } else if (key.isEdit(event.keyCode)) {
           editor.recordUndo($editable);
         }

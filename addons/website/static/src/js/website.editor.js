@@ -265,7 +265,7 @@
                 if (!cur.tagName) {
                     var text;
                     var exp1 = /[\t\n\r ]+/g;
-                    var exp2 = /(?![ ]|^)\u00A0(?![ ]|$)/g;
+                    var exp2 = /(?!([ ]|\u00A0)|^)\u00A0(?!([ ]|\u00A0)|$)/g;
                     if (cur === begin) {
                         var temp = cur.textContent.substr(0, so);
                         var _temp = temp.replace(exp1, ' ').replace(exp2, ' ');
@@ -447,329 +447,303 @@
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /* attach event to Summernote
-    * paste:
-    *  - change the default feature of contentEditable
-    * keydown: 
-    *  - change the default feature of contentEditable for backspace, delete or visible char
-    *  - prevent the edition of forbidden node (like font awsome node)
-    */
+    /* add some text commands */
 
-    function reRangeSelect (event) {
-        var r = range.create();
-        if (!r || r.isCollapsed()) return;
+    key.nameFromCode[46] = 'DELETE';
 
-        // check if the user move the caret on up or down
-        var ref = false;
-        var node = r.sc;
-        var parent = r.ec.parentNode;
-        while (node) {
-            if (parent === node) {
-                break;
-            }
-            if(event.target === node || event.target.parentNode === node) { /*check parent node for image, iframe and tag without child text node*/
-                ref = true;
-                break;
-            }
-            node = node.parentNode;
-        }
+    settings.options.keyMap.pc['BACKSPACE'] = 'backspace';
+    settings.options.keyMap.pc['DELETE'] = 'delete';
+    settings.options.keyMap.pc['ENTER'] = 'enter';
 
-        r = range.reRange(r.sc, r.so, r.ec, r.eo, ref);
-        setTimeout(function () {
-            r.select();
-        },0);
+    settings.options.keyMap.mac['BACKSPACE'] = 'backspace';
+    settings.options.keyMap.mac['DELETE'] = 'delete';
+    settings.options.keyMap.mac['ENTER'] = 'enter';
 
-        $(r.sc).closest('.o_editable').data('range', r);
-        return r;
-    }
-    function summernote_paste (event) {
-        // keep norma feature if copy a picture
-        var clipboardData = event.originalEvent.clipboardData;
-        if (clipboardData.items) {
-            var item = list.last(clipboardData.items);
-            var isClipboardImage = item.kind === 'file' && item.type.indexOf('image/') !== -1;
-            if (isClipboardImage) {
-                return true;
-            }
-        }
-
-        var $editable = $(event.currentTarget);
-        $editable.data('NoteHistory').recordUndo($editable);
-
-        event.preventDefault();
-        var r = range.create();
-        dom.pasteText(r.sc, r.so, clipboardData.getData("text/plain"));
-        return false;
-    }
-    function summernote_keydown_clean (field) {
+    function clean_dom_onkeydown () {
         setTimeout(function () {
             var r = range.create();
-            var node = r[field];
-            while (!node.tagName) {node = node.parentNode;}
-            node = node.parentNode;
-            var data = dom.merge(node, r.sc, r.so, r.ec, r.eo, null, true);
-            data = dom.removeSpace(node, data.sc, data.so, data.sc, data.so);
-
-            range.create(data.sc, data.so, data.sc, data.so).select();
+            if (!r) return;
+            var parent = r.sc.parentElement.parentElement;
+            r = dom.merge(parent, r.sc, r.so, r.sc, r.so, null, true);
+            r = dom.removeSpace(parent, r.sc, r.so, r.sc, r.so);
+            if (r.ec.tagName === "BR") {
+                r.sc = r.ec = r.sc.previousSibling || r.sc.parentNode;
+            }
+            r.eo = r.eo > r.ec.textContent.length ? r.ec.textContent.length : r.eo;
+            if (r.so > r.eo) r.so = r.eo;
+            range.create(r.sc, r.so, r.ec, r.eo).select();
         },0);
     }
+    
     var mergeOnDelete = "h1 h2 h3 h4 h5 h6 p b bold i u code sup strong small li a ul ol".split(" ");
     var forbiddenWrite = ".fa img".split(" ");
-    var keydown = {
-        // backspace
-        '8': function (r, event) {
-            var node = r.sc;
-            while (!node.nextSibling && !node.previousSibling) {node = node.parentNode;}
-            
-            // empty tag
-            if (r.sc===r.ec && !r.sc.textContent.replace(/\s+$/, '').length && node.previousSibling) {
-                var next = node.previousSibling;
-                while (next.tagName && next.lastChild) {next = next.lastChild;}
-                node.parentNode.removeChild(node);
-                range.create(next, next.textContent.length, next, next.textContent.length).select();
-                return false;
-            }
-            // normal feature if same tag and not the begin
-            else if (r.sc===r.ec && r.so || r.eo) return true;
-            // merge with the previous text node
-            else if (r.sc.previousSibling && !r.sc.previousSibling.tagName) return true;
-            // jump to previous node for delete
-            else if (r.sc.previousSibling) {
-                node = r.sc.previousSibling;
-                while (node.lastChild) {
-                    node = node.lastChild;
-                }
-                r = range.create(node, node.textContent.length, node, node.textContent.length);
-                r.select();
-                return keydown[8](r, event);
-            }
-            //merge with the previous block
-            else if (r.isCollapsed() && !r.eo && mergeOnDelete.indexOf(r.sc.parentNode.tagName.toLowerCase()) !== -1) {
 
-                summernote_keydown_clean("sc");
-                var prev = r.sc.parentNode.previousElementSibling;
-                var style = window.getComputedStyle(prev);
-
-                if (prev && (r.sc.parentNode.tagName === prev.tagName || style.display !== "block" || !parseInt(style.height))) {
-
-                    dom.doMerge(prev, r.sc.parentNode);
-                    range.create(r.sc, 0, r.sc, 0).select();
-
-                } else {
-                    var check = false;
-                    var node = r.sc;
-                    var nodes = [node];
-
-                    do {
-                        nodes.push(node);
-                        node = node.parentNode;
-                        if (node.previousElementSibling && node.previousElementSibling.tagName !== node.tagName) {
-                            break;
-                        }
-                    }  while (node && mergeOnDelete.indexOf(node.tagName.toLowerCase()) !== -1);
-
-                    while (nodes.length) {
-                        node = nodes.pop();
-                        if (node && node.previousElementSibling && node.previousElementSibling.tagName === node.tagName) {
-                            dom.doMerge(node.previousElementSibling, node);
-                        }
-                    }
-                    range.create(r.sc, 0, r.sc, 0).select();
-                }
-                return false;
-            }
-        },
-        // delete
-        '46': function (r, event) {
-            var node = r.ec;
-            while (!node.nextSibling && !node.previousSibling) {node = node.parentNode;}
-            
-            var content = r.ec.textContent.replace(/\s+$/, '');
-
-            // empty tag
-            if (r.sc===r.ec && !content.length && node.nextSibling) {
-                var next = node.nextSibling;
-                while (next.tagName && next.firstChild) {next = next.firstChild;}
-                node.parentNode.removeChild(node);
-                range.create(next, 0, next, 0).select();
-            }
-            // normal feature if same tag and not the end
-            else if (r.sc===r.ec && r.eo<content.length && content.match(/\S/)) return true;
-            // merge with the next text node
-            else if (r.ec.nextSibling && !r.ec.nextSibling.tagName) return true;
-            // jump to next node for delete
-            else if (r.sc.nextSibling) {
-                node = r.sc.nextSibling;
-                while (node.firstChild) {
-                    node = node.firstChild;
-                }
-                r = range.create(node, node.textContent.length, node, node.textContent.length);
-                r.select();
-                return keydown[46](r, event);
-            }
-            //merge with the next block
-            else if (r.isCollapsed() && r.eo>=content.length && mergeOnDelete.indexOf(r.ec.parentNode.tagName.toLowerCase()) !== -1) {
-
-                summernote_keydown_clean("ec");
-                var next = r.ec.parentNode.nextElementSibling;
-                var style = window.getComputedStyle(next);
-
-                if (next && (r.sc.parentNode.tagName === next.tagName || style.display !== "block" || !parseInt(style.height))) {
-
-                    dom.doMerge(r.sc.parentNode, next);
-                    range.create(r.sc, r.so, r.sc, r.so).select();
-
-                } else {
-                    var check = false;
-                    var node = r.sc;
-                    var nodes = [node];
-
-                    do {
-                        nodes.push(node);
-                        node = node.parentNode;
-                        if (node.nextElementSibling && node.nextElementSibling.tagName !== node.tagName) {
-                            break;
-                        }
-                    }  while (node && mergeOnDelete.indexOf(node.tagName.toLowerCase()) !== -1);
-
-                    while (nodes.length) {
-                        node = nodes.pop();
-                        if (node && node.nextElementSibling && node.nextElementSibling.tagName === node.tagName) {
-                            dom.doMerge(node, node.nextElementSibling);
-                        }
-                    }
-                    range.create(r.ec, r.ec.textContent.length, r.ec, r.ec.textContent.length).select();
-                }
-            }
-        },
-        // enter
-        '13': function (r, event) {
-            if (!r.sc.tagName) return true;
-
-            var $node = $(r.sc);
-            var clone = $node.clone()[0];
-            $node.after(clone);
-            range.createFromNode(clone).select();
-        },
-        // all visible char
-        'visible': function (r, event) {
-            var node = r.sc;
-            var needChange = false;
-            while (node.parentNode) {
-                if ($(node).is(forbiddenWrite.join(","))) {
-                    needChange = true;
-                    break;
-                }
-                node = node.parentNode;
-            }
-
-            if (needChange) {
-                var text = node.previousSibling;
-                if (text && !text.tagName && text.textContent.match(/\S/)) {
-                    range.create(text, text.textContent.length, text, text.textContent.length).select();
-                } else {
-                    text = node.parentNode.insertBefore(document.createTextNode( "_ " ), node);
-                    range.create(text, 0, text, 0).select();
-                    setTimeout(function () {
-                        var text = range.create().sc;
-                        text.textContent = text.textContent.replace(/_ $/, ' ');
-                        range.create(text, text.textContent.length-1, text, text.textContent.length-1).select();
-                    },0);
-                }
-            }
-            return true;
+    eventHandler.editor.tab = function ($editable, options) {
+        var r = range.create();
+        if (!r.isCollapsed()) {
+            return false;
         }
+
+        var shiftKey = event.shiftKey;
+        var node = r.sc;
+        if (r.so) return true;
+        while (node && node.tagName !== "LI") {
+            node = node.parentNode;
+        }
+        console.log(shiftKey, node, event);
+        return false;
     };
-    function summernote_keydown (event) {
-        var keyCode = event.keyCode !== 229 && event.keyCode >= 48 ? "visible" : event.keyCode;
-
-        if (event.ctrlKey || !keydown[keyCode]) {
-            return true;
+    eventHandler.editor.untab = function ($editable, options) {
+    };
+    eventHandler.editor.enter = function ($editable, options) {
+        $editable.data('NoteHistory').recordUndo($editable);
+        
+        var r = range.create();
+        if (!r.isCollapsed()) {
+            return false;
         }
 
-        var $editable = $(event.currentTarget);
+        if (!r.sc.tagName) return true;
+        var $node = $(r.sc);
+        var clone = $node.clone()[0];
+        $node.after(clone);
+        range.createFromNode(clone).select();
+    };
+    eventHandler.editor.visible = function ($editable, options) {
+        $editable.data('NoteHistory').recordUndo($editable);
+        
+        var r = range.create();
+        var node = r.sc;
+        var needChange = false;
+        while (node.parentNode) {
+            if ($(node).is(forbiddenWrite.join(","))) {
+                needChange = true;
+                break;
+            }
+            node = node.parentNode;
+        }
+
+        if (needChange) {
+            var text = node.previousSibling;
+            if (text && !text.tagName && text.textContent.match(/\S/)) {
+                range.create(text, text.textContent.length, text, text.textContent.length).select();
+            } else {
+                text = node.parentNode.insertBefore(document.createTextNode( "_ " ), node);
+                range.create(text, 0, text, 0).select();
+                setTimeout(function () {
+                    var text = range.create().sc;
+                    text.textContent = text.textContent.replace(/_ $/, ' ');
+                    range.create(text, text.textContent.length-1, text, text.textContent.length-1).select();
+                },0);
+            }
+        }
+        return true;
+    };
+    eventHandler.editor.delete = function ($editable, options) {
+        $editable.data('NoteHistory').recordUndo($editable);
+        
+        var r = range.create();
+        var node = r.ec;
+        while (!node.nextSibling && !node.previousSibling) {node = node.parentNode;}
+        
+        var content = r.ec.textContent.replace(/\s+$/, '');
+
+        // empty tag
+        if (r.sc===r.ec && !content.length && node.nextSibling) {
+            var next = node.nextSibling;
+            while (next.tagName && next.firstChild) {next = next.firstChild;}
+            node.parentNode.removeChild(node);
+            range.create(next, 0, next, 0).select();
+        }
+        // normal feature if same tag and not the end
+        else if (r.sc===r.ec && r.eo<content.length && content.match(/\S/)) return true;
+        // merge with the next text node
+        else if (r.ec.nextSibling && !r.ec.nextSibling.tagName) return true;
+        // jump to next node for delete
+        else if (r.sc.nextSibling) {
+            node = r.sc.nextSibling;
+            while (node.firstChild) {
+                node = node.firstChild;
+            }
+            r = range.create(node, node.textContent.length, node, node.textContent.length);
+            r.select();
+            return this.delete($editable, options);
+        }
+        //merge with the next block
+        else if (r.isCollapsed() && r.eo>=content.length && mergeOnDelete.indexOf(r.ec.parentNode.tagName.toLowerCase()) !== -1) {
+
+            summernote_keydown_clean("ec");
+            var next = r.ec.parentNode.nextElementSibling;
+            var style = window.getComputedStyle(next);
+
+            if (next && (r.sc.parentNode.tagName === next.tagName || style.display !== "block" || !parseInt(style.height))) {
+
+                dom.doMerge(r.sc.parentNode, next);
+                range.create(r.sc, r.so, r.sc, r.so).select();
+
+            } else {
+                var check = false;
+                var node = r.sc;
+                var nodes = [node];
+
+                do {
+                    nodes.push(node);
+                    node = node.parentNode;
+                    if (node.nextElementSibling && node.nextElementSibling.tagName !== node.tagName) {
+                        break;
+                    }
+                }  while (node && mergeOnDelete.indexOf(node.tagName.toLowerCase()) !== -1);
+
+                while (nodes.length) {
+                    node = nodes.pop();
+                    if (node && node.nextElementSibling && node.nextElementSibling.tagName === node.tagName) {
+                        dom.doMerge(node, node.nextElementSibling);
+                    }
+                }
+                range.create(r.ec, r.ec.textContent.length, r.ec, r.ec.textContent.length).select();
+            }
+        }
+        clean_dom_onkeydown();
+        return false;
+    };
+    eventHandler.editor.backspace = function ($editable, options) {
         $editable.data('NoteHistory').recordUndo($editable);
 
         var r = range.create();
-        if (r.isCollapsed() && !keydown[keyCode](r, event) ) {
+        var node = r.sc;
+        while (!node.nextSibling && !node.previousSibling) {node = node.parentNode;}
+        
+        // empty tag
+        if (r.sc===r.ec && !r.sc.textContent.replace(/\s+$/, '').length && node.previousSibling) {
+            var next = node.previousSibling;
+            while (next.tagName && next.lastChild) {next = next.lastChild;}
+            node.parentNode.removeChild(node);
+            range.create(next, next.textContent.length, next, next.textContent.length).select();
+        }
+        // normal feature if same tag and not the begin
+        else if (r.sc===r.ec && r.so || r.eo) return true;
+        // merge with the previous text node
+        else if (r.sc.previousSibling && !r.sc.previousSibling.tagName) return true;
+        // jump to previous node for delete
+        else if (r.sc.previousSibling) {
+            node = r.sc.previousSibling;
+            while (node.lastChild) {
+                node = node.lastChild;
+            }
+            r = range.create(node, node.textContent.length, node, node.textContent.length);
+            r.select();
+            return this.backspace($editable, options);
+        }
+        //merge with the previous block
+        else if (r.isCollapsed() && !r.eo && mergeOnDelete.indexOf(r.sc.parentNode.tagName.toLowerCase()) !== -1) {
 
-            setTimeout(function () {
-                var r = range.create();
-                if (!r) return;
-                var parent = r.sc.parentElement.parentElement;
-                r = dom.merge(parent, r.sc, r.so, r.sc, r.so, null, true);
-                r = dom.removeSpace(parent, r.sc, r.so, r.sc, r.so);
-                if (r.ec.tagName === "BR") {
-                    r.sc = r.ec = r.sc.previousSibling || r.sc.parentNode;
+            summernote_keydown_clean("sc");
+            var prev = r.sc.parentNode.previousElementSibling;
+            var style = window.getComputedStyle(prev);
+
+            if (prev && (r.sc.parentNode.tagName === prev.tagName || style.display !== "block" || !parseInt(style.height))) {
+
+                dom.doMerge(prev, r.sc.parentNode);
+                range.create(r.sc, 0, r.sc, 0).select();
+
+            } else {
+                var check = false;
+                var node = r.sc;
+                var nodes = [node];
+
+                do {
+                    nodes.push(node);
+                    node = node.parentNode;
+                    if (node.previousElementSibling && node.previousElementSibling.tagName !== node.tagName) {
+                        break;
+                    }
+                }  while (node && mergeOnDelete.indexOf(node.tagName.toLowerCase()) !== -1);
+
+                while (nodes.length) {
+                    node = nodes.pop();
+                    if (node && node.previousElementSibling && node.previousElementSibling.tagName === node.tagName) {
+                        dom.doMerge(node.previousElementSibling, node);
+                    }
                 }
-                r.eo = r.eo > r.ec.textContent.length ? r.ec.textContent.length : r.eo;
-                if (r.so > r.eo) r.so = r.eo;
-                range.create(r.sc, r.so, r.ec, r.eo).select();
-            },0);
-
-            event.preventDefault();
-            return false;
-
-        }
-    }
-    var cursor_mousedown;
-    function summernote_mouseup (event) {
-        if ($(event.target).closest("#website-top-navbar, .note-popover, .o_undo").length) {
-            return;
-        }
-        // don't rerange if simple click
-        if (!cursor_mousedown || 10 < Math.pow(cursor_mousedown.clientX-event.clientX, 2)+Math.pow(cursor_mousedown.clientY-event.clientY, 2) ) {
-            reRangeSelect(event);
-        }
-    }
-    function summernote_mousedown (event) {
-        cursor_mousedown = event;
-        var $btn = $(event.target).closest('.note-popover, .o_undo');
-        if ($btn.length) {
-            var r = range.create();
-            if (r) {
-              $(document).one('mouseup', function () {
-                setTimeout(function () {
-                    r = range.create() || r;
-                    var node = r.sc.tagName ? r.sc : r.sc.parentNode;
-                    $(node).trigger("mouseup");
-                    setTimeout(function () {
-                        r.select();
-                        $(node).trigger("keydown");
-                    },0);
-                },0);
-              });
+                range.create(r.sc, 0, r.sc, 0).select();
             }
         }
-    }
-    function summernote_click (event) {
-        if (!$(event.srcElement).closest('.o_undo, .note-editable, .note-popover, .note-link-dialog, .note-image-dialog, .note-air-dialog').length) {
-            $(".note-popover > *").hide();
-        }
-    }
-    var fn_attach = eventHandler.attach;
-    eventHandler.attach = function (oLayoutInfo, options) {
-        fn_attach.call(this, oLayoutInfo, options);
-        oLayoutInfo.editor.on("paste", summernote_paste);
-        oLayoutInfo.editor.on("keydown", summernote_keydown);
-        oLayoutInfo.editor.on('dragstart', 'img', function (e) { e.preventDefault(); });
-        $(document).on('mousedown', summernote_mousedown);
-        $(document).on('mouseup', summernote_mouseup);
-        $(document).on('click', summernote_click);
-        oLayoutInfo.editor.on('dblclick', 'img', function (event) {
-            new website.editor.MediaDialog(oLayoutInfo.editor, event.target).appendTo(document.body);
-        });
+
+        clean_dom_onkeydown();
+        return false;
     };
-    var fn_dettach = eventHandler.dettach;
-    eventHandler.dettach = function (oLayoutInfo, options) {
-        fn_dettach.call(this, oLayoutInfo, options);
-        oLayoutInfo.editor.off("paste", summernote_paste);
-        oLayoutInfo.editor.off("keydown", summernote_keydown);
-        oLayoutInfo.editor.off("dragstart");
-        $(document).off('mousedown', summernote_mousedown);
-        $(document).off('mouseup', summernote_mouseup);
-        $(document).off('click', summernote_click);
-        oLayoutInfo.editor.off("dblclick");
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /* add list command (create a uggly dom for chrome) */
+
+    function isFormatNode(node) {
+        return node.tagName && settings.options.styleTags.indexOf(node.tagName.toLowerCase()) !== -1;
+    }
+
+    eventHandler.editor.insertUnorderedList = function ($editable, sorted) {
+        history.recordUndo($editable);
+
+        var rng = range.create();
+        var node = rng.sc;
+        while (node && node !== $editable[0]) {
+            if (node.tagName === (sorted ? "UL" : "OL")) {
+
+                var ul = document.createElement(sorted ? "ol" : "ul");
+                node.parentNode.insertBefore(ul, node);
+                while (node.firstChild) {
+                    ul.appendChild(node.firstChild);
+                }
+                node.parentNode.removeChild(node);
+                rng.select();
+                return;
+
+            } else if (node.tagName === (sorted ? "OL" : "UL")) {
+
+                var lis = $(node).find("li").get();
+                _.each(lis, function (li) {
+                    while (li.firstChild) {
+                        node.parentNode.insertBefore(li.firstChild, node);
+                    }
+                });
+                node.parentNode.removeChild(node);
+                rng.select();
+                return;
+
+            }
+            node = node.parentNode;
+        }
+
+        var p0 = rng.sc;
+        while (p0 && p0 !== $editable[0] && !isFormatNode(p0)) {
+            p0 = p0.parentNode;
+        }
+        if (!p0) return;
+        var p1 = rng.ec;
+        while (p1 && p1 !== $editable[0] && !isFormatNode(p1)) {
+            p1 = p1.parentNode;
+        }
+        if (p0.parentNode !== p1.parentNode) return;
+
+        var parent = p0.parentNode;
+        var ul = document.createElement(sorted ? "ol" : "ul");
+        var childNodes = parent.childNodes;
+        parent.insertBefore(ul, p0);
+        for (var i=0; i<childNodes.length; i++) {
+            if (!isFormatNode(childNodes[i]) || (!ul.firstChild && childNodes[i] !== p0)) {
+                continue;
+            }
+            var li = document.createElement('li');
+            ul.appendChild(li);
+            li.appendChild(childNodes[i]);
+            if (li.firstChild === p1) {
+                break;
+            }
+            i--;
+        }
+        rng.select();
+    };
+    eventHandler.editor.insertOrderedList = function ($editable) {
+        this.insertUnorderedList($editable, true);
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -965,7 +939,6 @@
         var a = fn_editor_createLink.call(this, $editable, linkInfo, options);
         $(a).attr("class", linkInfo.className);
     };
-
     eventHandler.dialog.showImageDialog = function ($editable, $dialog) {
         var editor = new website.editor.MediaDialog($editable);
         editor.appendTo(document.body);
@@ -973,76 +946,128 @@
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /* hack for list (command create a uggly dom for chrome) */
+    /* attach event to Summernote
+    * paste:
+    *  - change the default feature of contentEditable
+    * mousedown:
+    *  - re-active snippet and carret
+    *  - display editor popover
+    */
 
-    function isFormatNode(node) {
-        return node.tagName && settings.options.styleTags.indexOf(node.tagName.toLowerCase()) !== -1;
-    }
+    function reRangeSelect (event) {
+        var r = range.create();
+        if (!r || r.isCollapsed()) return;
 
-    eventHandler.editor.insertUnorderedList = function ($editable, sorted) {
-        history.recordUndo($editable);
-
-        var rng = range.create();
-        var node = rng.sc;
-        while (node && node !== $editable[0]) {
-            if (node.tagName === (sorted ? "UL" : "OL")) {
-
-                var ul = document.createElement(sorted ? "ol" : "ul");
-                node.parentNode.insertBefore(ul, node);
-                while (node.firstChild) {
-                    ul.appendChild(node.firstChild);
-                }
-                node.parentNode.removeChild(node);
-                rng.select();
-                return;
-
-            } else if (node.tagName === (sorted ? "OL" : "UL")) {
-
-                var lis = $(node).find("li").get();
-                _.each(lis, function (li) {
-                    while (li.firstChild) {
-                        node.parentNode.insertBefore(li.firstChild, node);
-                    }
-                });
-                node.parentNode.removeChild(node);
-                rng.select();
-                return;
-
+        // check if the user move the caret on up or down
+        var ref = false;
+        var node = r.sc;
+        var parent = r.ec.parentNode;
+        while (node) {
+            if (parent === node) {
+                break;
+            }
+            if(event.target === node || event.target.parentNode === node) { /*check parent node for image, iframe and tag without child text node*/
+                ref = true;
+                break;
             }
             node = node.parentNode;
         }
 
-        var p0 = rng.sc;
-        while (p0 && p0 !== $editable[0] && !isFormatNode(p0)) {
-            p0 = p0.parentNode;
-        }
-        if (!p0) return;
-        var p1 = rng.ec;
-        while (p1 && p1 !== $editable[0] && !isFormatNode(p1)) {
-            p1 = p1.parentNode;
-        }
-        if (p0.parentNode !== p1.parentNode) return;
+        r = range.reRange(r.sc, r.so, r.ec, r.eo, ref);
+        setTimeout(function () {
+            r.select();
+        },0);
 
-        var parent = p0.parentNode;
-        var ul = document.createElement(sorted ? "ol" : "ul");
-        var childNodes = parent.childNodes;
-        parent.insertBefore(ul, p0);
-        for (var i=0; i<childNodes.length; i++) {
-            if (!isFormatNode(childNodes[i]) || (!ul.firstChild && childNodes[i] !== p0)) {
-                continue;
+        $(r.sc).closest('.o_editable').data('range', r);
+        return r;
+    }
+    function summernote_paste (event) {
+        // keep norma feature if copy a picture
+        var clipboardData = event.originalEvent.clipboardData;
+        if (clipboardData.items) {
+            var item = list.last(clipboardData.items);
+            var isClipboardImage = item.kind === 'file' && item.type.indexOf('image/') !== -1;
+            if (isClipboardImage) {
+                return true;
             }
-            var li = document.createElement('li');
-            ul.appendChild(li);
-            li.appendChild(childNodes[i]);
-            if (li.firstChild === p1) {
-                break;
-            }
-            i--;
         }
-        rng.select();
+
+        var $editable = $(event.currentTarget);
+        $editable.data('NoteHistory').recordUndo($editable);
+
+        event.preventDefault();
+        var r = range.create();
+        dom.pasteText(r.sc, r.so, clipboardData.getData("text/plain"));
+        return false;
+    }
+    function summernote_keydown_clean (field) {
+        setTimeout(function () {
+            var r = range.create();
+            var node = r[field];
+            while (!node.tagName) {node = node.parentNode;}
+            node = node.parentNode;
+            var data = dom.merge(node, r.sc, r.so, r.ec, r.eo, null, true);
+            data = dom.removeSpace(node, data.sc, data.so, data.sc, data.so);
+
+            range.create(data.sc, data.so, data.sc, data.so).select();
+        },0);
+    }
+    var cursor_mousedown;
+    function summernote_mouseup (event) {
+        if ($(event.target).closest("#website-top-navbar, .note-popover, .o_undo").length) {
+            return;
+        }
+        // don't rerange if simple click
+        if (!cursor_mousedown || 10 < Math.pow(cursor_mousedown.clientX-event.clientX, 2)+Math.pow(cursor_mousedown.clientY-event.clientY, 2) ) {
+            reRangeSelect(event);
+        }
+    }
+    function summernote_mousedown (event) {
+        cursor_mousedown = event;
+        var $btn = $(event.target).closest('.note-popover, .o_undo');
+        if ($btn.length) {
+            var r = range.create();
+            if (r) {
+              $(document).one('mouseup', function () {
+                setTimeout(function () {
+                    r = range.create() || r;
+                    var node = r.sc.tagName ? r.sc : r.sc.parentNode;
+                    $(node).trigger("mouseup");
+                    setTimeout(function () {
+                        r.select();
+                        $(node).trigger("keydown");
+                    },0);
+                },0);
+              });
+            }
+        }
+    }
+    function summernote_click (event) {
+        if (!$(event.srcElement).closest('.o_undo, .note-editable, .note-popover, .note-link-dialog, .note-image-dialog, .note-air-dialog').length) {
+            $(".note-popover > *").hide();
+        }
+    }
+    var fn_attach = eventHandler.attach;
+    eventHandler.attach = function (oLayoutInfo, options) {
+        fn_attach.call(this, oLayoutInfo, options);
+        oLayoutInfo.editor.on("paste", summernote_paste);
+        oLayoutInfo.editor.on('dragstart', 'img', function (e) { e.preventDefault(); });
+        $(document).on('mousedown', summernote_mousedown);
+        $(document).on('mouseup', summernote_mouseup);
+        $(document).on('click', summernote_click);
+        oLayoutInfo.editor.on('dblclick', 'img', function (event) {
+            new website.editor.MediaDialog(oLayoutInfo.editor, event.target).appendTo(document.body);
+        });
     };
-    eventHandler.editor.insertOrderedList = function ($editable) {
-        this.insertUnorderedList($editable, true);
+    var fn_dettach = eventHandler.dettach;
+    eventHandler.dettach = function (oLayoutInfo, options) {
+        fn_dettach.call(this, oLayoutInfo, options);
+        oLayoutInfo.editor.off("paste", summernote_paste);
+        oLayoutInfo.editor.off("dragstart");
+        $(document).off('mousedown', summernote_mousedown);
+        $(document).off('mouseup', summernote_mouseup);
+        $(document).off('click', summernote_click);
+        oLayoutInfo.editor.off("dblclick");
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
