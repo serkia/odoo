@@ -587,10 +587,10 @@ def Project():
         create_context = dict(context, project_creation_in_progress=True,
                               alias_model_name=vals.get('alias_model', 'project.task'),
                               alias_parent_model_name=self._name)
-
-        if vals.get('type', False) not in ('template', 'contract'):
+        if vals.get('type', False) not in ('template', 'contract') and vals.get('partner_id', False):
             vals['type'] = 'contract'
-
+        else: 
+            vals['type'] = 'normal'
         ir_values = self.pool.get('ir.values').get_default(cr, uid, 'project.config.settings', 'generate_project_alias')
         if ir_values:
             vals['alias_name'] = vals.get('alias_name') or vals.get('name')
@@ -605,6 +605,10 @@ def Project():
         if vals.get('alias_model'):
             model_ids = self.pool.get('ir.model').search(cr, uid, [('model', '=', vals.get('alias_model', 'project.task'))])
             vals.update(alias_model_id=model_ids[0])
+        if vals.get('type', False) not in ('template', 'contract') and vals.get('partner_id', False):
+            vals['type'] = 'contract'
+        else: 
+            vals['type'] = 'normal'
         return super(project, self).write(cr, uid, ids, vals, context=context)
 
 

@@ -115,6 +115,7 @@
                             <newline/>
                             <field name="partner_id" on_change="onchange_partner_id(partner_id)"/>
                         </group>
+                        <group name='align'></group>
                         <group name="group_alias"
                                 attrs="{'invisible': [('alias_domain', '=', False)]}">
                             <label for="alias_name" string="Email Alias"/>
