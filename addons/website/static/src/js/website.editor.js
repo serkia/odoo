@@ -822,7 +822,13 @@
                     UL.parentNode.appendChild(ul);
                 }
             } else {
-                node = null;
+                while (node) {
+                    li = node;
+                    node = node.nextElementSibling;
+                    if (li === end || $.contains(li, end)) {
+                        break;
+                    }
+                }
             }
 
             ul.className = className.replace(/indent([0-9])/, function (a,b,c) {
