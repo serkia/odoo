@@ -25,6 +25,17 @@
   font-size: 14px;
   line-height: 1.5;
 }
+.note-popover .popover-content .note-para .dropdown-menu {
+  min-width: 146px !important;
+  padding: 5px 0 5px 5px !important;
+}
+.note-popover .popover-content .note-ul .dropdown-menu {
+  min-width: 150px !important;
+  padding: 5px 0 5px 5px !important;
+}
+.note-popover .popover-content .note-ul .dropdown-menu .note-li {
+  margin-right: 5px;
+}
 .note-popover .popover .popover-content .dropdown-menu a {
   display: block;
 }

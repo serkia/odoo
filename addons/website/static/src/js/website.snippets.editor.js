@@ -645,9 +645,14 @@
                     $zone.data('target',$target);
                     $target.data('overlay',$zone);
 
+                    var timer;
                     $target.on("DOMNodeInserted DOMNodeRemoved DOMSubtreeModified", function () {
-                        self.cover_target($zone, $target);
+                        clearTimeout(timer);
+                        timer = setTimeout(function () {
+                            self.cover_target($zone, $target);
+                        },0);
                     });
+
                     var resize = function () {
                         if ($zone.parent().length) {
                             self.cover_target($zone, $target);

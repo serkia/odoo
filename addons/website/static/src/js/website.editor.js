@@ -459,7 +459,8 @@
     settings.options.keyMap.mac['DELETE'] = 'delete';
     settings.options.keyMap.mac['ENTER'] = 'enter';
 
-    function clean_dom_onkeydown () {
+    function clean_dom_onkeydown () { // fix me
+        return;
         setTimeout(function () {
             var r = range.create();
             if (!r) return;
@@ -478,22 +479,49 @@
     var mergeOnDelete = "h1 h2 h3 h4 h5 h6 p b bold i u code sup strong small li a ul ol".split(" ");
     var forbiddenWrite = ".fa img".split(" ");
 
-    eventHandler.editor.tab = function ($editable, options) {
+    eventHandler.editor.tab = function ($editable, options, outdent) {
         var r = range.create();
-        if (!r.isCollapsed()) {
+        var outdent = outdent || false;
+
+        if (r.isCollapsed()) {
+            if (r.isOnCell()) {
+                this.table.tab(r, outdent);
+            }
+        } else {
             return false;
         }
 
-        var shiftKey = event.shiftKey;
+        if (r.so) {
+            if (!outdent){
+                this.insertTab($editable, r, options.tabsize);
+            }
+            return false;
+        }
+
         var node = r.sc;
-        if (r.so) return true;
-        while (node && node.tagName !== "LI") {
+        while (node && node.tagName !== "LI" && !node.previousElementSibling) {
             node = node.parentNode;
         }
-        console.log(shiftKey, node, event);
-        return false;
+
+        if (node && node.tagName !== "LI") {
+            if (!outdent) {
+                this.insertTab($editable, r, options.tabsize);
+            }
+            return false;
+        }
+
+        if (outdent) {
+            this.outdent($editable);
+        } else {
+            this.indent($editable);
+        }
     };
     eventHandler.editor.untab = function ($editable, options) {
+        var r = range.create();
+        if (r.isCollapsed() && r.isOnCell()) {
+            this.table.tab(r, true);
+        }
+        this.tab($editable, options, true);
     };
     eventHandler.editor.enter = function ($editable, options) {
         $editable.data('NoteHistory').recordUndo($editable);
@@ -695,6 +723,7 @@
             if (node.tagName === (sorted ? "UL" : "OL")) {
 
                 var ul = document.createElement(sorted ? "ol" : "ul");
+                ul.className = "indent0";
                 node.parentNode.insertBefore(ul, node);
                 while (node.firstChild) {
                     ul.appendChild(node.firstChild);
@@ -751,6 +780,101 @@
     eventHandler.editor.insertOrderedList = function ($editable) {
         this.insertUnorderedList($editable, true);
     };
+    eventHandler.editor.indent = function ($editable, outdent) {
+        history.recordUndo($editable);
+        var r = range.create();
+
+        var flag = false;
+        function indent (UL, start, end) {
+            var tagName = UL.tagName;
+            var className = UL.className;
+            var node = UL.firstChild;
+            var ul = UL;
+            var li;
+
+            // search the first
+            while (node && !flag) {
+                if (node === start || $.contains(node, start)) {
+                    flag = true;
+                    break;
+                }
+                node = node.nextElementSibling;
+            }
+
+            // add li into the indented ul
+            if (node.previousElementSibling) {
+                ul = document.createElement(tagName);
+
+                while (node && flag) {
+                    li = node;
+                    node = node.nextElementSibling;
+                    if (li === end || $.contains(li, end)) {
+                        ul.appendChild(li);
+                        flag = false;
+                        break;
+                    }
+                    ul.appendChild(li);
+                }
+                if (UL.nextSibling) {
+                    UL.parentNode.insertBefore(ul, UL.nextSibling);
+                } else {
+                    UL.parentNode.appendChild(ul);
+                }
+            } else {
+                node = null;
+            }
+
+            ul.className = className.replace(/indent([0-9])/, function (a,b,c) {
+                var num = (b ? +b : 0 ) + (outdent ? -1 : 1);
+                return 'indent' + (num < 0 ? 0 : (num > 6 ? 6 : num));
+            });
+
+            // insert the rest of the non-indented ul
+            if (node) {
+                var UL2 = document.createElement(tagName);
+                UL2.className = className;
+                while (node) {
+                    li = node;
+                    node = node.nextElementSibling;
+                    UL2.appendChild(li);
+                }
+                if (ul.nextElementSibling) {
+                    ul.parentNode.insertBefore(UL2, ul.nextSibling);
+                } else {
+                    ul.parentNode.appendChild(UL2);
+                }
+            }
+        }
+
+        var ancestor = dom.commonAncestor(r.sc, r.ec);
+        var $ul = $('ul, ol', ancestor);
+        if (!$ul.length) {
+            $ul = $(r.sc).closest('ul, ol');
+        }
+        $ul.each(function () {
+            indent(this, r.sc, r.ec);
+            if (this.previousSibling &&
+                this.previousSibling !== this.previousElementSibling &&
+                !this.previousSibling.textContent.match(/\S/)) {
+                this.parentNode.removeChild(this.previousSibling);
+            }
+            if (this.nextSibling &&
+                this.nextSibling !== this.nextElementSibling &&
+                !this.nextSibling.textContent.match(/\S/)) {
+                this.parentNode.removeChild(this.nextSibling);
+            }
+        });
+
+        dom.merge($ul.parent()[0], r.sc, r.so, r.ec, r.eo, function (prev, cur) {
+                if (prev && (prev.tagName === "UL" || prev.tagName === "OL") && dom.isEqual(prev, cur)) {
+                    return true;
+                }
+            }, true);
+        r.select();
+    };
+    eventHandler.editor.outdent = function ($editable) {
+        this.indent($editable, true);
+    };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     /* update and change the popovers content, and add history button */
@@ -794,7 +918,21 @@
         $ul.append('<li><a data-event="padding" href="#" data-value="large">'+_t('Large')+'</a></li>');
         $ul.append('<li><a data-event="padding" href="#" data-value="xl">'+_t('xl')+'</a></li>');
 
-        //////////////// highlight the text format
+        //////////////// text/air popover
+
+        var $para = $airPopover.find(".note-para");
+        var $parent = $('<div class="note-ul btn-group"/>').insertBefore($para);
+        var $button = $(renderer.tplIconButton('fa fa-list-ul', {
+                title: _t('List'),
+                dropdown: true
+            }))
+            .appendTo($parent);
+        var $div = $('<div class="dropdown-menu"><div class="note-li btn-group"/></div>').insertAfter($button);
+        $para.find('[data-event="insertUnorderedList"]').appendTo($div.children());
+        $para.find('[data-event="insertOrderedList"]').appendTo($div.children());
+        $para.find('div.note-list').appendTo($div);
+
+        //// highlight the text format
 
         $airPopover.find('.note-style').on('mousedown', function () {
             var $format = $airPopover.find('[data-event="formatBlock"]');
@@ -850,6 +988,23 @@
             $next.attr('disabled', !history.hasRedo());
         }).click();
     }
+    var fn_boutton_update = eventHandler.popover.button.update;
+    eventHandler.popover.button.update = function ($container, oStyle) {
+        fn_boutton_update.call(this, $container, oStyle);
+
+        $container.find('a[data-event="padding"][data-value="small"]').parent().toggleClass("active", $(oStyle.image).hasClass("padding-small"));
+        $container.find('a[data-event="padding"][data-value="medium"]').parent().toggleClass("active", $(oStyle.image).hasClass("padding-medium"));
+        $container.find('a[data-event="padding"][data-value="large"]').parent().toggleClass("active", $(oStyle.image).hasClass("padding-large"));
+        $container.find('a[data-event="padding"][data-value="xl"]').parent().toggleClass("active", $(oStyle.image).hasClass("padding-xl"));
+
+        $container.find('button[data-event="resize"][data-value="1"]').toggleClass("active", $(oStyle.image).hasClass("img-responsive"));
+        $container.find('button[data-event="resize"][data-value="0.5"]').toggleClass("active", $(oStyle.image).hasClass("img-responsive-50"));
+        $container.find('button[data-event="resize"][data-value="0.25"]').toggleClass("active", $(oStyle.image).hasClass("img-responsive-25"));
+
+        $container.find('button[data-event="floatMe"][data-value="left"]').toggleClass("active", $(oStyle.image).hasClass("pull-left"));
+        $container.find('button[data-event="floatMe"][data-value="center"]').toggleClass("active", $(oStyle.image).hasClass("center-block"));
+        $container.find('button[data-event="floatMe"][data-value="right"]').toggleClass("active", $(oStyle.image).hasClass("pull-right"));
+    };
     var fn_popover_update = eventHandler.popover.update;
     eventHandler.popover.update = function ($popover, oStyle, isAirMode) {
         var $imagePopover = $popover.find('.note-image-popover');
@@ -872,19 +1027,6 @@
         if (oStyle.image) {
             $imagePopover.show();
             range.create(oStyle.image,0,oStyle.image,0).select();
-
-            $imagePopover.find('a[data-event="padding"][data-value="small"]').parent().toggleClass("active", $(oStyle.image).hasClass("padding-small"));
-            $imagePopover.find('a[data-event="padding"][data-value="medium"]').parent().toggleClass("active", $(oStyle.image).hasClass("padding-medium"));
-            $imagePopover.find('a[data-event="padding"][data-value="large"]').parent().toggleClass("active", $(oStyle.image).hasClass("padding-large"));
-            $imagePopover.find('a[data-event="padding"][data-value="xl"]').parent().toggleClass("active", $(oStyle.image).hasClass("padding-xl"));
-
-            $imagePopover.find('button[data-event="resize"][data-value="1"]').toggleClass("active", $(oStyle.image).hasClass("img-responsive"));
-            $imagePopover.find('button[data-event="resize"][data-value="0.5"]').toggleClass("active", $(oStyle.image).hasClass("img-responsive-50"));
-            $imagePopover.find('button[data-event="resize"][data-value="0.25"]').toggleClass("active", $(oStyle.image).hasClass("img-responsive-25"));
-
-            $imagePopover.find('button[data-event="floatMe"][data-value="left"]').toggleClass("active", $(oStyle.image).hasClass("pull-left"));
-            $imagePopover.find('button[data-event="floatMe"][data-value="center"]').toggleClass("active", $(oStyle.image).hasClass("center-block"));
-            $imagePopover.find('button[data-event="floatMe"][data-value="right"]').toggleClass("active", $(oStyle.image).hasClass("pull-right"));
         }
 
         if (oStyle.anchor && ($airPopover.is(':visible') || (oStyle.image && !$(oStyle.image).closest('a').length))) {

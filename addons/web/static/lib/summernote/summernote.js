@@ -1725,6 +1725,9 @@
     var style = new Style();
     var table = new Table();
 
+    this.style = style; // hack odoo
+    this.table = table; // hack odoo
+
     /**
      * save current range
      *
@@ -1817,6 +1820,7 @@
       rng.select();
       dom.remove($tab[0]);
     };
+    this.insertTab = insertTab; // hack odoo
 
     /**
      * handle tab key
@@ -2324,6 +2328,7 @@
    */
   var Toolbar = function () {
     var button = new Button();
+    this.button = button; // hack odoo
 
     this.update = function ($toolbar, oStyle) {
       button.update($toolbar, oStyle);
@@ -2365,6 +2370,7 @@
    */
   var Popover = function () {
     var button = new Button();
+    this.button = button; // hack odoo
 
     /**
      * returns position from placeholder
