@@ -723,7 +723,7 @@
             if (node.tagName === (sorted ? "UL" : "OL")) {
 
                 var ul = document.createElement(sorted ? "ol" : "ul");
-                ul.className = "indent0";
+                ul.className = node.className;
                 node.parentNode.insertBefore(ul, node);
                 while (node.firstChild) {
                     ul.appendChild(node.firstChild);
@@ -761,6 +761,7 @@
 
         var parent = p0.parentNode;
         var ul = document.createElement(sorted ? "ol" : "ul");
+        ul.className = "indent0";
         var childNodes = parent.childNodes;
         parent.insertBefore(ul, p0);
         for (var i=0; i<childNodes.length; i++) {
