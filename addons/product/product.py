@@ -22,7 +22,7 @@
 import math
 import re
 import time
-from _common import ceiling
+from _common import ceiling, rounding
 
 from openerp import SUPERUSER_ID
 from openerp import tools
@@ -179,10 +179,15 @@ class product_uom(osv.osv):
             else:
                 return qty
         amount = qty / from_unit.factor
+
         if to_unit:
             amount = amount * to_unit.factor
             if round:
+                amount_orig = amount
                 amount = ceiling(amount, to_unit.rounding)
+                rounding_error = qty * (10 ** -9) / from_unit.factor + from_unit.rounding * to_unit.factor / from_unit.factor
+                if rounding_error > abs(amount_orig - rounding(amount_orig, to_unit.rounding)):
+                    amount = rounding(amount_orig, to_unit.rounding)
         return amount
 
     def _compute_price(self, cr, uid, from_uom_id, price, to_uom_id=False):
