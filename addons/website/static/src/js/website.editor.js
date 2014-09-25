@@ -887,13 +887,32 @@
 
             var node = ancestor.firstChild;
             var nodes = [];
+            var keep = false;
             while (node) {
-                nodes.push(node);
+                if (!keep && (node === r.sc || $.contains(node, r.sc))) {
+                    keep = true;
+                }
+                if (keep) {
+                    nodes.push(node);
+                    if (node === r.ec || $.contains(node, r.ec)) {
+                        break;
+                    }
+                }
                 node = node.nextElementSibling;
             }
             nodes = _.filter(nodes, function (node) { return isFormatNode(node); });
 
-            console.log(nodes);
+            _.each(nodes, function (node) {
+                if (node.className.match(/indent([0-9])/)) {
+                    node.className = node.className.replace(/indent([0-9])/, function (a,b,c) {
+                        var num = (b ? +b : 0 ) + (outdent ? -1 : 1);
+                        if (!num) return "";
+                        return 'indent' + (num > 6 ? 6 : num);
+                    });
+                } else if(!outdent) {
+                    node.className = (node.className || "") + ' indent1';
+                }
+            });
 
         } else {
 
