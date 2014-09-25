@@ -45,7 +45,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
                 this.popup_set[popup_name].hide();
             }
 
-            this.pos.get('selectedOrder').set_screen_data({
+            this.pos.get_order().set_screen_data({
                 'screen': this.default_screen,
             });
 
@@ -70,11 +70,12 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
                 this.current_popup = null;
             }
         },
-        load_saved_screen:  function(){
+        load_saved_screen:  function(options){
+            options = options || {};
             this.close_popup();
-            var selectedOrder = this.pos.get('selectedOrder');
+            var selectedOrder = this.pos.get_order();
             // FIXME : this changing screen behaviour is sometimes confusing ... 
-            this.set_current_screen(selectedOrder.get_screen_data('screen') || this.default_screen,null,'refresh');
+            this.set_current_screen(selectedOrder.get_screen_data('screen') || options.default_screen || this.default_screen,null,'refresh');
             //this.set_current_screen(this.default_screen,null,'refresh');
             
         },
@@ -96,17 +97,19 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
 
             this.close_popup();
 
-            var order = this.pos.get('selectedOrder');
-            var old_screen_name = order.get_screen_data('screen');
+            var order = this.pos.get_order();
+            if (order) {
+                var old_screen_name = order.get_screen_data('screen');
 
-            order.set_screen_data('screen',screen_name);
+                order.set_screen_data('screen',screen_name);
 
-            if(params){
-                order.set_screen_data('params',params);
-            }
+                if(params){
+                    order.set_screen_data('params',params);
+                }
 
-            if( screen_name !== old_screen_name ){
-                order.set_screen_data('previous-screen',old_screen_name);
+                if( screen_name !== old_screen_name ){
+                    order.set_screen_data('previous-screen',old_screen_name);
+                }
             }
 
             if ( refresh || screen !== this.current_screen){
@@ -119,16 +122,16 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             }
         },
         get_current_screen: function(){
-            return this.pos.get('selectedOrder').get_screen_data('screen') || this.default_screen;
+            return this.pos.get_order().get_screen_data('screen') || this.default_screen;
         },
         back: function(){
-            var previous = this.pos.get('selectedOrder').get_screen_data('previous-screen');
+            var previous = this.pos.get_order().get_screen_data('previous-screen');
             if(previous){
                 this.set_current_screen(previous);
             }
         },
         get_current_screen_param: function(param){
-            var params = this.pos.get('selectedOrder').get_screen_data('params');
+            var params = this.pos.get_order().get_screen_data('params');
             return params ? params[param] : undefined;
         },
         set_default_screen: function(){
@@ -194,7 +197,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
         barcode_client_action: function(code){
             var partner = this.pos.db.get_partner_by_ean13(code.code);
             if(partner){
-                this.pos.get('selectedOrder').set_client(partner);
+                this.pos.get_order().set_client(partner);
                 this.pos_widget.username.refresh();
                 return true;
             }
@@ -205,7 +208,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
         // what happens when a discount barcode is scanned : the default behavior
         // is to set the discount on the last order.
         barcode_discount_action: function(code){
-            var last_orderline = this.pos.get('selectedOrder').getLastOrderline();
+            var last_orderline = this.pos.get_order().getLastOrderline();
             if(last_orderline){
                 last_orderline.set_discount(code.value)
             }
@@ -486,7 +489,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             }
         },
         order_product: function(){
-            this.pos.get('selectedOrder').addProduct(this.get_product(),{ quantity: this.weight });
+            this.pos.get_order().addProduct(this.get_product(),{ quantity: this.weight });
         },
         get_product_name: function(){
             var product = this.get_product();
@@ -543,7 +546,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
                     if(product.to_weight && self.pos.config.iface_electronic_scale){
                         self.pos_widget.screen_selector.set_current_screen('scale',{product: product});
                     }else{
-                        self.pos.get('selectedOrder').addProduct(product);
+                        self.pos.get_order().addProduct(product);
                     }
                 },
                 product_list: this.pos.db.get_product_by_category(0)
@@ -593,7 +596,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
 
             this.renderElement();
             this.details_visible = false;
-            this.old_client = this.pos.get('selectedOrder').get('client');
+            this.old_client = this.pos.get_order().get_client()
             this.new_client = this.old_client;
 
             this.$('.back').click(function(){
@@ -678,7 +681,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
         },
         save_changes: function(){
             if( this.has_client_changed() ){
-                this.pos.get('selectedOrder').set_client(this.new_client);
+                this.pos.get_order().set_client(this.new_client);
             }
         },
         has_client_changed: function(){
@@ -817,10 +820,10 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             window.print();
         },
         finishOrder: function() {
-            this.pos.get('selectedOrder').destroy();
+            this.pos.get_order().destroy();
         },
         refresh: function() {
-            var order = this.pos.get('selectedOrder');
+            var order = this.pos.get_order();
             $('.pos-receipt-container', this.$el).html(QWeb.render('PosTicket',{
                     widget:this,
                     order: order,
@@ -843,8 +846,10 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             this._super(parent,options);
 
             this.pos.bind('change:selectedOrder',function(){
-                    this.bind_events();
-                    this.renderElement();
+                    if (this.pos.get_order()) {
+                        this.bind_events();
+                        this.renderElement();
+                    }
                 },this);
 
             this.bind_events();
@@ -855,7 +860,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
                     node = node.parentNode;
                 }
                 if(node){
-                    self.pos.get('selectedOrder').removePaymentline(node.line)   
+                    self.pos.get_order().removePaymentline(node.line)   
                 }
                 event.stopPropagation();
             };
@@ -876,7 +881,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
                     node = node.parentNode;
                 }
                 if(node){
-                    self.pos.get('selectedOrder').selectPaymentline(node.line);
+                    self.pos.get_order().selectPaymentline(node.line);
                 }
             };
 
@@ -946,7 +951,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             document.body.removeEventListener('keyup',this.hotkey_handler);
         },
         remove_empty_lines: function(){
-            var order = this.pos.get('selectedOrder');
+            var order = this.pos.get_order();
             var lines = order.get('paymentLines').models.slice(0);
             for(var i = 0; i < lines.length; i++){ 
                 var line = lines[i];
@@ -963,9 +968,9 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             if(this.old_order){
                 this.old_order.unbind(null,null,this);
             }
-            var order = this.pos.get('selectedOrder');
-                order.bind('change:selected_paymentline',this.focus_selected_line,this);
 
+            var order = this.pos.get_order();
+            order.bind('change:selected_paymentline',this.focus_selected_line,this);
             this.old_order = order;
 
             if(this.old_paymentlines){
@@ -994,7 +999,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             this.old_orderlines = orderlines;
         },
         focus_selected_line: function(){
-            var line = this.pos.get('selectedOrder').selected_paymentline;
+            var line = this.pos.get_order().selected_paymentline;
             if(line){
                 var input = line.node.querySelector('input');
                 if(!input){
@@ -1054,7 +1059,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
         renderElement: function(){
             this._super();
 
-            var paymentlines   = this.pos.get('selectedOrder').get('paymentLines').models;
+            var paymentlines   = this.pos.get_order().get('paymentLines').models;
             var list_container = this.el.querySelector('.payment-lines');
 
             for(var i = 0; i < paymentlines.length; i++){
@@ -1064,7 +1069,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             this.update_payment_summary();
         },
         update_payment_summary: function() {
-            var currentOrder = this.pos.get('selectedOrder');
+            var currentOrder = this.pos.get_order();
             var paidTotal = currentOrder.getPaidTotal();
             var dueTotal = currentOrder.getTotalTaxIncluded();
             var remaining = dueTotal > paidTotal ? dueTotal - paidTotal : 0;
@@ -1084,7 +1089,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             }
         },
         is_paid: function(){
-            var currentOrder = this.pos.get('selectedOrder');
+            var currentOrder = this.pos.get_order();
             return (currentOrder.getTotalTaxIncluded() < 0.000001 
                    || currentOrder.getPaidTotal() + 0.000001 >= currentOrder.getTotalTaxIncluded());
 
@@ -1093,14 +1098,14 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
             var self = this;
             options = options || {};
 
-            var currentOrder = this.pos.get('selectedOrder');
+            var currentOrder = this.pos.get_order();
 
             if(!this.is_paid()){
                 return;
             }
 
             if(    this.pos.config.iface_cashdrawer 
-                && this.pos.get('selectedOrder').get('paymentLines').find( function(pl){ 
+                && this.pos.get_order().get('paymentLines').find( function(pl){ 
                            return pl.cashregister.journal.type === 'cash'; 
                    })){
                     this.pos.proxy.open_cashbox();
@@ -1132,7 +1137,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
                 invoiced.done(function(){
                     self.pos_widget.action_bar.set_button_disabled('validation',false);
                     self.pos_widget.action_bar.set_button_disabled('invoice',false);
-                    self.pos.get('selectedOrder').destroy();
+                    self.pos.get_order().destroy();
                 });
 
             }else{
@@ -1142,7 +1147,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
                     this.pos.proxy.print_receipt(QWeb.render('XmlReceipt',{
                         receipt: receipt, widget: self,
                     }));
-                    this.pos.get('selectedOrder').destroy();    //finish order and go back to scan screen
+                    this.pos.get_order().destroy();    //finish order and go back to scan screen
                 }else{
                     this.pos_widget.screen_selector.set_current_screen(this.next_screen);
                 }
@@ -1175,7 +1180,7 @@ function openerp_pos_screens(instance, module){ //module is instance.point_of_sa
     		this.numpad_state.set({mode: 'payment'});
     	},
         set_value: function(val) {
-            var selected_line =this.pos.get('selectedOrder').selected_paymentline;
+            var selected_line =this.pos.get_order().selected_paymentline;
             if(selected_line){
                 selected_line.set_amount(val);
                 selected_line.node.querySelector('input').value = selected_line.amount.toFixed(2);
