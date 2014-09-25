@@ -51,11 +51,14 @@
 .mb0
     margin-bottom: 0px !important
 
-img, .img
+img, .img, span.fa, iframe, div.media_iframe_video
+    &.img-responsive
+        max-width: 100%
     &.img-responsive-50
         max-width: 50%
     &.img-responsive-25
         max-width: 25%
+img, .img, span.fa, iframe
     &.padding-small
         padding: 4px
     &.padding-medium
@@ -63,6 +66,15 @@ img, .img
     &.padding-large
         padding: 16px
     &.padding-xl
+        padding: 32px
+div.media_iframe_video
+    &.padding-small iframe
+        padding: 4px
+    &.padding-medium iframe
+        padding: 8px
+    &.padding-large iframe
+        padding: 16px
+    &.padding-xl iframe
         padding: 32px
 
 p,ul,ol,h1,h2,h3,h4,h5,h6
@@ -529,8 +541,6 @@ div.media_iframe_video
     iframe
         width: 100%
         height: 100%
-        position: absolute
-        margin-left: -50%
     .css_editable_mode_display
         position: absolute
         width: 100%

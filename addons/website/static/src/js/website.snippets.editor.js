@@ -326,6 +326,11 @@
             this.$snippet.trigger('snippet-activated', $snippet);
             if ($snippet) {
                 $snippet.trigger('snippet-activated', $snippet);
+                
+                if ($snippet.hasClass('o_need_recover')) {
+                    $snippet.removeClass('o_need_recover');
+                    this.cover_target($snippet.data('overlay'), $snippet);
+                }
             }
         },
         create_overlay: function ($snippet) {
@@ -645,12 +650,8 @@
                     $zone.data('target',$target);
                     $target.data('overlay',$zone);
 
-                    var timer;
                     $target.on("DOMNodeInserted DOMNodeRemoved DOMSubtreeModified", function () {
-                        clearTimeout(timer);
-                        timer = setTimeout(function () {
-                            self.cover_target($zone, $target);
-                        },0);
+                        $target.addClass('o_need_recover');
                     });
 
                     var resize = function () {
@@ -1537,7 +1538,6 @@
         },
         on_focus : function () {
             var self = this;
-            this.$overlay.find(".oe_snippet_remove").removeClass('hidden');
             if (this.$target.parent().data("oe-field") === "image") {
                 this.$overlay.addClass("hidden");
                 new website.editor.MediaDialog(self.$target.closest('.o_editable'), self.$target[0]).appendTo(document.body);

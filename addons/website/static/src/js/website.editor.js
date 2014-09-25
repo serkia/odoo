@@ -296,8 +296,8 @@
     dom.pasteText = function (textNode, offset, text, isOnlyText) {
         // clean the node
         var data = dom.merge(textNode.parentElement.parentElement, textNode, offset, textNode, offset, null, true);
-        data = dom.removeSpace(textNode.parentElement.parentElement, data.sc, data.so, data.ec, data.eo);
         var node = textNode.parentNode;
+        data = dom.removeSpace(textNode.parentElement.parentElement, data.sc, data.so, data.ec, data.eo);
         while(!node.tagName) {node = node.parentNode;}
         // Break the text node up
         if (data.sc.tagName) {
@@ -456,7 +456,7 @@
     settings.options.keyMap.pc['ENTER'] = 'enter';
 
     settings.options.keyMap.mac['BACKSPACE'] = 'backspace';
-    settings.options.keyMap.mac['DELETE'] = 'delete';
+    settings.options.keyMap.mac['CMD+BACKSPACE'] = 'delete';
     settings.options.keyMap.mac['ENTER'] = 'enter';
 
     function clean_dom_onkeydown () { // fix me
@@ -571,6 +571,9 @@
         $editable.data('NoteHistory').recordUndo($editable);
         
         var r = range.create();
+        if (!r || !r.isCollapsed()) {
+            return true;
+        }
         var node = r.ec;
         while (!node.nextSibling && !node.previousSibling) {node = node.parentNode;}
         
@@ -641,6 +644,9 @@
         $editable.data('NoteHistory').recordUndo($editable);
 
         var r = range.create();
+        if (!r || !r.isCollapsed()) {
+            return true;
+        }
         var node = r.sc;
         while (!node.nextSibling && !node.previousSibling) {node = node.parentNode;}
         
@@ -761,7 +767,6 @@
 
         var parent = p0.parentNode;
         var ul = document.createElement(sorted ? "ol" : "ul");
-        ul.className = "indent0";
         var childNodes = parent.childNodes;
         parent.insertBefore(ul, p0);
         for (var i=0; i<childNodes.length; i++) {
@@ -802,6 +807,10 @@
                 node = node.nextElementSibling;
             }
 
+            if (!flag) {
+                return;
+            }
+
             // add li into the indented ul
             if (node.previousElementSibling) {
                 ul = document.createElement(tagName);
@@ -826,6 +835,7 @@
                     li = node;
                     node = node.nextElementSibling;
                     if (li === end || $.contains(li, end)) {
+                        flag = false;
                         break;
                     }
                 }
@@ -860,6 +870,7 @@
         }
         $ul.each(function () {
             indent(this, r.sc, r.ec);
+
             if (this.previousSibling &&
                 this.previousSibling !== this.previousElementSibling &&
                 !this.previousSibling.textContent.match(/\S/)) {
@@ -872,12 +883,30 @@
             }
         });
 
-        dom.merge($ul.parent()[0], r.sc, r.so, r.ec, r.eo, function (prev, cur) {
-                if (prev && (prev.tagName === "UL" || prev.tagName === "OL") && dom.isEqual(prev, cur)) {
-                    return true;
-                }
-            }, true);
-        r.select();
+        if (!$ul.length) {
+
+            var node = ancestor.firstChild;
+            var nodes = [];
+            while (node) {
+                nodes.push(node);
+                node = node.nextElementSibling;
+            }
+            nodes = _.filter(nodes, function (node) { return isFormatNode(node); });
+
+            console.log(nodes);
+
+        } else {
+
+            // merge same ul or ol
+            var parent = $ul.parent()[0];
+            r = dom.merge(parent, r.sc, r.so, r.ec, r.eo, function (prev, cur) {
+                    if (prev && (prev.tagName === "UL" || prev.tagName === "OL") && dom.isEqual(prev, cur)) {
+                        return true;
+                    }
+                }, true);
+            range.create(r.sc, r.so, r.ec, r.eo).select();
+
+        }
     };
     eventHandler.editor.outdent = function ($editable) {
         this.indent($editable, true);
@@ -903,27 +932,35 @@
                 title: _t('Center'),
                 event: 'floatMe',
                 value: 'center'
-            }))
-            .insertAfter('[data-event="floatMe"][data-value="left"]');
-
+            })).insertAfter('[data-event="floatMe"][data-value="left"]');
         $imagePopover.find('button[data-event="removeMedia"]').parent().remove();
         $imagePopover.find('button[data-event="floatMe"][data-value="none"]').remove();
 
         // padding button
         var $padding = $('<div class="o_undo btn-group"/>');
         $padding.insertBefore($imagePopover.find('.btn-group:first'));
-
         var $button = $(renderer.tplIconButton('fa fa-plus-square-o', {
                 title: _t('Padding'),
                 dropdown: true
-            }))
-            .appendTo($padding);
-
+            })).appendTo($padding);
         var $ul = $('<ul class="dropdown-menu"/>').insertAfter($button);
+        $ul.append('<li><a data-event="padding" href="#" data-value="">'+_t('None')+'</a></li>');
         $ul.append('<li><a data-event="padding" href="#" data-value="small">'+_t('Small')+'</a></li>');
         $ul.append('<li><a data-event="padding" href="#" data-value="medium">'+_t('Medium')+'</a></li>');
         $ul.append('<li><a data-event="padding" href="#" data-value="large">'+_t('Large')+'</a></li>');
         $ul.append('<li><a data-event="padding" href="#" data-value="xl">'+_t('xl')+'</a></li>');
+
+        // padding button
+        var $imageprop = $('<div class="o_image btn-group"/>');
+        $imageprop.appendTo($imagePopover.find('.popover-content'));
+        $(renderer.tplIconButton('fa fa-picture-o', {
+                title: _t('Edit'),
+                event: 'showImageDialog'
+            })).appendTo($imageprop);
+        $(renderer.tplIconButton('fa fa-trash-o', {
+                title: _t('Remove'),
+                event: 'delete'
+            })).appendTo($imageprop);
 
         //////////////// text/air popover
 
@@ -999,10 +1036,13 @@
     eventHandler.popover.button.update = function ($container, oStyle) {
         fn_boutton_update.call(this, $container, oStyle);
 
+        $container.find('[data-event]').parent().removeClass("active");
+
         $container.find('a[data-event="padding"][data-value="small"]').parent().toggleClass("active", $(oStyle.image).hasClass("padding-small"));
         $container.find('a[data-event="padding"][data-value="medium"]').parent().toggleClass("active", $(oStyle.image).hasClass("padding-medium"));
         $container.find('a[data-event="padding"][data-value="large"]').parent().toggleClass("active", $(oStyle.image).hasClass("padding-large"));
         $container.find('a[data-event="padding"][data-value="xl"]').parent().toggleClass("active", $(oStyle.image).hasClass("padding-xl"));
+        $container.find('a[data-event="padding"][data-value=""]').parent().toggleClass("active", !$container.find('.active a[data-event="padding"]').length);
 
         $container.find('button[data-event="resize"][data-value="1"]').toggleClass("active", $(oStyle.image).hasClass("img-responsive"));
         $container.find('button[data-event="resize"][data-value="0.5"]').toggleClass("active", $(oStyle.image).hasClass("img-responsive-50"));
@@ -1032,6 +1072,9 @@
         }
 
         if (oStyle.image) {
+            if (oStyle.image.parentNode.className.match(/(^|\s)media_iframe_video(\s|$)/i)) {
+                oStyle.image = oStyle.image.parentNode;
+            }
             $imagePopover.show();
             range.create(oStyle.image,0,oStyle.image,0).select();
         }
@@ -1053,9 +1096,12 @@
 
     eventHandler.editor.padding = function ($editable, sValue, $target) {
         var paddings = "small medium large xl".split(/\s+/);
-        paddings.splice(paddings.indexOf(sValue),1);
         $editable.data('NoteHistory').recordUndo($editable);
-        $target.toggleClass('padding-'+sValue).removeClass("padding-" + paddings.join(" padding-"));
+        if (sValue.length) {
+            paddings.splice(paddings.indexOf(sValue),1);
+            $target.toggleClass('padding-'+sValue);
+        }
+        $target.removeClass("padding-" + paddings.join(" padding-"));
         setTimeout(function () { $target.trigger("mouseup"); },0);
     };
     eventHandler.editor.resize = function ($editable, sValue, $target) {
@@ -1094,10 +1140,18 @@
         var a = fn_editor_createLink.call(this, $editable, linkInfo, options);
         $(a).attr("class", linkInfo.className);
     };
-    eventHandler.dialog.showImageDialog = function ($editable, $dialog) {
-        var editor = new website.editor.MediaDialog($editable);
+    eventHandler.dialog.showImageDialog = function ($editable) {
+        var r = range.create();
+        var editor = new website.editor.MediaDialog($editable, dom.isImg(r.sc) ? r.sc : null);
         editor.appendTo(document.body);
         return new $.Deferred().reject();
+    };
+
+    dom.isImg = function (node) {
+        return node && (node.nodeName === "IMG" ||
+            (node.nodeName === "SPAN" && node.className.match(/(^|\s)fa(-|\s|$)/i)) ||
+            (node.className.match(/(^|\s)media_iframe_video(\s|$)/i)) ||
+            (node.parentNode.className.match(/(^|\s)media_iframe_video(\s|$)/i)) );
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1128,12 +1182,14 @@
             node = node.parentNode;
         }
 
-        r = range.reRange(r.sc, r.so, r.ec, r.eo, ref);
-        setTimeout(function () {
-            r.select();
-        },0);
+        var data = range.reRange(r.sc, r.so, r.ec, r.eo, ref);
+        if (data.sc !== r.sc || data.so !== r.so || data.ec !== r.ec || data.eo !== r.eo) {
+            setTimeout(function () {
+                data.select();
+            },0);
+        }
 
-        $(r.sc).closest('.o_editable').data('range', r);
+        $(data.sc).closest('.o_editable').data('range', r);
         return r;
     }
     function summernote_paste (event) {
@@ -2085,6 +2141,7 @@
         close: function () {
         },
     });
+
     website.editor.MediaDialog = website.editor.Dialog.extend({
         template: 'website.editor.dialog.media',
         events : _.extend({}, website.editor.Dialog.prototype.events, {
@@ -2102,6 +2159,23 @@
             var self = this;
 
             this.range = range.create();
+
+            if (this.media) {
+                if (this.media.nodeName === "IMG") {
+                    this.$('[href="#editor-media-image"]').tab('show');
+                } else if (this.media.className.match(/(^|\s)media_iframe_video($|\s)/)) {
+                    this.$('[href="#editor-media-video"]').tab('show');
+                }  else if (this.media.parentNode.className.match(/(^|\s)media_iframe_video($|\s)/)) {
+                    this.media = this.media.parentNode;
+                    this.$('[href="#editor-media-video"]').tab('show');
+                } else if (this.media.className.match(/(^|\s)fa($|\s)/)) {
+                    this.$('[href="#editor-media-icon"]').tab('show');
+                }
+
+                if ($(this.media).parent().data("oe-field") === "image") {
+                    this.$('[href="#editor-media-video"], [href="#editor-media-icon"]').addClass('hidden');
+                }
+            }
 
             this.imageDialog = new website.editor.RTEImageDialog(this, this.media);
             this.imageDialog.appendTo(this.$("#editor-media-image"));
@@ -2126,19 +2200,6 @@
                 }
             });
 
-            if (this.media) {
-                if (this.media.nodeName === "IMG") {
-                    this.$('[href="#editor-media-image"]').tab('show');
-                } else if (this.media.className.match(/(^|\s)media_iframe_video($|\s)/)) {
-                    this.$('[href="#editor-media-video"]').tab('show');
-                } else if (this.media.className.match(/(^|\s)fa($|\s)/)) {
-                    this.$('[href="#editor-media-icon"]').tab('show');
-                }
-
-                if ($(this.media).parent().data("oe-field") === "image") {
-                    this.$('[href="#editor-media-video"], [href="#editor-media-icon"]').addClass('hidden');
-                }
-            }
             return this._super();
         },
         save: function () {
@@ -2248,10 +2309,17 @@
             if (!this.link) {
                 this.link = this.$(".existing-attachments img:first").attr('src');
             }
+
+            if (this.media.tagName !== "IMG") {
+                var media = document.createElement('img');
+                $(this.media).replaceWith(media);
+                this.media = media;
+            }
+
             this.trigger('save', {
                 url: this.link
             });
-            //this.media.renameNode("img");
+
             $(this.media).attr('src', this.link);
             return this._super();
         },
@@ -2506,13 +2574,12 @@
                     return cls === 'fa' || /^fa-/.test(cls);
                 });
                 var final_classes = non_fa_classes.concat(this.get_fa_classes());
-                if (this.media.tagName !== "span") {
+                if (this.media.tagName !== "SPAN") {
                     var media = document.createElement('span');
-                    this.media.parentNode.insertBefore(media, this.media);
-                    $(this.media).remove();
+                    $(this.media).replaceWith(media);
                     this.media = media;
                 }
-                $(this.media).addClass(final_classes.join(' ')).attr("style", style);
+                $(this.media).attr("class", final_classes.join(' ')).attr("style", style);
             }
             this._super();
         },
@@ -2603,7 +2670,7 @@
         }),
         start: function () {
             this.$iframe = this.$("iframe");
-            var $media = $(this.media && this.media);
+            var $media = $(this.media);
             if ($media.hasClass("media_iframe_video")) {
                 var src = $media.data('src');
                 this.$("input#urlvideo").val(src);
