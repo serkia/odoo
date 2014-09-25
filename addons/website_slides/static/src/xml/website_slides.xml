@@ -125,7 +125,7 @@
         <div>
             <div id="PDFLoader" class="img-responsive slide-width">
                 <h3 class="slide-img-text text-center" id="PDFLoading" style="display:none"><i class='fa fa-spinner fa-spin'></i> Loading presenation... </h3>
-                <img t-attf-src="/website/image/ir.attachment/#{widget.id}/image" id="PDFViewer-image" class="img-responsive slide-width"/>
+                <img t-attf-src="/website/image/slide.slide/#{widget.id}/image" id="PDFViewer-image" class="img-responsive slide-width"/>
            </div>
            <div class="slide-wrapper">
                 <canvas id="PDFViewer" class="img-responsive" style="display:none"></canvas>

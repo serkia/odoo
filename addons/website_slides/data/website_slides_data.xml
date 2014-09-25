@@ -6,7 +6,7 @@
             <field name="name">Email Notification for Presentation</field>
             <field name="email_from">${user.email or ''}</field>
             <field name="subject">New ${object.slide_type} has been published on ${object.channel_id.name}</field>
-            <field name="model_id" ref="model_ir_attachment"/>
+            <field name="model_id" ref="model_slide_slide"/>
             <field name="email_to">${('' if object.partner_id and object.partner_id.email and object.partner_id.email==object.email else object.email|safe)}</field>
             <field name="partner_to">${object.partner_id and object.partner_id.email and object.partner_id.email==object.email and object.partner_id.id or False }</field>
             <field name="auto_delete" eval="True"/>
@@ -93,30 +93,21 @@
             <field name="name">Public Channel</field>
             <field name="promote">mostview</field>
             <field name="template_id" ref="website_slides.slide_email_notification"/>
-            <field name="user_id" eval="False"/>
             <field name="website_published" eval="True"/>
-            <field name="ressource_id">0</field>
-            <field name="is_channel" eval="True"/>
             <field name="description">Public channel is default channel for slides, all public user can access content of public channel.</field>
         </record>
 
         <record model="slide.channel" id="dir_private">
             <field name="name">Partner Channel</field>
-            <field name="user_id" eval="False"/>
             <field name="template_id" ref="website_slides.slide_email_notification"/>
             <field name="website_published" eval="False"/>
-            <field name="ressource_id">0</field>
-            <field name="is_channel" eval="True"/>
             <field name="description">Partner channel use to publish slides in partner network privately.</field>
         </record>
         
         <record model="slide.channel" id="dir_employee">
             <field name="name">Employee Channel</field>
-            <field name="user_id" eval="False"/>
             <field name="template_id" ref="website_slides.slide_email_notification"/>
             <field name="website_published" eval="False"/>
-            <field name="ressource_id">0</field>
-            <field name="is_channel" eval="True"/>
             <field name="description">Employee channel use to publish internal slides of company.</field>
         </record>
 

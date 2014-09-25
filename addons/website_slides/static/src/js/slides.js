@@ -83,7 +83,7 @@
                 'channel_id': self.channel_id
             });
             return openerp.jsonRpc('/web/dataset/call_kw', 'call', {
-                model: 'ir.attachment',
+                model: 'slide.slide',
                 method: 'check_constraint',
                 args: [false, values],
                 kwargs: {},
@@ -118,7 +118,6 @@
                 ArrayReader.readAsArrayBuffer(file);
                 ArrayReader.onload = function (evt) {
                     var buffer = evt.target.result;
-                    //PDFJS.workerSrc = '/website_slides/static/lib/pdfjs/build/pdf.worker.js';
 
                     PDFJS.getDocument(buffer).then(function getPdf(pdf) {
                         pdf.getPage(1).then(function getFirstPage(page) {
@@ -288,7 +287,7 @@
 
     website.slide.PDFViewer_Launcher = function ($PDFViewer) {
         website.slide.template.then(function () {
-            var file = $PDFViewer.attr('file'),
+            var file = '/slides/content/' + $PDFViewer.attr('slide-id'),
                 id = $PDFViewer.attr('slide-id');
             if (file) {
                 var PDFViewer = new website.slide.PDFViewer(id, file);

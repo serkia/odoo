@@ -1,42 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-        <record id="website_slides.category_1" model="ir.attachment.category">
+        <record id="website_slides.category_1" model="slide.category">
             <field name="name">Featured Presentations</field>
             <field name="channel_id" ref="website_slides.dir_public"/>
             <field name="sequence">10</field>
         </record>
 
-        <record id="website_slides.category_2" model="ir.attachment.category">
+        <record id="website_slides.category_2" model="slide.category">
             <field name="name">Odoo Days</field>
             <field name="channel_id" ref="website_slides.dir_public"/>
             <field name="sequence">20</field>
         </record>
 
-        <record id="website_slides.cms" model="ir.attachment.tag">
+        <record id="website_slides.cms" model="slide.tag">
             <field name="name">CMS</field>
         </record>
 
-        <record id="website_slides.marketing" model="ir.attachment.tag">
+        <record id="website_slides.marketing" model="slide.tag">
             <field name="name">Marketing</field>
         </record>
 
-        <record id="website_slides.pos" model="ir.attachment.tag">
+        <record id="website_slides.pos" model="slide.tag">
             <field name="name">POS</field>
         </record>
 
-        <record id="website_slides.customer_voice" model="ir.attachment.tag">
+        <record id="website_slides.customer_voice" model="slide.tag">
             <field name="name">Customer Voice</field>
         </record>
 
-        <record id="website_slides.odoo" model="ir.attachment.tag">
+        <record id="website_slides.odoo" model="slide.tag">
             <field name="name">Odoo Days</field>
         </record>
 
-        <record id="website_slides.attachment_0" model="ir.attachment">
+        <record id="website_slides.slide_0" model="slide.slide">
             <field name="name">Odoo Explained</field>
             <field name="url">http://www.youtube.com/watch?v=o0UM3Lg7K4Y</field>
-            <field name="is_slide">True</field>
             <field name="slide_type">video</field>
             <field name="channel_id" ref="website_slides.dir_public"/>
             <field name="category_id" ref="website_slides.category_1"/>
@@ -44,10 +43,9 @@
             <field name="tag_ids" eval="[(4, ref('website_slides.marketing'))]"/>
         </record>
 
-        <record id="website_slides.attachment_1" model="ir.attachment">
+        <record id="website_slides.slide_1" model="slide.slide">
             <field name="name">Open Source Website Builder and eCommerce: OpenERP</field>
             <field name="url">https://www.youtube.com/watch?v=pp7OCqWoRjQ</field>
-            <field name="is_slide">True</field>
             <field name="slide_type">video</field>
             <field name="channel_id" ref="website_slides.dir_public"/>
             <field name="category_id" ref="website_slides.category_1"/>
@@ -55,10 +53,9 @@
             <field name="tag_ids" eval="[(4, ref('website_slides.cms'))]"/>
         </record>
 
-        <record id="website_slides.attachment_2" model="ir.attachment">
+        <record id="website_slides.slide_2" model="slide.slide">
             <field name="name">Odoo Open Days 2014</field>
             <field name="url">https://www.youtube.com/watch?v=ILTPZUTWKhg&amp;list=UUkQPikELWZFLgQNHd73jkdg</field>
-            <field name="is_slide">True</field>
             <field name="slide_type">video</field>
             <field name="channel_id" ref="website_slides.dir_public"/>
             <field name="category_id" ref="website_slides.category_2"/>
@@ -66,10 +63,9 @@
             <field name="tag_ids" eval="[(4, ref('website_slides.odoo'))]"/>
         </record>
 
-        <record id="website_slides.attachment_3" model="ir.attachment">
+        <record id="website_slides.slide_3" model="slide.slide">
             <field name="name">Odoo - The Voice of the Customer: Alpinter</field>
             <field name="url">https://www.youtube.com/watch?v=5DPGnN9_uKU&amp;list=UUkQPikELWZFLgQNHd73jkdg</field>
-            <field name="is_slide">True</field>
             <field name="slide_type">video</field>
             <field name="channel_id" ref="website_slides.dir_public"/>
             <field name="category_id" ref="website_slides.category_2"/>
@@ -77,10 +73,9 @@
             <field name="tag_ids" eval="[(4, ref('website_slides.customer_voice'))]"/>
         </record>
 
-        <record id="website_slides.attachment_4" model="ir.attachment">
+        <record id="website_slides.slide_4" model="slide.slide">
             <field name="name">OpenERP SEO - Boost Your Website Trafic</field>
             <field name="url">https://www.youtube.com/watch?v=5PKqZpl0TcA</field>
-            <field name="is_slide">True</field>
             <field name="slide_type">video</field>
             <field name="channel_id" ref="website_slides.dir_public"/>
             <field name="category_id" ref="website_slides.category_1"/>
@@ -88,10 +83,9 @@
             <field name="tag_ids" eval="[(4, ref('website_slides.cms'))]"/>
         </record>
 
-        <record id="website_slides.attachment_5" model="ir.attachment">
+        <record id="website_slides.slide_5" model="slide.slide">
             <field name="name">OpenERP POS Indiegogo Campaign</field>
             <field name="url">https://www.youtube.com/watch?v=C_Laaz4mORg</field>
-            <field name="is_slide">True</field>
             <field name="slide_type">video</field>
             <field name="channel_id" ref="website_slides.dir_public"/>
             <field name="category_id" ref="website_slides.category_1"/>
@@ -99,10 +93,9 @@
             <field name="tag_ids" eval="[(4, ref('website_slides.pos'))]"/>
         </record>
 
-        <record id="website_slides.attachment_6" model="ir.attachment">
+        <record id="website_slides.slide_6" model="slide.slide">
             <field name="name">Odoo Marketing - part 1: ATTRACT</field>
             <field name="url">https://www.youtube.com/watch?v=qhSCMShJkTY&amp;list=UUkQPikELWZFLgQNHd73jkdg</field>
-            <field name="is_slide">True</field>
             <field name="slide_type">video</field>
             <field name="channel_id" ref="website_slides.dir_public"/>
             <field name="category_id" ref="website_slides.category_1"/>
@@ -110,10 +103,9 @@
             <field name="tag_ids" eval="[(4, ref('website_slides.cms')), (4, ref('website_slides.marketing'))]"/>
         </record>
 
-        <record id="website_slides.attachment_7" model="ir.attachment">
+        <record id="website_slides.slide_7" model="slide.slide">
             <field name="name">Odoo Marketing - part 1: ATTRACT_2</field>
             <field name="url">https://www.youtube.com/watch?v=L1Ye6ATzZXY&amp;list=UUkQPikELWZFLgQNHd73jkdg</field>
-            <field name="is_slide">True</field>
             <field name="slide_type">video</field>
             <field name="channel_id" ref="website_slides.dir_public"/>
             <field name="category_id" ref="website_slides.category_1"/>
@@ -121,10 +113,9 @@
             <field name="tag_ids" eval="[(4, ref('website_slides.cms')), (4, ref('website_slides.marketing'))]"/>
         </record>
 
-        <record id="website_slides.attachment_8" model="ir.attachment">
+        <record id="website_slides.slide_8" model="slide.slide">
             <field name="name">Odoo Marketing - part 1: ATTRACT_3</field>
             <field name="url">https://www.youtube.com/watch?v=sEvZyNZCtOs&amp;list=UUkQPikELWZFLgQNHd73jkdg</field>
-            <field name="is_slide">True</field>
             <field name="slide_type">video</field>
             <field name="channel_id" ref="website_slides.dir_public"/>
             <field name="category_id" ref="website_slides.category_1"/>
@@ -132,12 +123,10 @@
             <field name="tag_ids" eval="[(4, ref('website_slides.cms')), (4, ref('website_slides.marketing'))]"/>
         </record>
         
-        <record id="website_slides.attachment_9" model="ir.attachment">
-            <field name="name">Open Days 2014  |Infographic</field>
+        <record id="website_slides.slide_9" model="slide.slide">
+            <field name="name">Open Days 2014 Infographic</field>
             <field name="datas" type="base64" file="website_slides/static/src/img/Open Days 2014  |Infographic.png"/>
             <field name="image" type="base64" file="website_slides/static/src/img/Open Days 2014  |Infographic.png"/>
-            <field name="datas_fname">Open Days 2014  |Infographic.png</field>
-            <field name="is_slide">True</field>
             <field name="slide_type">infographic</field>
             <field name="channel_id" ref="website_slides.dir_public"/>
             <field name="category_id" ref="website_slides.category_2"/>
@@ -147,12 +136,10 @@
             <field name="tag_ids" eval="[(4, ref('website_slides.odoo'))]"/>
         </record>
 
-        <record id="website_slides.attachment_12" model="ir.attachment">
+        <record id="website_slides.slide_12" model="slide.slide">
             <field name="name">Odoo Roadmap &amp; Strategy - Fabien Pinckaers</field>
             <field name="datas" type="base64" file="website_slides/static/src/img/keynote.pdf"/>
             <field name="image" type="base64" file="website_slides/static/src/img/keynote.png"/>
-            <field name="datas_fname">keynote.pdf</field>
-            <field name="is_slide">True</field>
             <field name="slide_type">presentation</field>
             <field name="channel_id" ref="website_slides.dir_public"/>
             <field name="category_id" ref="website_slides.category_2"/>
@@ -186,12 +173,10 @@
 25. 2014-2015 This will be an epic time...</field>
         </record>
 
-        <record id="website_slides.attachment_13" model="ir.attachment">
-            <field name="name">OpenSource CMS, A performance comparision - Mantavya Gajjar</field>
+        <record id="website_slides.slide_13" model="slide.slide">
+            <field name="name">OpenSource CMS, A performance comparison - Mantavya Gajjar</field>
             <field name="datas" type="base64" file="website_slides/static/src/img/odoo-cms-comparision.pdf"/>
             <field name="image" type="base64" file="website_slides/static/src/img/odoo-cms-comparision.png"/>
-            <field name="datas_fname">odoo-cms-comparision.pdf</field>
-            <field name="is_slide">True</field>
             <field name="slide_type">presentation</field>
             <field name="channel_id" ref="website_slides.dir_public"/>
             <field name="category_id" ref="website_slides.category_2"/>
@@ -272,7 +257,7 @@
 
         <record model="slide.channel" id="website_slides.dir_public">
             <field name="promote">custom</field>
-            <field name="slide_id" ref="website_slides.attachment_0"/>
+            <field name="slide_id" ref="website_slides.slide_0"/>
         </record>
 
   </data>
