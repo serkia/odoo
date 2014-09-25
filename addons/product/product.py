@@ -1036,8 +1036,7 @@ class product_product(osv.osv):
                                                         '|', ('product_code', operator, name),
                                                         ('product_name', operator, name)], context=context)
                 if supplier_ids:
-                    prod_tmpl_ids = [supplier.product_tmpl_id.id for supplier in supplierinfo_obj.browse(cr, user, supplier_ids, context=context)]
-                    ids = self.search(cr, user, [('product_tmpl_id', 'in', prod_tmpl_ids)], context=context)
+                    ids = self.search(cr, user, [('product_tmpl_id.seller_ids', 'in', supplier_ids)], context=context)
             ids = list(set(ids + self.search(cr, user, [('default_code', '=', name)]+ args, limit=limit, context=context)))
             if not ids:
                 ids = self.search(cr, user, [('ean13', '=', name)]+ args, limit=limit, context=context)
