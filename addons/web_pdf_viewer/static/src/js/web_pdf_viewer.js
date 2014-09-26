@@ -69,8 +69,8 @@ openerp.web_pdf_viewer = function (openerp) {
                 }
             };
             $('.oe_view_manager.oe_view_manager_current').children().hide();
-            var height_window = ($(window).height()) - 32;
-            var $target = $('<iframe style="top:100px;left:1px;z-index:500;width:100%;height:' + height_window + 'px;">')
+            var height_window = ($(window).height()) - parseInt($('#oe_main_menu_navbar').css('height'),10);
+            var $target = $('<iframe style="border:0px;display:block;left:1px;z-index:500;width:100%;height:' + height_window + 'px;">')
                 .attr({ id: id, name: id })
                 .prependTo(".oe_view_manager.oe_view_manager_current");
                 $('<a><iframe class="ie_problem" src="about:blank"></iframe><div class="close_print"><div><div>X</div><i>Close</i></div></div></a>')
@@ -85,6 +85,7 @@ openerp.web_pdf_viewer = function (openerp) {
                     }
                     $("#close_print").remove();
                     $('.oe_view_manager.oe_view_manager_current').children().show();
+                    $('.oe_view_manager_sidebar>div').css('display','none');
                 });
             
             if (options.form) {
