@@ -93,6 +93,9 @@
               cur.tagName && "inline".indexOf(window.getComputedStyle(cur).display) !== -1))) {
             return true;
         }
+        if (cur.tagName === "FONT" && !cur.attributes.getNamedItem('style')) {
+            return true;
+        }
         if (cur.tagName === "SPAN" && !cur.className) {
             return true;
         }
@@ -122,8 +125,6 @@
     dom.merge = function (node, begin, so, end, eo, mergeFilter, all) {
         mergeFilter = mergeFilter || dom.mergeFilter;
         var _merged = false;
-        var afterBegin = false;
-        var afterEnd = false;
         var add = all || false;
 
         if (!begin) {
@@ -147,7 +148,6 @@
                 var cur = node.childNodes[k];
 
                 if (cur === begin) {
-                    afterBegin = true;
                     if (!all) add = true;
                 }
                 
@@ -156,7 +156,6 @@
 
                 if (!add || !cur) continue;
                 if (cur === end) {
-                    afterEnd = true;
                     if (!all) add = false;
                 }
 
@@ -187,20 +186,24 @@
                         if (cur.tagName) {
                             var deep = cur;
                             while (deep.tagName && deep.lastChild) {deep = deep.lastChild;}
-                            if (!afterBegin || deep === begin) so += prev.textContent.length;
-                            if (!afterEnd || deep === end) eo += prev.textContent.length;
-                            if (deep === begin) begin = prev;
-                            if (deep === end) end = prev;
+                            if (deep === begin) {
+                                so += prev.textContent.length;
+                                begin = prev;
+                            }
+                            if (deep === end) {
+                                eo += prev.textContent.length;
+                                end = prev;
+                            }
                         } else {
                             // merge text nodes
-                            if ((!afterBegin && begin.parentNode === cur.parentNode) || cur === begin) {
+                            if (cur === begin) {
                                 so += prev.textContent.length;
+                                begin = prev;
                             }
-                            if ((!afterEnd && begin.parentNode === cur.parentNode) || cur === end) {
+                            if (cur === end) {
                                 eo += prev.textContent.length;
+                                end = prev;
                             }
-                            if (cur === begin) begin = prev;
-                            if (cur === end) end = prev;
                         }
                     }
 
@@ -464,8 +467,7 @@
     settings.options.keyMap.mac['CMD+BACKSPACE'] = 'delete';
     settings.options.keyMap.mac['ENTER'] = 'enter';
 
-    function clean_dom_onkeydown () { // fix me
-        return;
+    function clean_dom_onkeydown () {
         setTimeout(function () {
             var r = range.create();
             if (!r) return;
@@ -491,16 +493,25 @@
         if (r.isCollapsed()) {
             if (r.isOnCell()) {
                 this.table.tab(r, outdent);
+                return false;
             }
-        } else {
-            return false;
-        }
-
-        if (r.so) {
-            if (!outdent){
-                this.insertTab($editable, r, options.tabsize);
+            if (r.so) {
+                if (!outdent){
+                    var next = r.sc.splitText(r.so);
+                    this.insertTab($editable, r, options.tabsize);
+                    r = range.create(next, 0, next, 0);
+                    r = dom.merge(r.sc.parentNode, r.sc, r.so, r.ec, r.eo, null, true);
+                    range.create(r.sc, r.so, r.ec, r.eo).select();
+                } else {
+                    r = dom.merge(r.sc.parentNode, r.sc, r.so, r.ec, r.eo, null, true);
+                    r = range.create(r.sc, r.so, r.ec, r.eo);
+                    var next = r.sc.splitText(r.so);
+                    r.sc.textContent = r.sc.textContent.replace(/(\u00A0)+$/g, '');
+                    next.textContent = next.textContent.replace(/^(\u00A0)+/g, '');
+                    range.create(r.sc, r.sc.textContent.length, r.sc, r.sc.textContent.length).select();
+                }
+                return false;
             }
-            return false;
         }
 
         if (outdent) {
@@ -705,6 +716,21 @@
         clean_dom_onkeydown();
         return false;
     };
+    var fn_editor_fontSize = eventHandler.editor.fontSize;
+    eventHandler.editor.fontSize = function ($editable, sValue) {
+        fn_editor_fontSize.call(this, $editable, sValue);
+        var r = range.create();
+        var ancestor = dom.commonAncestor(r.sc, r.ec);
+        var $fonts = $(ancestor).find('font, span');
+
+        $fonts.each(function () {
+            $(this).removeAttr('size');
+
+            $(this).css('font-size', parseInt(window.getComputedStyle(this).fontSize) != sValue ? sValue + 'px' : null);
+        });
+
+        r.clean().select();
+    };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     /* add list command (create a uggly dom for chrome) */
@@ -886,9 +912,16 @@
         }
 
         var ancestor = dom.commonAncestor(r.sc, r.ec);
-        var $dom = $(ancestor).children();
+        var $dom = $(ancestor);
+
+        if (!$(ancestor).is("ul, ol")) {
+            $dom = $(ancestor).children();
+        }
         if (!$dom.length) {
-            $dom = $(r.sc).closest("ul, ol," + settings.options.styleTags.join(','));
+            $dom = $(r.sc).closest("ul, ol");
+            if (!$dom.length) {
+                $dom = $(r.sc).closest(settings.options.styleTags.join(','));
+            }
         }
 
         $dom.each(function () {
