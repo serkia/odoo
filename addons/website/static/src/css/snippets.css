@@ -282,7 +282,7 @@
   height: 100%;
 }
 .oe_overlay .oe_handle.e:before, .oe_overlay .oe_handle.w:before {
-  content: "\f0d9-\f0da";
+  content: "\f07e";
   line-height: 16px;
 }
 .oe_overlay .oe_handle.e > div, .oe_overlay .oe_handle.w > div {
@@ -683,13 +683,6 @@
   margin: 4px 3px 3px 3px;
   width: 0;
   height: 0;
-}
-
-.cke_panel_container table.colorpicker tr:first-child td {
-  padding-top: 6px;
-}
-.cke_panel_container table.colorpicker tr:last-child td {
-  padding-bottom: 6px;
 }
 
 /* ---- thumbnail ----  {{{ */

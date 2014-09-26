@@ -291,28 +291,6 @@ $attachment-border-color: #848490
                 border-width: 5px
                 border-color: rgb(0, 248, 248)
 
-// wrapper positioned relatively for drag&drop widget which is disabled below.
-// Breaks completely horribly crazy products listing page, so take it out.
-.cke_widget_wrapper
-    position: static !important
-
-.cke_widget_inline
-    display: inline !important
-
-// prevent inline widgets from entirely disappearing when their (textual)
-// content is removed
-.cke_widget_editable
-    // basic config
-    &:empty:after
-        opacity: 0.3
-        white-space: pre-wrap
-    // no @placeholder -> just add some padding
-    &:not([placeholder]):empty::after
-        content: " "
-    // with placeholder and when not (yet) focused -> display placeholder
-    &[placeholder]:not(:focus):empty::after
-        content: attr(placeholder)
-
 .oe_carlos_danger
     outline: 1px solid red !important
     background-color: #ffd9dd !important
@@ -340,6 +318,9 @@ $attachment-border-color: #848490
 
 .img-responsive
     text-align: center
+
+.col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12
+    min-height: 24px
 
 // }}}
 

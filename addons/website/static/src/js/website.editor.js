@@ -870,6 +870,7 @@
         }
         $ul.each(function () {
             indent(this, r.sc, r.ec);
+            console.log(this, r.sc.parentNode, r.ec.parentNode);
 
             if (this.previousSibling &&
                 this.previousSibling !== this.previousElementSibling &&
@@ -1202,6 +1203,7 @@
         }
 
         var data = range.reRange(r.sc, r.so, r.ec, r.eo, ref);
+
         if (data.sc !== r.sc || data.so !== r.so || data.ec !== r.ec || data.eo !== r.eo) {
             setTimeout(function () {
                 data.select();

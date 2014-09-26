@@ -326,11 +326,6 @@
             this.$snippet.trigger('snippet-activated', $snippet);
             if ($snippet) {
                 $snippet.trigger('snippet-activated', $snippet);
-                
-                if ($snippet.hasClass('o_need_recover')) {
-                    $snippet.removeClass('o_need_recover');
-                    this.cover_target($snippet.data('overlay'), $snippet);
-                }
             }
         },
         create_overlay: function ($snippet) {
@@ -650,9 +645,20 @@
                     $zone.data('target',$target);
                     $target.data('overlay',$zone);
 
-                    $target.on("DOMNodeInserted DOMNodeRemoved DOMSubtreeModified", function () {
-                        $target.addClass('o_need_recover');
-                    });
+                    var timer;
+                     $target.on("DOMNodeInserted DOMNodeRemoved DOMSubtreeModified", function () {
+                         $target.addClass('o_need_recover');
+                        clearTimeout(timer);
+                        timer = setTimeout(function () {
+                            $('.o_need_recover').each(function () {
+                                var $snippet = $(this);
+                                $snippet.removeClass('o_need_recover');
+                                if ($snippet.data('overlay')) {
+                                    self.cover_target($snippet.data('overlay'), $snippet);
+                                }
+                            });
+                        });
+                     });
 
                     var resize = function () {
                         if ($zone.parent().length) {
