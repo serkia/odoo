@@ -62,13 +62,18 @@
         if ((prev.attributes ? prev.attributes.length : 0) !== (cur.attributes ? cur.attributes.length : 0)) {
             return false;
         }
+
+        function strip(text) {
+            return text && text.replace(/^\s+|\s+$/g, '').replace(/\s+/g, ' ');
+        }
         var att, att2;
         loop_prev:
         for(var a in prev.attributes) {
             att = prev.attributes[a];
             for(var b in cur.attributes) {
                 att2 = cur.attributes[b];
-                if (att.name === att2.name && att.value === att2.value) {
+                if (att.name === att2.name) {
+                    if (strip(att.value) != strip(att2.value)) return false;
                     continue loop_prev;
                 }
             }
@@ -498,18 +503,6 @@
             return false;
         }
 
-        var node = r.sc;
-        while (node && node.tagName !== "LI" && !node.previousElementSibling) {
-            node = node.parentNode;
-        }
-
-        if (node && node.tagName !== "LI") {
-            if (!outdent) {
-                this.insertTab($editable, r, options.tabsize);
-            }
-            return false;
-        }
-
         if (outdent) {
             this.outdent($editable);
         } else {
@@ -791,7 +784,7 @@
         var r = range.create();
 
         var flag = false;
-        function indent (UL, start, end) {
+        function indentUL (UL, start, end) {
             var tagName = UL.tagName;
             var className = UL.className;
             var node = UL.firstChild;
@@ -841,20 +834,34 @@
                 }
             }
 
-            ul.className = className.replace(/indent([0-9])/, function (a,b,c) {
-                var num = (b ? +b : 0 ) + (outdent ? -1 : 1);
-                return 'indent' + (num < 0 ? 0 : (num > 6 ? 6 : num));
-            });
+            if (className.length) {
+                ul.className = className.replace(/indent([0-9])/, function (a,b,c) {
+                        var num = (b ? +b : 0 ) + (outdent ? -1 : 1);
+                        return 'indent' + (num < 0 ? 0 : (num > 6 ? 6 : num));
+                    }).replace(/\s*indent0/, '');
+
+                if (!ul.className.length) {
+                    ul.removeAttribute("class");
+                }
+            } else {
+                ul.className += ' indent1';
+            }
 
             // insert the rest of the non-indented ul
             if (node) {
                 var UL2 = document.createElement(tagName);
-                UL2.className = className;
+                if (className.length) {
+                    UL2.className = className;
+                } else {
+                    UL2.removeAttribute("class");
+                }
+
                 while (node) {
                     li = node;
                     node = node.nextElementSibling;
                     UL2.appendChild(li);
                 }
+
                 if (ul.nextElementSibling) {
                     ul.parentNode.insertBefore(UL2, ul.nextSibling);
                 } else {
@@ -862,70 +869,66 @@
                 }
             }
         }
+        function indentOther (dom, start, end) {
+            flag = true;
+            if (dom.className.match(/indent([0-9])/)) {
+                dom.className = dom.className.replace(/indent([0-9])/, function (a,b,c) {
+                    var num = (b ? +b : 0 ) + (outdent ? -1 : 1);
+                    if (!num) return "";
+                    return 'indent' + (num > 6 ? 6 : num);
+                });
+            } else if(!outdent) {
+                dom.className = (dom.className || "") + ' indent1';
+            }
+            if ($.contains(dom, end)) {
+                flag = false;
+            }
+        }
 
         var ancestor = dom.commonAncestor(r.sc, r.ec);
-        var $ul = $('ul, ol', ancestor);
-        if (!$ul.length) {
-            $ul = $(r.sc).closest('ul, ol');
+        var $dom = $(ancestor).children();
+        if (!$dom.length) {
+            $dom = $(r.sc).closest("ul, ol," + settings.options.styleTags.join(','));
         }
-        $ul.each(function () {
-            indent(this, r.sc, r.ec);
-            console.log(this, r.sc.parentNode, r.ec.parentNode);
 
-            if (this.previousSibling &&
-                this.previousSibling !== this.previousElementSibling &&
-                !this.previousSibling.textContent.match(/\S/)) {
-                this.parentNode.removeChild(this.previousSibling);
-            }
-            if (this.nextSibling &&
-                this.nextSibling !== this.nextElementSibling &&
-                !this.nextSibling.textContent.match(/\S/)) {
-                this.parentNode.removeChild(this.nextSibling);
+        $dom.each(function () {
+            if (flag || $.contains(this, r.sc)) {
+                if (this.tagName === "UL" || this.tagName === "OL") {
+                    indentUL(this, r.sc, r.ec);
+                } else if (isFormatNode(this)) {
+                    indentOther(this, r.sc, r.ec);
+                }
             }
         });
 
-        if (!$ul.length) {
+        if ($dom.length) {
+            var $parent = $dom.parent();
 
-            var node = ancestor.firstChild;
-            var nodes = [];
-            var keep = false;
-            while (node) {
-                if (!keep && (node === r.sc || $.contains(node, r.sc))) {
-                    keep = true;
-                }
-                if (keep) {
-                    nodes.push(node);
-                    if (node === r.ec || $.contains(node, r.ec)) {
-                        break;
-                    }
-                }
-                node = node.nextElementSibling;
+            // remove text nodes between lists
+            var $ul = $parent.find('ul, ol');
+            if (!$ul.length) {
+                $ul = $(r.sc).closest("ul, ol");
             }
-            nodes = _.filter(nodes, function (node) { return isFormatNode(node); });
-
-            _.each(nodes, function (node) {
-                if (node.className.match(/indent([0-9])/)) {
-                    node.className = node.className.replace(/indent([0-9])/, function (a,b,c) {
-                        var num = (b ? +b : 0 ) + (outdent ? -1 : 1);
-                        if (!num) return "";
-                        return 'indent' + (num > 6 ? 6 : num);
-                    });
-                } else if(!outdent) {
-                    node.className = (node.className || "") + ' indent1';
+            $ul.each(function () {
+                if (this.previousSibling &&
+                    this.previousSibling !== this.previousElementSibling &&
+                    !this.previousSibling.textContent.match(/\S/)) {
+                    this.parentNode.removeChild(this.previousSibling);
+                }
+                if (this.nextSibling &&
+                    this.nextSibling !== this.nextElementSibling &&
+                    !this.nextSibling.textContent.match(/\S/)) {
+                    this.parentNode.removeChild(this.nextSibling);
                 }
             });
 
-        } else {
-
             // merge same ul or ol
-            var parent = $ul.parent()[0];
-            r = dom.merge(parent, r.sc, r.so, r.ec, r.eo, function (prev, cur) {
+            r = dom.merge($parent[0], r.sc, r.so, r.ec, r.eo, function (prev, cur) {
                     if (prev && (prev.tagName === "UL" || prev.tagName === "OL") && dom.isEqual(prev, cur)) {
                         return true;
                     }
                 }, true);
             range.create(r.sc, r.so, r.ec, r.eo).select();
-
         }
     };
     eventHandler.editor.outdent = function ($editable) {
