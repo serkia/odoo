@@ -458,14 +458,17 @@
     /* add some text commands */
 
     key.nameFromCode[46] = 'DELETE';
+    key.nameFromCode[27] = 'ESCAPE';
 
     settings.options.keyMap.pc['BACKSPACE'] = 'backspace';
     settings.options.keyMap.pc['DELETE'] = 'delete';
     settings.options.keyMap.pc['ENTER'] = 'enter';
+    settings.options.keyMap.pc['ESCAPE'] = 'cancel';
 
     settings.options.keyMap.mac['BACKSPACE'] = 'backspace';
     settings.options.keyMap.mac['CMD+BACKSPACE'] = 'delete';
     settings.options.keyMap.mac['ENTER'] = 'enter';
+    settings.options.keyMap.mac['ESCAPE'] = 'cancel';
 
     function clean_dom_onkeydown () {
         setTimeout(function () {
@@ -1115,7 +1118,7 @@
             summernote_popover_update ($popover);
             $popover.data('loaded', true);
         }
-        
+
         $('.o_undo button:has(.fa-undo)').attr('disabled', !history.hasUndo());
         $('.o_undo button:has(.fa-repeat)').attr('disabled', !history.hasRedo());
 
@@ -1153,6 +1156,11 @@
     };
     eventHandler.editor.redo = function ($popover) {
         if(!$popover.attr('disabled')) history.redo();
+    };
+    eventHandler.editor.cancel = function ($popover) {
+        setTimeout(function () {
+            $('#website-top-navbar [data-action="cancel"]').click();
+        },50);
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1214,8 +1222,8 @@
     dom.isImg = function (node) {
         return node && (node.nodeName === "IMG" ||
             (node.nodeName === "SPAN" && node.className.match(/(^|\s)fa(-|\s|$)/i)) ||
-            (node.className.match(/(^|\s)media_iframe_video(\s|$)/i)) ||
-            (node.parentNode.className.match(/(^|\s)media_iframe_video(\s|$)/i)) );
+            (node.className && node.className.match(/(^|\s)media_iframe_video(\s|$)/i)) ||
+            (node.parentNode.className && node.parentNode.className.match(/(^|\s)media_iframe_video(\s|$)/i)) );
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
