@@ -1054,28 +1054,22 @@
         //////////////// history Undo & Redo
 
         var $prevnext = $('<div class="o_undo btn-group"/>');
-        var $prev = $(renderer.tplIconButton('fa fa-undo fa-inverse', {
+        var $prev = $(renderer.tplIconButton('fa fa-undo', {
                 title: _t('Undo'),
                 event: 'history',
                 value: 'previous'
             }))
-            .css({'background': 'transparent', 'border-color': 'transparent'})
             .appendTo($prevnext);
-        var $next = $(renderer.tplIconButton('fa fa-repeat fa-inverse', {
+        var $next = $(renderer.tplIconButton('fa fa-repeat', {
                 title: _t('Redo'),
                 event: 'history',
                 value: 'next'
             }))
-            .css({'background': 'transparent', 'border-color': 'transparent'})
             .appendTo($prevnext);
-        $prevnext.insertAfter($('#website-top-navbar .btn[data-action="cancel"]'));
 
-        $prev.on('mousedown', function (event) {
-            if(!$(this).attr('disabled')) history.undo();
-        });
-        $next.on('mousedown', function (event) {
-            if(!$(this).attr('disabled')) history.redo();
-        });
+        $imagePopover.find('.popover-content').append($prevnext);
+        $linkPopover.find('.popover-content').append($prevnext.clone());
+        $airPopover.find('.popover-content').append($prevnext.clone());
 
         //////////////// tooltip
 
@@ -1086,11 +1080,6 @@
                 trigger: 'hover',
                 placement: 'bottom'
             }).on('click', function () {$(this).tooltip('hide');});
-            
-        $(document).on('click keyup', function () {
-            $prev.attr('disabled', !history.hasUndo());
-            $next.attr('disabled', !history.hasRedo());
-        }).click();
     }
     var fn_boutton_update = eventHandler.popover.button.update;
     eventHandler.popover.button.update = function ($container, oStyle) {
@@ -1122,10 +1111,13 @@
 
         fn_popover_update.call(this, $popover, oStyle, isAirMode);
 
-        if (!summernote_popover_update.loaded) {
+        if (!$popover.data('loaded')) {
             summernote_popover_update ($popover);
-            summernote_popover_update.loaded = true;
+            $popover.data('loaded', true);
         }
+        
+        $('.o_undo button:has(.fa-undo)').attr('disabled', !history.hasUndo());
+        $('.o_undo button:has(.fa-repeat)').attr('disabled', !history.hasRedo());
 
         if (oStyle.range.sc.tagName === "IMG") {
             oStyle.image = oStyle.range.sc;
@@ -1149,6 +1141,18 @@
         } else {
             $airPopover.show();
         }
+    };
+
+    $(document).on('click keyup', function () {
+        $('.o_undo button:has(.fa-undo)').attr('disabled', !history.hasUndo());
+        $('.o_undo button:has(.fa-repeat)').attr('disabled', !history.hasRedo());
+    });
+
+    eventHandler.editor.undo = function ($popover) {
+        if(!$popover.attr('disabled')) history.undo();
+    };
+    eventHandler.editor.redo = function ($popover) {
+        if(!$popover.attr('disabled')) history.redo();
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
