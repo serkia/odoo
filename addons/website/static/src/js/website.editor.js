@@ -722,6 +722,9 @@
         var r = range.create();
         var ancestor = dom.commonAncestor(r.sc, r.ec);
         var $fonts = $(ancestor).find('font, span');
+        if (!$fonts.length) {
+            $fonts = $(ancestor).closest('font, span');
+        }
 
         $fonts.each(function () {
             $(this).removeAttr('size');
@@ -729,7 +732,8 @@
             $(this).css('font-size', parseInt(window.getComputedStyle(this).fontSize) != sValue ? sValue + 'px' : null);
         });
 
-        r.clean().select();
+        r = dom.merge($fonts.parent()[0], r.sc, r.so, r.ec, r.eo, null, true);
+        range.create(r.sc, r.so, r.ec, r.eo).select();
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
