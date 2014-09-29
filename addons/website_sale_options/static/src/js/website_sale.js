@@ -50,7 +50,7 @@ $(document).ready(function () {
                             $(".js_remove .js_items").addClass("hidden");
                             $(".js_remove .js_item").removeClass("hidden");
                         } else {
-                            $(".js_remove .js_items").removeClass("hidden").text($(".js_remove .js_items").text().replace(/[0-9.,]+/, qty));
+                            $(".js_remove .js_items").removeClass("hidden").text($(".js_remove .js_items:first").text().replace(/[0-9.,]+/, qty));
                             $(".js_remove .js_item").addClass("hidden");
                         }
                     });
