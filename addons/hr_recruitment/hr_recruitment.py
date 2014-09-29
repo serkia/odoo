@@ -66,7 +66,7 @@ class hr_recruitment_degree(osv.osv):
     _name = "hr.recruitment.degree"
     _description = "Degree of Recruitment"
     _columns = {
-        'name': fields.char('Name', required=True, translate=True),
+        'name': fields.char('Degree', required=True, translate=True),
         'sequence': fields.integer('Sequence', help="Gives the sequence order when displaying a list of degrees."),
     }
     _defaults = {
@@ -94,33 +94,16 @@ class hr_applicant(osv.Model):
     }
     _mail_mass_mailing = _('Applicants')
 
-    def _get_default_department_id(self, cr, uid, context=None):
-        """ Gives default department by checking if present in the context """
-        return (self._resolve_department_id_from_context(cr, uid, context=context) or False)
-
     def _get_default_stage_id(self, cr, uid, context=None):
         """ Gives default stage_id """
-        department_id = self._get_default_department_id(cr, uid, context=context)
+        department_id = context.get('default_department_id')
         return self.stage_find(cr, uid, [], department_id, [('fold', '=', False)], context=context)
 
-    def _resolve_department_id_from_context(self, cr, uid, context=None):
-        """ Returns ID of department based on the value of 'default_department_id'
-            context key, or None if it cannot be resolved to a single
-            department.
-        """
+    def _get_default_company_id(self, cr, uid, department_id=None, context=None):
         if context is None:
             context = {}
-        if type(context.get('default_department_id')) in (int, long):
-            return context.get('default_department_id')
-        if isinstance(context.get('default_department_id'), basestring):
-            department_name = context['default_department_id']
-            department_ids = self.pool.get('hr.department').name_search(cr, uid, name=department_name, context=context)
-            if len(department_ids) == 1:
-                return int(department_ids[0][0])
-        return None
-
-    def _get_default_company_id(self, cr, uid, department_id=None, context=None):
         company_id = False
+        department_id = department_id or context.get('default_department_id')
         if department_id:
             department = self.pool['hr.department'].browse(cr,  uid, department_id, context=context)
             company_id = department.company_id.id if department and department.company_id else False
@@ -139,7 +122,7 @@ class hr_applicant(osv.Model):
         # - ('id', 'in', 'ids'): add columns that should be present
         # - OR ('department_id', '=', False), ('fold', '=', False): add default columns that are not folded
         # - OR ('department_id', 'in', department_id), ('fold', '=', False) if department_id: add department columns that are not folded
-        department_id = self._resolve_department_id_from_context(cr, uid, context=context)
+        department_id = context.get('default_department_id')
         search_domain = []
         if department_id:
             search_domain += ['|', ('department_id', '=', department_id)]
@@ -197,7 +180,7 @@ class hr_applicant(osv.Model):
                         domain="['|', ('department_id', '=', department_id), ('department_id', '=', False)]"),
         'last_stage_id': fields.many2one('hr.recruitment.stage', 'Last Stage',
                                          help='Stage of the applicant before being in the current stage. Used for lost cases analysis.'),
-        'categ_ids': fields.many2many('hr.applicant_category', string='Tags'),
+        'categ_ids': fields.many2many('hr.applicant.category', string='Tags'),
         'company_id': fields.many2one('res.company', 'Company'),
         'user_id': fields.many2one('res.users', 'Responsible', track_visibility='onchange'),
         'date_closed': fields.datetime('Closed', readonly=True, select=True),
@@ -237,8 +220,8 @@ class hr_applicant(osv.Model):
         'active': lambda *a: 1,
         'user_id': lambda s, cr, uid, c: uid,
         'stage_id': lambda s, cr, uid, c: s._get_default_stage_id(cr, uid, c),
-        'department_id': lambda s, cr, uid, c: s._get_default_department_id(cr, uid, c),
-        'company_id': lambda s, cr, uid, c: s._get_default_company_id(cr, uid, s._get_default_department_id(cr, uid, c), c),
+        'department_id': lambda s, cr, uid, c: c is not None and c.get('default_department_id'),
+        'company_id': lambda s, cr, uid, c: s._get_default_company_id(cr, uid, context=c),
         'color': 0,
         'priority': '0',
         'date_last_stage_update': fields.datetime.now,
@@ -483,6 +466,17 @@ class hr_applicant(osv.Model):
                 self.pool['mail.compose.message'].send_mail(cr, uid, [compose_id], context=compose_ctx)
         return res
 
+    def _broadcast_welcome(self, cr, uid, employee_id, context=None):
+        """ Broadcast the welcome message to all users in the employee company. """
+        Employee = self.pool['hr.employee']
+        employee = Employee.browse(cr, uid, employee_id, context=context)
+        mail_group_action, mail_group_id = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'mail', 'group_all_employees')
+        self.pool['mail.group'].message_post(
+            cr, uid, [mail_group_id],
+            body=_('Welcome to %s! Please help him/her take the first steps with Odoo!') % (employee.name),
+            subtype='mail.mt_comment', context=context)
+        return True
+
     def create_employee_from_applicant(self, cr, uid, ids, context=None):
         """ Create an hr.employee from the hr.applicants """
         if context is None:
@@ -498,7 +492,6 @@ class hr_applicant(osv.Model):
                 contact_name = self.pool.get('res.partner').name_get(cr, uid, [applicant.partner_id.id])[0][1]
             if applicant.job_id and (applicant.partner_name or contact_name):
                 applicant.job_id.write({'no_of_hired_employee': applicant.job_id.no_of_hired_employee + 1}, context=context)
-                create_ctx = dict(context, mail_broadcast=True)
                 emp_id = hr_employee.create(cr, uid, {'name': applicant.partner_name or contact_name,
                                                      'job_id': applicant.job_id.id,
                                                      'address_home_id': address_id,
@@ -506,12 +499,13 @@ class hr_applicant(osv.Model):
                                                      'address_id': applicant.company_id and applicant.company_id.partner_id and applicant.company_id.partner_id.id or False,
                                                      'work_email': applicant.department_id and applicant.department_id.company_id and applicant.department_id.company_id.email or False,
                                                      'work_phone': applicant.department_id and applicant.department_id.company_id and applicant.department_id.company_id.phone or False,
-                                                     }, context=create_ctx)
+                                                     }, context=context)
                 self.write(cr, uid, [applicant.id], {'emp_id': emp_id}, context=context)
                 self.pool['hr.job'].message_post(
                     cr, uid, [applicant.job_id.id],
                     body=_('New Employee %s Hired') % applicant.partner_name if applicant.partner_name else applicant.name,
                     subtype="hr_recruitment.mt_job_applicant_hired", context=context)
+                self._broadcast_welcome(cr, uid, emp_id, context=context)
             else:
                 raise osv.except_osv(_('Warning!'), _('You must define an Applied Job and a Contact Name for this applicant.'))
 
@@ -622,7 +616,7 @@ class hr_job(osv.osv):
 
 class applicant_category(osv.osv):
     """ Category of applicant """
-    _name = "hr.applicant_category"
+    _name = "hr.applicant.category"
     _description = "Category of applicant"
     _columns = {
         'name': fields.char('Name', required=True, translate=True),
