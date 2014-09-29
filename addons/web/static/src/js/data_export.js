@@ -45,7 +45,6 @@ instance.web.DataExport = instance.web.Widget.extend({
         var self = this;
         this._super(parent);
         this.records = {};
-        console.log(action);
         this.action = action;
         this.domain = action.params.domain;
         this.model_name = action.params.view;
@@ -112,23 +111,15 @@ instance.web.DataExport = instance.web.Widget.extend({
             }
         });
         this.$el.find("#import_compat").trigger('change');
-        console.log("this---",this);
-        console.log("this.domain",this.domain);
-        console.log("domain---",domain);
-        var got_domain = domain.then(function (domain) {
-            console.log("in domain",domain);
+        var got_domain = $.when(domain).then(function (domain) {
             if (domain === undefined) {
                 self.ids_to_export = self.selected_ids;
                 self.domain = self.action.params.domain;
-                console.log("in undefined",self.ids_to_export,self.domain);
             }else {
                 self.ids_to_export = false;
                 self.domain = domain;
-                console.log("in defined",self.ids_to_export,self.domain);
             }
         });
-
-        console.log("got_domain ---",got_domain);
 
         return $.when(
             got_fields,
@@ -480,7 +471,6 @@ instance.web.DataExport = instance.web.Widget.extend({
             })},
             complete: instance.web.unblockUI,
         });
-                    console.log("in export data --- domain  ",this.domain,"dommmmmmm",domain);
     },
 });
 
