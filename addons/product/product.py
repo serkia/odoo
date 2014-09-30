@@ -1029,7 +1029,7 @@ class product_product(osv.osv):
             args = []
         if name:
             ids = []
-            if context.get('partner_id', False):
+            if context.get('partner_id'):
                 supplierinfo_obj = self.pool.get('product.supplierinfo')
                 supplier_ids = supplierinfo_obj.search(cr, user,
                                                         [('name', '=', context.get('partner_id')),
