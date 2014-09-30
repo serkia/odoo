@@ -251,7 +251,7 @@
                 <h1 t-field="next_post.name"/>
                 <h2 t-field="next_post.subtitle"/>
                 <div>
-                    <img class="img-circle" t-attf-src="'/website/image/res.partner/{{ next_post.author_id.id }}/image_small" style="width: 30px; margin-right: 10px;"/>
+                    <img class="img-circle" t-attf-src="/website/image/res.partner/{{ next_post.author_id.id }}/image_small" style="width: 30px; margin-right: 10px;"/>
                     <span t-field="next_post.author_id" style="display: inline-block;" t-field-options='{
                             "widget": "contact",
                             "fields": ["name"]
