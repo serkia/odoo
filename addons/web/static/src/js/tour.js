@@ -491,7 +491,7 @@ var Tour = {
         step = step || state.step;
         var next = state.step.next ? Tour.search_step(state.step.next) : state.tour.steps[step.id+1];
 
-        if (state.mode === "test" && state.number > 3) {
+        if (state.mode === "test" && state.number > 5) {
             return Tour.error(next, "Cycling. Can't reach the next step");
         }
         
