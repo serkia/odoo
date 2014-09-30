@@ -105,7 +105,7 @@
                 popover:   { next: _t("Continue") },
             },
             {
-                waitNot:   '.modal-dialog',
+                waitNot:   '.modal-dialog:has(#mobile-viewport)',
                 element:   '#content-menu-button',
                 placement: 'left',
                 title:     _t("Add new pages and menus"),

@@ -34,7 +34,7 @@
                 content:   _t("Create a name for your new event and click <em>'Continue'</em>. e.g: Technical Training"),
             },
             {
-                waitNot:   '.modal-dialog input[type=text]:not([value!=""])',
+                waitNot:   '.modal-dialog #editor_new_event input[type=text]:not([value!=""])',
                 element:   '.modal-dialog button.btn-primary',
                 placement: 'right',
                 title:     _t("Create Event"),

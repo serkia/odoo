@@ -34,7 +34,7 @@
                 content:   _t("Enter a name for your new product then click 'Continue'."),
             },
             {
-                waitNot:   '.modal-dialog input[type=text]:not([value!=""])',
+                waitNot:   '.modal-dialog #editor_new_product input[type=text]:not([value!=""])',
                 element:   '.modal-dialog button.btn-primary',
                 placement: 'right',
                 title:     _t("Create Product"),

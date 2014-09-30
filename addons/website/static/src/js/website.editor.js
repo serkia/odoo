@@ -1160,7 +1160,14 @@
     eventHandler.editor.cancel = function ($popover) {
         setTimeout(function () {
             $('#website-top-navbar [data-action="cancel"]').click();
-        },50);
+            var $modal = $('.modal-content > .modal-body').parents(".modal:first");
+            $modal.off('keyup.dismiss.bs.modal');
+            setTimeout(function () {
+                $modal.on('keyup.dismiss.bs.modal', function () {
+                    $(this).modal('hide');
+                });
+            },500);
+        },0);
     };
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1376,7 +1383,7 @@
         var aUndo = [];
         var pos = 0;
 
-        var makeSnap = function ($editable) {
+        this.makeSnap = function ($editable) {
             var elEditable = $editable[0],
                 rng = range.create();
             return {
@@ -1387,7 +1394,7 @@
             };
         };
 
-        var applySnap = function (oSnap) {
+        this.applySnap = function (oSnap) {
             var $editable = $(oSnap.editable);
             $editable.html(oSnap.contents).scrollTop(oSnap.scrollTop);
             var r = range.createFromBookmark($editable[0], oSnap.bookmark);
@@ -1398,8 +1405,8 @@
         this.undo = function ($editable) {
             if (!pos) { return; }
             last = null;
-            if (!aUndo[pos]) aUndo[pos] = makeSnap($editable || $('.o_editable.note-editable:first'));
-            applySnap(aUndo[--pos]);
+            if (!aUndo[pos]) aUndo[pos] = this.makeSnap($editable || $('.o_editable.note-editable:first'));
+            this.applySnap(aUndo[--pos]);
         };
         this.hasUndo = function ($editable) {
             return pos > 0;
@@ -1407,7 +1414,7 @@
 
         this.redo = function () {
             if (aUndo.length <= pos+1) { return; }
-            applySnap(aUndo[++pos]);
+            this.applySnap(aUndo[++pos]);
         };
         this.hasRedo = function () {
             return aUndo.length > pos+1;
@@ -1425,7 +1432,7 @@
                 last = test;
             }
             aUndo.splice(pos, aUndo.length);
-            aUndo[pos] = makeSnap($editable);
+            aUndo[pos] = this.makeSnap($editable);
             pos++;
         };
     };
