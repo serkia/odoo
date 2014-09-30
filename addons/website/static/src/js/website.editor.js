@@ -408,7 +408,7 @@
         }
 
         // if same node, keep range
-        if (start === end) {
+        if (start === end || !start) {
             return range.create(sc, so, ec, eo);
         }
 

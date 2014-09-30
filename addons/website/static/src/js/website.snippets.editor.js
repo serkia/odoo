@@ -539,6 +539,11 @@
                 $(sibling_selector).each(function (){
                     var $zone = $(this);
                     var $drop, vertical;
+
+                    if (!$zone.parent().is(":o_editable")) {
+                        return false;
+                    }
+
                     var float = window.getComputedStyle(this).float;
                     if (float === "left" || float === "right") {
                         vertical = $zone.parent().outerHeight()+'px';
