@@ -27,7 +27,7 @@
                 popover:   { fixed: true },
             },
             {
-                element:   '.modal:has(#editor_new_blog) button.btn-primary',
+                element:   '.modal-dialog:has(#editor_new_blog) button.btn-primary',
                 placement: 'right',
                 title:     _t("Create Blog Post"),
                 content:   _t("Click <em>Continue</em> to create the blog post."),

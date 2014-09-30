@@ -98,14 +98,14 @@
                 popover:   { fixed: true },
             },
             {
-                element:   '.modal:has(#mobile-viewport) button[data-dismiss=modal]',
+                element:   '.modal-dialog:has(#mobile-viewport) button[data-dismiss=modal]',
                 placement: 'right',
                 title:     _t("Check Mobile Preview"),
                 content:   _t("Scroll to check rendering and then close the mobile preview."),
                 popover:   { next: _t("Continue") },
             },
             {
-                waitNot:   '.modal',
+                waitNot:   '.modal-dialog',
                 element:   '#content-menu-button',
                 placement: 'left',
                 title:     _t("Add new pages and menus"),
