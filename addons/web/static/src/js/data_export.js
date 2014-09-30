@@ -16,9 +16,8 @@ instance.web.DataExport = instance.web.Widget.extend({
                 .removeClass('ui-selected')
                 .find('a').each(function () {
                     var id = $(this).attr('id').split('-')[1];
-                    var import_compatible = $(this).attr('import_compatible');
                     var string = $(this).attr('string');
-                    self.add_field(id, string, import_compatible);
+                    self.add_field(id, string);
                 });
             this.$el.find(".oe_export_file").removeAttr("disabled");
             this.$el.find(".oe_button_unable").removeAttr("disabled");
@@ -86,15 +85,6 @@ instance.web.DataExport = instance.web.Widget.extend({
                     model: self.action.params.model,
                     import_compat: !!import_comp,
                     }).done(function (records) {
-                        var export_list = self.$("#fields_list option").map(function (res) {
-                            var i = 0;
-                            for (i = 0; i < records.length; i++) {
-                                if (this.value === records[i].id || $(this).attr("import_compatible") === "true") {break;}
-                            }
-                            if (i === records.length) {
-                                this.remove();
-                            }
-                        });
                         got_fields.resolve();
                         self.on_show_data(records);
                     });
@@ -189,13 +179,10 @@ instance.web.DataExport = instance.web.Widget.extend({
                 if (select_exp.val()) {
                     self.exports.unlink([parseInt(select_exp.val(), 10)]);
                     select_exp.remove();
-                    self.$el.find("#fields_list option").remove();
                     if (self.$el.find('#saved_export_list option').length == 1) {
                         self.$el.find('#ExistsExportList').hide();
                     }
                 }
-            self.$el.find(".oe_export_file").attr("disabled", "disabled");
-            self.$el.find(".oe_button_unable").attr("disabled","disabled")
             });
         });
     },
@@ -379,7 +366,7 @@ instance.web.DataExport = instance.web.Widget.extend({
             self.$el.find("tr[id='treerow-" + record.id + "']").dblclick(function() {
                 var $o2m_selection = self.$el.find("tr[id^='treerow-" + record.id + "']").find('#tree-column');
                 if (!$o2m_selection.hasClass("oe_export_readonlyfield")) {
-                   self.add_field(record.id, $(this).find("a").attr("string"), $(this).find("a").attr("import_compatible"));
+                   self.add_field(record.id, $(this).find("a").attr("string"));
                 }
             });
         });
@@ -389,7 +376,7 @@ instance.web.DataExport = instance.web.Widget.extend({
                     var field_id = event.relatedTarget.attributes["id"]["value"];
                     if (field_id && field_id.split("-")[0] === 'export') {
                         if (!self.$el.find("tr[id='treerow-" + field_id.split("-")[1] + "']").find('#tree-column').hasClass("oe_export_readonlyfield")) {
-                            self.add_field(field_id.split("-")[1], event.relatedTarget.attributes["string"]["value"],event.relatedTarget.attributes["import_compatible"]["value"]);
+                            self.add_field(field_id.split("-")[1], event.relatedTarget.attributes["string"]["value"]);
                         }
                     }
                 }
@@ -423,12 +410,11 @@ instance.web.DataExport = instance.web.Widget.extend({
             }
         }
     },
-    add_field: function(field_id, string, import_compatible) {
+    add_field: function(field_id, string) {
         var field_list = this.$el.find('#fields_list');
         if (this.$el.find("#fields_list option[value='" + field_id + "']")
                 && !this.$el.find("#fields_list option[value='" + field_id + "']").length) {
-            var option = new Option(string, field_id)
-            field_list.append($(option).attr('import_compatible',import_compatible));
+            field_list.append(new Option(string, field_id));
         }
         this.$el.find(".oe_export_file").removeAttr("disabled");
         this.$el.find(".oe_button_unable").removeAttr("disabled");
