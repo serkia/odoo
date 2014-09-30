@@ -65,5 +65,14 @@ $(document).ready(function () {
                 });
             return false;
         });
-
+    
+    
+    $('#cart_products input.js_quantity').change(function () {
+        var value = $(this).val();
+        var $next = $(this).closest('tr').next('.optional_product');
+        while($next.length) {
+            $next.find('.js_quantity').text(value);
+            $next = $next.next('.optional_product');
+        }
+    });
 });
