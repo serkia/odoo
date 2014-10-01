@@ -11,6 +11,7 @@ from openerp.tools.safe_eval import safe_eval as eval
 from openerp.tools.translate import _
 from openerp.tools import ustr
 from openerp.osv import osv, fields
+from openerp.addons.mail import mail_alias as ma
 
 
 class MassMailingCategory(osv.Model):
@@ -22,6 +23,8 @@ class MassMailingCategory(osv.Model):
     _columns = {
         'name': fields.char('Name', required=True),
     }
+    _sql_constraints=[('unique_name','unique(name)','Error! Tag Name Already Exist!')]
+    _constraints = [(ma._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]
 
 
 class MassMailingContact(osv.Model):

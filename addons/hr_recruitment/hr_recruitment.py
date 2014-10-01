@@ -25,6 +25,7 @@ from openerp import tools
 from openerp import SUPERUSER_ID
 from openerp.osv import fields, osv
 from openerp.tools.translate import _
+from openerp.addons.mail import mail_alias as ma
 
 
 AVAILABLE_PRIORITIES = [
@@ -620,3 +621,5 @@ class applicant_category(osv.osv):
     _columns = {
         'name': fields.char('Name', required=True, translate=True),
     }
+    _sql_constraints=[('unique_name','unique(name)','Error! Tag Name Already Exist!')]
+    _constraints = [(ma._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]

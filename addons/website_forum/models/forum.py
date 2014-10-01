@@ -9,6 +9,7 @@ from openerp.addons.website.models.website import slug
 from openerp.osv import osv, fields
 from openerp.tools import html2plaintext
 from openerp.tools.translate import _
+from openerp.addons.mail import mail_alias as ma
 
 
 class KarmaError(ValueError):
@@ -581,6 +582,21 @@ class Tags(osv.Model):
         return list(set(
             [tag.id for post in self.pool['forum.post'].browse(cr, SUPERUSER_ID, ids, context=context) for tag in post.tag_ids]
         ))
+    def _find_unique_name(self, tags, name):
+        name = ma.remove_accents(name).lower()
+        for tag in tags:
+            db_tag_name = ma.remove_accents(tag.name).lower()
+            if db_tag_name == name:
+                return tag
+        return False
+
+    def check_unique_name(self, cr, uid, ids, context=None):
+        tag_ids = self.search(cr, uid, [('id', 'not in', ids)])
+        tags = self.browse(cr, uid, tag_ids, context=context)
+        for tag in self.browse(cr, uid, ids, context=context):
+            if self._find_unique_name(tags, tag.name):
+                return False
+        return True
 
     _columns = {
         'name': fields.char('Name', required=True),
@@ -594,3 +610,5 @@ class Tags(osv.Model):
         ),
         'create_uid': fields.many2one('res.users', 'Created by', readonly=True),
     }
+    _sql_constraints = [('unique_name','unique(name)','Error! Tag Name Already Exist.')]
+    _constraints = [(check_unique_name, ' Error! Tag name must be Unique.', ['name'])]

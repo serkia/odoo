@@ -26,6 +26,7 @@ from openerp import tools
 from openerp.modules.module import get_module_resource
 from openerp.osv import fields, osv
 from openerp.tools.translate import _
+from openerp.addons.mail import mail_alias as ma
 
 _logger = logging.getLogger(__name__)
 
@@ -68,8 +69,10 @@ class hr_employee_category(osv.Model):
             level -= 1
         return True
 
+    _sql_constraints=[('unique_name','unique(name)','Error! Tag Name Already Exist!')]
     _constraints = [
-        (_check_recursion, 'Error! You cannot create recursive Categories.', ['parent_id'])
+        (_check_recursion, 'Error! You cannot create recursive Categories.', ['parent_id']),
+        (ma._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])
     ]
 
 

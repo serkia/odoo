@@ -40,6 +40,15 @@ def remove_accents(input_str):
     nkfd_form = unicodedata.normalize('NFKD', input_str)
     return u''.join([c for c in nkfd_form if not unicodedata.combining(c)])
 
+# _constraint method making all tag a unique case and accent insensitive
+def _check_unique_case_accent_insensitive(self, cr, uid, ids, context=None):
+    tag_ids = self.search(cr, uid, [('id', 'not in', ids)])
+    lst=[remove_accents(tag.name).lower() for tag in self.browse(cr, uid, tag_ids, context=context)]
+    for self_obj in self.browse(cr, uid, ids, context=context):
+        if self_obj.name and remove_accents(self_obj.name).lower() in  lst:
+            return False
+    return True
+    #return any([False for self_obj in self.browse(cr, uid, ids, context=context) if self_obj.name and remove_accents(self_obj.name).lower() in  lst ])
 
 class mail_alias(osv.Model):
     """A Mail Alias is a mapping of an email address with a given OpenERP Document

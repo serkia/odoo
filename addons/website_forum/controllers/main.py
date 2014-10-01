@@ -14,6 +14,7 @@ from openerp.addons.web.http import request
 from openerp.addons.website.controllers.main import Website as controllers
 from openerp.addons.website.models.website import slug
 from openerp.tools.translate import _
+from openerp.addons.mail import mail_alias as ma
 
 controllers = controllers()
 
@@ -176,14 +177,16 @@ class WebsiteForum(http.Controller):
         Tag = request.registry['forum.tag']
         question_tag_ids = []
         if post.get('question_tags').strip('[]'):
-            tags = post.get('question_tags').strip('[]').replace('"', '').split(",")
-            for tag in tags:
-                tag_ids = Tag.search(cr, uid, [('name', '=', tag)], context=context)
-                if tag_ids:
-                    question_tag_ids.append((4, tag_ids[0]))
+            tag_names = post.get('question_tags').strip('[]').replace('"', '').split(",")
+            tag_names = list(set([ ma.remove_accents(tag).lower() for tag in tag_names ]))
+            tag_ids = Tag.search(cr, uid, [])
+            tags = Tag.browse(cr, uid, tag_ids, context=context)
+            for tag_name in tag_names:
+                tag = Tag._find_unique_name(tags, tag_name)
+                if tag:
+                    question_tag_ids.append((4, tag.id))
                 else:
-                    question_tag_ids.append((0, 0, {'name': tag, 'forum_id': forum.id}))
-
+                    question_tag_ids.append((0, 0, {'name': tag_name, 'forum_id': forum.id}))
         new_question_id = request.registry['forum.post'].create(
             request.cr, request.uid, {
                 'forum_id': forum.id,
@@ -347,16 +350,18 @@ class WebsiteForum(http.Controller):
         question_tags = []
         if kwargs.get('question_tag') and kwargs.get('question_tag').strip('[]'):
             Tag = request.registry['forum.tag']
-            tags = kwargs.get('question_tag').strip('[]').replace('"', '').split(",")
-            for tag in tags:
-                tag_ids = Tag.search(cr, uid, [('name', '=', tag)], context=context)
-                if tag_ids:
-                    question_tags += tag_ids
+            tag_names = kwargs.get('question_tag').strip('[]').replace('"', '').split(",")
+            tag_names = list(set([ ma.remove_accents(tag).lower() for tag in tag_names ]))
+            tag_ids = Tag.search(cr, uid, [])
+            tags = Tag.browse(cr, uid, tag_ids, context=context)
+            for tag_name in tag_names:
+                tag = Tag._find_unique_name(tags, tag_name)
+                if tag:
+                    question_tags.append(tag.id)
                 else:
-                    new_tag = Tag.create(cr, uid, {'name': tag, 'forum_id': forum.id}, context=context)
-                    question_tags.append(new_tag)
+                    question_tags.append((0, 0, {'name': tag_name, 'forum_id': forum.id}))
         vals = {
-            'tag_ids': [(6, 0, question_tags)],
+            'tag_ids': question_tags,
             'name': kwargs.get('question_name'),
             'content': kwargs.get('content'),
         }
