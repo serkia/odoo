@@ -1851,11 +1851,14 @@ class account_tax(osv.osv):
         'python_compute': fields.text('Python Code (invoices)'),
         'python_compute_inv': fields.text('Python Code (refunds)'),
         'python_applicable': fields.text('Applicable Code'),
+        'deductible_percentage': fields.float('Deductible Percentage'),
+        'tax_deductible_acc_id': fields.many2one('account.account', 'Tax Account'),
+        'tax_nondeductible_acc_id': fields.many2one('account.account', 'Nondeductible Amount\'s Account'),
         'include_base_amount': fields.boolean('Included in base amount', help="When several taxes applies, this field indicates if the tax amount computed for this one must be included in the base amount for the computation of the next taxes (following the sequence order)."),
         'company_id': fields.many2one('res.company', 'Company', required=True),
-        'description': fields.char('Display on Reports'),
+        'description': fields.char('Internal Name', help="This name will be used in Odoo to represent the tax in a shorter way than its name"),
         'price_include': fields.boolean('Tax Included in Price', help="Check this if the price you use on the product and invoices includes this tax."),
-        'type_tax_use': fields.selection([('sale', 'Sale'), ('purchase', 'Purchase'), ('all', 'All Documents')], 'Tax Application', required=True),
+        'type_tax_use': fields.selection([('sale', 'Sale'), ('purchase', 'Purchase')], 'Tax Application', required=True),
         'parent_id': fields.many2one('account.tax', 'Parent Tax Account', select=True),
         'child_ids': fields.one2many('account.tax', 'parent_id', 'Child Tax Accounts'),
         'tax_invoice_line_ids': fields.one2many('account.tax.line', 'tax_id', 'Tax Invoice', domain=[('apply_on', '=', 'invoice')]),
@@ -1879,10 +1882,10 @@ class account_tax(osv.osv):
         if tax_type in ['group', 'code']:
             return {}
         base_amount, tax_amount = self._compute_tax_amount_line(1000, tax_amount, tax_type, price_include=price_include, context=context)
-        tax_invoice_line_ids = [{'code_type': 'base', 'apply_on': 'invoice', 'debit_credit_amount': base_amount, 'tax_amount': base_amount},
-                                {'code_type': 'tax', 'apply_on': 'invoice', 'debit_credit_amount': tax_amount, 'tax_amount': tax_amount}]
-        tax_refund_line_ids = [{'code_type': 'base', 'apply_on': 'refund', 'debit_credit_amount': base_amount, 'tax_amount': -base_amount},
-                                {'code_type': 'tax', 'apply_on': 'refund', 'debit_credit_amount': tax_amount, 'tax_amount': -tax_amount}]
+        tax_invoice_line_ids = [{'code_type': 'base', 'apply_on': 'invoice', 'amount': base_amount},
+                                {'code_type': 'tax', 'apply_on': 'invoice', 'amount': tax_amount}]
+        tax_refund_line_ids = [{'code_type': 'base', 'apply_on': 'refund', 'amount': -base_amount},
+                                {'code_type': 'tax', 'apply_on': 'refund', 'amount': -tax_amount}]
         return {'value': {'tax_invoice_line_ids': tax_invoice_line_ids, 'tax_refund_line_ids': tax_refund_line_ids}}
 
     def fields_view_get(self, cr, uid, view_id=None, view_type='form', context=None, toolbar=False):
@@ -1894,17 +1897,17 @@ class account_tax(osv.osv):
         amount_str = rml_parser.formatLang(1000, currency_obj=user.company_id.currency_id)
         doc = etree.XML(res['arch'])
         for node in doc.xpath("//label[@name='sale_excluded']"):
-            node.set('string', _('Journal Items for a %s sale (taxes excluded)') % (amount_str))
+            node.set('string', _('Tax Declaration for a %s sale (taxes excluded)') % (amount_str))
         for node in doc.xpath("//label[@name='sale_included']"):
-            node.set('string', _('Journal Items for a %s sale (taxes included)') % (amount_str))
+            node.set('string', _('Tax Declaration for a %s sale (taxes included)') % (amount_str))
         for node in doc.xpath("//label[@name='purchase_excluded']"):
-            node.set('string', _('Journal Items for a %s purchase (taxes excluded)') % (amount_str))
+            node.set('string', _('Tax Declaration for a %s purchase (taxes excluded)') % (amount_str))
         for node in doc.xpath("//label[@name='purchase_included']"):
-            node.set('string', _('Journal Items for a %s purchase (taxes included)') % (amount_str))
+            node.set('string', _('Tax Declaration for a %s purchase (taxes included)') % (amount_str))
         for node in doc.xpath("//label[@name='refund_excluded']"):
-            node.set('string', _('Journal Items for a %s refund (taxes excluded)') % (amount_str))
+            node.set('string', _('Tax Declaration for a %s refund (taxes excluded)') % (amount_str))
         for node in doc.xpath("//label[@name='refund_included']"):
-            node.set('string', _('Journal Items for a %s refund (taxes included)') % (amount_str))
+            node.set('string', _('Tax Declaration for a %s refund (taxes included)') % (amount_str))
         res['arch'] = etree.tostring(doc)
         return res
 
@@ -1931,18 +1934,6 @@ class account_tax(osv.osv):
             domain = ['|', ('description', operator, name), ('name', operator, name)]
         ids = self.search(cr, user, expression.AND([domain, args]), limit=limit, context=context)
         return self.name_get(cr, user, ids, context=context)
-
-    def create(self, cr, uid, vals, context=None):
-        if vals.get('type', False) and vals['type'] == 'percentage_price_include':
-            vals.update({'price_include': True})
-        return super(account_tax, self).create(cr, uid, vals, context=context)
-
-    def write(self, cr, uid, ids, vals, context=None):
-        if vals.get('type', False) and vals['type'] in ('none', 'code'):
-            vals.update({'amount': 0.0})
-        if vals.get('type', False) and vals['type'] == 'percentage_price_include':
-            vals.update({'price_include': True})
-        return super(account_tax, self).write(cr, uid, ids, vals, context=context)
 
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
@@ -1982,10 +1973,10 @@ class account_tax(osv.osv):
         'applicable_type': 'true',
         'python_applicable': '''# price_unit\n# product: product.product object or None\n# partner: res.partner object or None\n\nif price_unit >= 1000:\n    result = True''',
         'type': 'percent',
+        'deductible_percentage': 100,
         'amount': 0,
         'price_include': 0,
         'active': 1,
-        'type_tax_use': 'all',
         'sequence': 1,
         'include_base_amount': False,
         'company_id': _default_company,
@@ -2035,7 +2026,7 @@ class account_tax(osv.osv):
                     'analytic_account_id': localdict.get('analytic_account_id'),
                     'price_unit': cur_price_unit,
                     'amount': amount,
-                    'tax_amount': localdict.get('tax_amount', 0.0),
+                    'tax_amount': localdict.get('amount', 0.0),
                 })
             else:
                 #tax.type in ['percent', 'fixed']:
@@ -2152,11 +2143,9 @@ class account_tax_line(osv.Model):
             date = fields.date.context_today(self, cr, uid, context=context)
         taxes = []
         for tax_line in self.browse(cr, uid, ids, context=context):
-            debit_credit_amount = (tax_line.debit_credit_amount / 1000) * price_unit
-            tax_amount = (tax_line.tax_amount / 1000) * price_unit
+            amount = (tax_line.amount / 1000) * price_unit
             if tax_line.code_type == 'tax' and tax_line.tax_id.type == 'fixed':
-                debit_credit_amount = tax_line.debit_credit_amount
-                tax_amount = tax_line.tax_amount
+                amount = tax_line.amount
             taxes.append({
                 'name': tax_line.tax_id.name,
                 'sequence': tax_line.sequence,
@@ -2166,8 +2155,8 @@ class account_tax_line(osv.Model):
                 'analytic_account_id': tax_line.analytic_account_id and tax_line.analytic_account_id.id or False,
                 'price_unit': price_unit,
                 'code_type': tax_line.code_type,
-                'amount': debit_credit_amount,
-                'tax_amount': tax_amount,
+                'amount': amount,
+                'tax_amount': amount,
             })
         return taxes
 
@@ -2175,26 +2164,17 @@ class account_tax_line(osv.Model):
         'tax_id': fields.many2one('account.tax','Tax', required=True, ondelete="cascade"),
         'apply_on': fields.selection([('invoice','Invoice'),('refund','Refund')], "Apply On", required=True),
         'sequence': fields.integer('Sequence', required=True, help="The sequence field is used to order the tax lines from the lowest sequences to the higher ones, in order to know which one to compute first (lower sequence first)."),
-        'code_type': fields.selection([('base','Base'),('tax','Tax')], "Code Type"),
-        'code_id': fields.many2one('account.tax.code', 'Section in the Tax Statement', help="Use this code for the tax declaration."),
-        'account_id': fields.many2one('account.account', 'Tax Account', help="Set the account that will be set by default on invoice tax lines for invoices or refund. Leave empty to use the expense account."),
-        'analytic_account_id': fields.many2one('account.analytic.account', 'Tax Analytic Account', help="Set the analytic account that will be used by default on the invoice tax lines for invoices or Refunds. Leave empty if you don't want to use an analytic account on the invoice tax lines by default."),
-        'debit_credit_amount': fields.float('Credit/Debit Amount', required=True, digits_compute=dp.get_precision('Account')),
-        'tax_amount': fields.float('Amounts in the Tax Statement', required=True, digits_compute=dp.get_precision('Account')),
+        'code_type': fields.selection([('base','Base'),('tax','Tax')], "Code Type", required=True),
+        'code_id': fields.many2one('account.tax.code', 'Section in the Tax Statement', required=True, help="Use this code for the tax declaration. Leave empty if this amount shouldn't be reported in the tax declaration"),
+        'amount': fields.float('Amount', required=True, digits_compute=dp.get_precision('Account')),
         'company_id': fields.related('tax_id','company_id', type='many2one', relation='res.company', string='Company'),
     }
     _defaults = {
         'sequence': 1,
         'code_type': 'tax',
         'apply_on': 'invoice',
-        'tax_amount': 1000.0,
-        'debit_credit_amount': 1000.0,
+        'amount': 1000.0,
     }
-
-    def onchange_amount(self, cr, uid, ids, amount=0.0, context=None):
-        if context is None:
-            context = {}
-        return {'value': {'tax_amount': context and context.get('default_apply_on') == 'refund' and -amount or amount}}
 
 
 # ---------------------------------------------------------
@@ -2735,25 +2715,20 @@ class account_tax_line_template(osv.Model):
 
     _columns = {
         'code_type': fields.selection([('base','Base'),('tax','Tax')], "Code Type"),
-        'tax_amount': fields.float('Amount to report in the Tax Statement', help="Amount to report in the Tax Statement."),
+        'amount': fields.float('Amount to report in the Tax Statement', help="Amount to report in the Tax Statement."),
         'apply_on': fields.selection([('invoice','Invoice'),('refund','Refund')], "Apply On", required=True),
         'code_id': fields.many2one('account.tax.code.template', 'Section in the Tax Statement', help="Use this code for the tax declaration."),
         'account_id': fields.many2one('account.account.template', 'Tax Account', help="Set the account that will be set by default on invoice tax lines for invoices or refund. Leave empty to use the expense account."),
         'analytic_account_id': fields.many2one('account.analytic.account', 'Tax Analytic Account', help="Set the analytic account that will be used by default on the invoice tax lines for invoices or Refunds. Leave empty if you don't want to use an analytic account on the invoice tax lines by default."),
-        'debit_credit_amount': fields.float('Tax/Base Amount', required=True, digits_compute=dp.get_precision('Account')),
         'sequence': fields.integer('Sequence', required=True, help="The sequence field is used to order the tax lines from the lowest sequences to the higher ones. The order is important if you have a tax with several tax children. In this case, the evaluation order is important."),
         'tax_id': fields.many2one('account.tax.template','Tax', ondelete="cascade"),
     }
     _defaults = {
         'sequence': 1,
         'code_type': 'tax',
-        'tax_amount': 1000,
+        'amount': 1000,
         'apply_on': 'invoice',
-        'debit_credit_amount': 1000.0,
     }
-
-    def onchange_amount(self, cr, uid, ids, amount=False, context=None):
-        return {'value': {'tax_amount': context and 'default_apply_on' in context and context['default_apply_on'] == 'refund' and -amount or amount}}
 
     def generate_tax_line(self, cr, uid, tax_id, line_ids, tax_code_template_ref, context=None):
         """
@@ -2764,8 +2739,7 @@ class account_tax_line_template(osv.Model):
         for tax_line in line_ids:
             vals = {
                 'code_type': tax_line.code_type,
-                'tax_amount': tax_line.tax_amount,
-                'debit_credit_amount': tax_line.debit_credit_amount,
+                'amount': tax_line.amount,
                 'apply_on': tax_line.apply_on,
                 'code_id': tax_line.code_id and ((tax_line.code_id.id in tax_code_template_ref) and tax_code_template_ref[tax_line.code_id.id]) or False,
                 'analytic_account_id': tax_line.analytic_account_id.id,
@@ -2803,8 +2777,8 @@ class account_tax_template(osv.osv):
         'chart_template_id': fields.many2one('account.chart.template', 'Chart Template', required=True),
     }
 
-    def onchange_tax_id(self, cr, uid, ids, tax_type, tax_amount, price_include=False, context=None):
-        return self.pool.get('account.tax').onchange_tax_id(cr, uid, [], tax_type, tax_amount, price_include=price_include, context=context)
+    def onchange_tax_id(self, cr, uid, ids, tax_type, amount, price_include=False, context=None):
+        return self.pool.get('account.tax').onchange_tax_id(cr, uid, [], tax_type, amount, price_include=price_include, context=context)
 
     def name_get(self, cr, uid, ids, context=None):
         if not ids:
@@ -3337,7 +3311,7 @@ class wizard_multi_charts_accounts(osv.osv_memory):
             for tax in obj_tax_temp.browse(cr, uid, tax_ids, context=context):
                 for tax_line in tax.tax_invoice_line_ids + tax.tax_refund_line_ids:
                     if tax_line.code_type == 'tax':
-                        obj_tax_line_temp.write(cr, uid, tax_line.id, {'amount': value, 'tax_amount': value}, context=context)
+                        obj_tax_line_temp.write(cr, uid, tax_line.id, {'amount': value,}, context=context)
             return True
         obj_tax_code_template = self.pool.get('account.tax.code.template')
         obj_tax_temp = self.pool.get('account.tax.template')

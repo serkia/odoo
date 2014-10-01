@@ -980,23 +980,31 @@
             <field name="model">account.tax</field>
             <field name="arch" type="xml">
                 <form string="Account Tax" version="7.0">
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
                     <group>
                         <group>
-                            <field name="name"/>
-                            <field name="description" attrs="{'invisible': [('type','in',('group'))]}"/>
+                            <field name="type_tax_use" string="Tax used for" widget='radio'/>
                             <field name="type" on_change="onchange_tax_id(type, amount, price_include, context)"/>
-                            <field name="price_include" attrs="{'invisible':[('type','in',('group','code'))], 'readonly':[('type','in',('percentage_price_include'))]}" on_change="onchange_tax_id(type, amount, price_include, context)"/>
-                            <field name="active" groups="base.group_no_one"/>
-                        </group>
-                        <group>
-                            <field name="type_tax_use" string="Domain"/>
-                            <field name="company_id" widget="selection" groups="base.group_multi_company"/>
                             <label for="amount" attrs="{'invisible': [('type','in',('group','code'))]}"/>
                             <div attrs="{'invisible': [('type','in',('group','code'))]}">
                                 <field name="amount" string="Tax Rate" class="oe_inline" nolabel="1"
                                 on_change="onchange_tax_id(type, amount, price_include, context)"/>
-                                <span attrs="{'invisible': [('type','not in',('percent','percentage_price_include'))]}">%%</span>
+                                <span attrs="{'invisible': [('type','not in',('percent'))]}">%%</span> (
+                                <field name="deductible_percentage" class="oe_inline" nolabel="1"/>%% Deductible)
                             </div>
+                            <field name="tax_deductible_acc_id"/>
+                            <field name="tax_nondeductible_acc_id" attrs="{'invisible': [('deductible_percentage', '=', 100.0)]}"/>
+                        </group>
+                        <group>
+                            <field name="description" attrs="{'invisible': [('type','in',('group'))]}"/>
+                            <field name="price_include" attrs="{'invisible':[('type','in',('group','code'))]}" on_change="onchange_tax_id(type, amount, price_include, context)"/>
+                            <field name="active" groups="base.group_no_one"/>
+                            <field name="company_id" widget="selection" groups="base.group_multi_company"/>
                             <label for="include_base_amount"/>
                             <div>
                                 <field name="include_base_amount"/>
@@ -1017,37 +1025,31 @@
                           <field name="child_ids" nolabel="1" widget="many2many_tags"/>
                     </group>
                     <div attrs="{'invisible': [('type','=','group')]}">
-                        <h2><label name="sale_excluded" string="Journal Items for a 100euros sale (taxes excluded)" attrs="{'invisible':['|', ('price_include','=',True), ('type_tax_use','in','purchase')]}"/></h2>
-                        <h2><label name="sale_included" string="Journal Items for a 100euros sale (taxes included)" attrs="{'invisible':['|', ('price_include','=',False), ('type_tax_use','in','purchase')]}"/></h2>
-                        <h2><label name="purchase_excluded" string="Journal Items for a 100euros purchase (taxes excluded)" attrs="{'invisible':['|', ('price_include','=',True), ('type_tax_use','not in','purchase')]}"/></h2>
-                        <h2><label name="purchase_included" string="Journal Items for a 100euros purchase (taxes included)" attrs="{'invisible':['|', ('price_include','=',False), ('type_tax_use','not in','purchase')]}"/></h2>
+                        <h2><label name="sale_excluded" string="erased by fields_view_get" attrs="{'invisible':['|', ('price_include','=',True), ('type_tax_use','in','purchase')]}"/></h2>
+                        <h2><label name="sale_included" string="erased by fields_view_get" attrs="{'invisible':['|', ('price_include','=',False), ('type_tax_use','in','purchase')]}"/></h2>
+                        <h2><label name="purchase_excluded" string="erased by fields_view_get" attrs="{'invisible':['|', ('price_include','=',True), ('type_tax_use','not in','purchase')]}"/></h2>
+                        <h2><label name="purchase_included" string="erased by fields_view_get" attrs="{'invisible':['|', ('price_include','=',False), ('type_tax_use','not in','purchase')]}"/></h2>
                         <group colspan="7" name="invoice">
                             <field name="tax_invoice_line_ids" context= "{'default_apply_on':'invoice'}" nolabel="1">
                                 <tree string="Tax Invoice Line" editable="bottom">
                                     <field name="sequence" widget="handle"/>
                                     <field name="code_type"/>
-                                    <field name="debit_credit_amount"/>
-                                    <field name="account_id" domain="[('type', '!=', 'view')]"/>
-                                    <field name="analytic_account_id" groups="analytic.group_analytic_accounting" domain="[('type','in',('normal','contract'))]"/>
-                                    <field name="apply_on" invisible="1"/>
-                                    <field name="tax_amount"/>
                                     <field name="code_id"/>
+                                    <field name="amount"/>
+                                    <field name="apply_on" invisible="1"/>
                                 </tree>
                             </field>
                         </group>
-                        <h2><label name="refund_excluded" string="Journal Items for a 100euros refund (taxes excluded)" attrs="{'invisible':[('price_include','=',True)]}"/></h2>
-                        <h2><label name="refund_included" string="Journal Items for a 100euros refund (taxes included)" attrs="{'invisible':[('price_include','=',False)]}"/></h2>
+                        <h2><label name="refund_excluded" string="erased by fields_view_get" attrs="{'invisible':[('price_include','=',True)]}"/></h2>
+                        <h2><label name="refund_included" string="erased by fields_view_get" attrs="{'invisible':[('price_include','=',False)]}"/></h2>
                         <group colspan="7" name="refund">
                             <field name="tax_refund_line_ids" context= "{'default_apply_on':'refund'}" nolabel="1">
                                 <tree string="Tax Refund Line" editable="bottom">
                                     <field name="sequence" widget="handle"/>
                                     <field name="code_type"/>
-                                    <field name="debit_credit_amount"/>
-                                    <field name="account_id" domain="[('type', '!=', 'view')]"/>
-                                    <field name="analytic_account_id" groups="analytic.group_analytic_accounting" domain="[('type','in',('normal','contract'))]"/>
-                                    <field name="apply_on" invisible="1"/>
-                                    <field name="tax_amount"/>
                                     <field name="code_id"/>
+                                    <field name="amount"/>
+                                    <field name="apply_on" invisible="1"/>
                                 </tree>
                             </field>
                         </group>
@@ -2055,7 +2057,7 @@
                             <field name="chart_template_id"/>
                             <field name="description" attrs="{'invisible': [('type','in',('group'))]}"/>
                             <field name="type" on_change="onchange_tax_id(type, amount, price_include, context)"/>
-                            <field name="price_include" attrs="{'invisible':[('type','in',('group','code'))], 'readonly':[('type','in',('percentage_price_include'))]}" on_change="onchange_tax_id(type, amount, price_include, context)"/>
+                            <field name="price_include" attrs="{'invisible':[('type','in',('group','code'))]}" on_change="onchange_tax_id(type, amount, price_include, context)"/>
                             <field name="active" groups="base.group_no_one"/>
                         </group>
                         <group>
@@ -2064,7 +2066,7 @@
                             <div attrs="{'invisible': [('type','in',('group','code'))]}">
                                 <field name="amount" string="Tax Rate" class="oe_inline" nolabel="1"
                                 on_change="onchange_tax_id(type, amount, price_include, context)"/>
-                                    <span attrs="{'invisible': [('type','not in',('percent','percentage_price_include'))]}">%%</span>
+                                    <span attrs="{'invisible': [('type','not in',('percent'))]}">%%</span>
                             </div>
                             <label for="include_base_amount"/>
                             <div>
@@ -2095,12 +2097,11 @@
                                 <tree string="Tax Invoice Line" editable="bottom">
                                     <field name="sequence" widget="handle"/>
                                     <field name="code_type"/>
+                                    <field name="code_id"/>
                                     <field name="account_id" domain="[('type', '!=', 'view')]"/>
                                     <field name="analytic_account_id" groups="analytic.group_analytic_accounting" domain="[('type','in',('normal','contract'))]"/>
+                                    <field name="amount"/>
                                     <field name="apply_on" invisible="1"/>
-                                    <field name="debit_credit_amount"/>
-                                    <field name="tax_amount"/>
-                                    <field name="code_id"/>
                                 </tree>
                             </field>
                         </group>
@@ -2111,12 +2112,11 @@
                                 <tree string="Tax Refund Line" editable="bottom">
                                     <field name="sequence" widget="handle"/>
                                     <field name="code_type"/>
+                                    <field name="code_id"/>
                                     <field name="account_id" domain="[('type', '!=', 'view')]"/>
                                     <field name="analytic_account_id" groups="analytic.group_analytic_accounting" domain="[('type','in',('normal','contract'))]"/>
+                                    <field name="amount"/>
                                     <field name="apply_on" invisible="1"/>
-                                    <field name="debit_credit_amount"/>
-                                    <field name="tax_amount"/>
-                                    <field name="code_id"/>
                                 </tree>
                             </field>
                         </group>
