@@ -90,6 +90,54 @@
     </div>
 
 
+    <div name="Image-Text" class="o_block_image_float">
+        <section class="mt16 mb16">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12 mb16 mt16">
+                        <div class="o_image_floating pull-right">
+                            <div class="o_container">
+                                <img class="img img-rounded img-responsive" src="/website/static/src/img/library/ipad.png"/>
+                                <mark class="text-center"><a href="#"><strong>Click Here</strong></a></mark>
+                            </div>
+                            <div class="o_footer">
+                                <small class="text-muted">A great way to catch your reader's attention is to tell a story. Everything you consider writing can be told as a story.</small>
+                            </div>
+                        </div>
+                        <p>
+                            <b>Great stories have personality.</b> Consider telling
+                            a great story that provides personality. Writing a story
+                            with personality for potential clients will asist with
+                            making a relationship connection. This shows up in small
+                            quirks like word choices or phrases. Write from your point
+                            of view, not from someone else's experience. Consider telling
+                            a great story that provides personality. Writing a story
+                            with personality for potential clients will asist with
+                            making a relationship connection. This shows up in small
+                            quirks like word choices or phrases. Write from your point
+                            of view, not from someone else's experience.
+                            <b>Great stories are for everyone even when only written for
+                            just one person.</b> If you try to write with a wide general
+                            audience in mind, your story will ring false and be bland.
+                            No one will be interested. Write for one person. If it’s genuine
+                            for the one, it’s genuine for the rest. Writing a story with
+                            personality for potential clients will asist with
+                            making a relationship connection. This shows up in small
+                            quirks like word choices or phrases. Write from your point
+                            of view, not from someone else's experience. Consider telling
+                            a great story that provides personality. Writing a story
+                            with personality for potential clients will asist with
+                            making a relationship connection. This shows up in small
+                            quirks like word choices or phrases. Write from your point
+                            of view, not from someone else's experience.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+
     <div name="Big Message" class="o_block_jumbotron">
         <section class="jumbotron mt16 mb16">
             <div class="container">
@@ -281,6 +329,17 @@
         </div>
     </div>
 
+    <div name="Image Floating" class="o_block_image_floating">
+        <div class="o_image_floating pull-right">
+            <div class="o_container">
+                <img class="img img-rounded img-responsive" src="/website/static/src/img/library/ipad.png"/>
+                <mark class="text-center"><a href="#"><strong>Click Here</strong></a></mark>
+            </div>
+            <div class="o_footer">
+                <small class="text-muted">A great way to catch your reader's attention is to tell a story. Everything you consider writing can be told as a story.</small>
+            </div>
+        </div>
+    </div>
 
     <div name="Separator" class="o_block_separator">
         <hr/>
@@ -979,9 +1038,32 @@
     </div>
 
     <div data-js='content'
-        data-selector="blockquote, .well, .panel, .oe_share"
+        data-selector="blockquote, .well, .panel, .oe_share, .o_image_floating"
         data-drop-near="p, h1, h2, h3, blockquote, .well, .panel, .oe_share"
         data-drop-in=".content">
+    </div>
+
+    <div data-selector=".o_image_floating">
+        <li class="dropdown-submenu">
+            <a tabindex="-2" href="#">Margin</a>
+            <ul class="dropdown-menu">
+                <li data-select_class="o_margin_xl"> <a>Extra-Large</a> </li>
+                <li data-select_class="o_margin_l"> <a>Large</a> </li>
+                <li data-select_class="o_margin_m"  > <a>Medium</a> </li>
+                <li data-select_class="o_margin_s"  > <a>Small</a></li>
+                <li data-select_class=""  > <a>None</a></li>
+            </ul>
+        </li>
+        <li data-toggle_class="o_hide_link"><a>Hide link</a></li>
+    </div>
+    <div data-selector=".o_image_floating">
+        <li class="dropdown-submenu">
+            <a tabindex="-2" href="#">Float</a>
+            <ul class="dropdown-menu">
+                <li data-select_class="pull-left"  > <a>Left</a></li>
+                <li data-select_class="pull-right"  > <a>Right</a></li>
+            </ul>
+        </li>
     </div>
 
     <div data-js='separator'
