@@ -29,20 +29,19 @@
             this.$('.load-category').show();
             this.$('.modal-footer, .modal-body').hide();
 
-            return openerp.jsonRpc('/slides/get_category/' + self.channel_id, 'call')
-                .then(function (data) {
-                    self.$('.load-category').hide();
-                    self.$('.modal-footer, .modal-body').show();
-                    _.each(data, function (category) {
-                        self.$('#category').append($('<option>', {
-                            value: category.id,
-                            text: category.name
-                        }));
-                    });
-                    if (self.category_id) {
-                        self.$('#category').val(self.category_id);
-                    }
+            return openerp.jsonRpc('/slides/get_category/' + self.channel_id, 'call').then(function (data) {
+                self.$('.load-category').hide();
+                self.$('.modal-footer, .modal-body').show();
+                _.each(data, function (category) {
+                    self.$('#category').append($('<option>', {
+                        value: category.id,
+                        text: category.name
+                    }));
                 });
+                if (self.category_id) {
+                    self.$('#category').val(self.category_id);
+                }
+            });
         },
         start: function () {
             this.$el.modal({
@@ -62,15 +61,18 @@
                 var constraint = this.check_constraint({
                     'video_id': video_id
                 });
-                var api_url = "https://www.googleapis.com/youtube/v3/videos?id=" + video_id + " &key=AIzaSyBKDzf7KjjZqwPWAME6JOeHzzBlq9nrpjk&part=snippet&fields=items(snippet/title, snippet/thumbnails/high/url)";
+                var api_url = "https://www.googleapis.com/youtube/v3/videos?id=" + video_id + " &key=AIzaSyBKDzf7KjjZqwPWAME6JOeHzzBlq9nrpjk&part=statistics,snippet&fields=items(snippet/title, snippet/description, statistics/viewCount, snippet/thumbnails/high/url)";
                 $.getJSON(api_url, function (data) {
                     var title = data.items[0].snippet.title;
+                    var description = data.items[0].snippet.description;
                     var image_src = data.items[0].snippet.thumbnails.high.url;
+
                     constraint.then(function (url) {
                         if (url) {
                             $('<div class="alert alert-warning" role="alert">This video already exists in this channel <a target="_blank" href=' + url + '>click here to view it </a></div>').insertBefore(self.$('form'));
                         } else {
                             self.$('#name').val(title);
+                            self.$('#description').val(description);
                         }
                     });
                     self.$("#slide-image").attr("src", image_src);

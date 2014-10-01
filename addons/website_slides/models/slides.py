@@ -312,38 +312,6 @@ class Slide(models.Model):
         if self.channel_id:
             self.channel_id.message_post(subject=message, body=body, subtype='website_slides.new_slides_validation')
 
-    @api.multi
-    def write(self, values):
-        if values.get('url'):
-            values = self.update_youtube(values)
-
-        if values.get('website_published'):
-            values.update({'date_publish': datetime.datetime.now()})
-
-        success = super(Slide, self).write(values)
-
-        if values.get('website_published'):
-            self.notify_published()
-        
-        return success
-
-    def update_youtube(self, values):
-        vals = {}
-        vals["youtube_id"] = self.extract_youtube_id(values['url'].strip())
-        statistics = self.youtube_statistics(vals["youtube_id"])
-        if statistics:
-            if statistics['items'][0].get('snippet'):
-                if statistics['items'][0]['snippet'].get('thumbnails'):
-                    image_url = statistics['items'][0]['snippet']['thumbnails']['medium']['url']
-                    response = requests.get(image_url)
-                    if response:
-                        vals['image'] = response.content.encode('base64')
-                if statistics['items'][0]['snippet'].get('description'):
-                        vals['description'] = statistics['items'][0]['snippet'].get('description')
-            if statistics['items'][0].get('statistics'):
-                vals['youtube_views'] = int(statistics['items'][0]['statistics']['viewCount'])
-        return vals
-
     #TODO: check, may be useful to place this image in to website module
     def crop_image(self, data, type='top', ratio=False, thumbnail_ratio=None, image_format="PNG"):
         """ Used for cropping image and create thumbnail
@@ -411,6 +379,20 @@ class Slide(models.Model):
 
         return slide_type
 
+    @api.multi
+    def write(self, values):
+        if values.get('url'):
+            values = self.update_youtube(values)
+
+        if values.get('website_published'):
+            values.update({'date_publish': datetime.datetime.now()})
+
+        success = super(Slide, self).write(values)
+
+        if values.get('website_published'):
+            self.notify_published()
+        
+        return success
 
     @api.model
     def create(self, values):
@@ -418,18 +400,20 @@ class Slide(models.Model):
             values['slide_type'] = self._detect_type(values)
 
         if values.get('url'):
-            vals = self.update_youtube(values)
+            values["youtube_id"] = self.extract_youtube_id(values['url'].strip())
+            vals = self.get_youtube_statistics(values['youtube_id'], part='snippet,statistics', fields='id,snippet,statistics')
             values.update(vals)
         
+        if values.get('wesite_upload'):
+            del values['wesite_upload']
+        
+        if values.get('mimetype'):
+            del values['mimetype']
+
         if not values.get('index_content'):
             values['index_content'] = values.get('description')
 
-        if values.get('image') and values.get('slide_type') == 'video':
-            values.update({
-                'image_medium': values.get('image'),
-                'image_thumb': values.get('image')
-            })
-        else:
+        if values.get('slide_type') != 'video':
             image_medium = self.crop_image(values['image'], thumbnail_ratio=3)
             image_thumb = self.crop_image(values['image'], thumbnail_ratio=4)
             image = self.crop_image(values['image'])
@@ -442,7 +426,7 @@ class Slide(models.Model):
         if values.get('website_published'):
             values.update({'date_publish': datetime.datetime.now()})
 
-        values['total_views'] = values.get('slide_views', 0) + values.get('youtube_views', 0)
+        values['total_views'] = int(values.get('slide_views', 0)) + int(values.get('youtube_views', 0))
         slide_id = super(Slide, self).create(values)
 
         #notify channel manager to approve uploaded slide
@@ -452,6 +436,7 @@ class Slide(models.Model):
         slide_id.notify_published()
         return slide_id
 
+    #TODO: convert this to regural expression
     def extract_youtube_id(self, url):
         youtube_id = ""
         query = urlparse(url)
@@ -467,14 +452,48 @@ class Slide(models.Model):
                 youtube_id = query.path.split('/')[2]
         return youtube_id
 
-    def youtube_statistics(self, video_id):
-        request_url = "https://www.googleapis.com/youtube/v3/videos?id=%s&key=AIzaSyBKDzf7KjjZqwPWAME6JOeHzzBlq9nrpjk&part=snippet,statistics&fields=items(id,snippet,statistics)" % (video_id)
+    def get_youtube_statistics(self, video_id, part='statistics', fields='statistics'):
+        apiurl = 'https://www.googleapis.com/youtube/v3/videos'
+        key = 'AIzaSyBKDzf7KjjZqwPWAME6JOeHzzBlq9nrpjk'
+        vals = None
+        request_url = "%s?id=%s&key=%s&part=%s&fields=items(%s)" % (apiurl, video_id, key, part, fields)
         try:
             req = urllib2.Request(request_url)
             content = urllib2.urlopen(req).read()
-        except urllib2.HTTPError:
-            return False
-        return json.loads(content)
+            values = json.loads(content)
+            vals = self.parse_update_youtube(values)
+        except urllib2.HTTPError, e:
+            pass
+        return vals
+
+    def parse_update_youtube(self, values):
+
+        def _get_image_data(image_url):
+            image_date = False
+            response = requests.get(image_url)
+            if response:
+                image_date = response.content.encode('base64')
+            return image_date
+
+        vals = {}
+        if values:
+            item = values['items'][0]
+
+            if item.get('snippet'):
+                print "item['snippet']['thumbnails']['medium']['url'] : ", item['snippet']['thumbnails']['medium']['url']
+                vals['image_thumb'] = _get_image_data(item['snippet']['thumbnails']['medium']['url'])
+                vals['image_medium'] = _get_image_data(item['snippet']['thumbnails']['high']['url'])
+                vals['image'] = _get_image_data(item['snippet']['thumbnails']['standard']['url'])
+
+                if item['snippet'].get('description'):
+                    vals['description'] = values['items'][0]['snippet'].get('description')
+
+            if item.get('statistics'):
+                vals['youtube_views'] = int(item['statistics']['viewCount'])
+                vals['likes'] = int(item['statistics']['likeCount'])
+                vals['dislikes'] = int(item['statistics']['dislikeCount'])
+
+        return vals
 
 class Channel(models.Model):
     _inherit = 'slide.channel'

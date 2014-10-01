@@ -141,19 +141,19 @@
                         <div class="col-md-6 col-sm-12 col-xs-12">
                             <ul class="nav nav-tabs nav-tabs-simple nav-tabs-sm nav-tabs-border">
                                 <li t-attf-class="slide-tabs-li #{not types and 'active' ''}">
-                                    <a  t-attf-href="/slides/#{slug(channel)}" class="slide-tabs" data-toggle="tab"> <i class="fa fa-home"></i> Home</a>
+                                    <a  t-attf-href="/slides/#{slug(channel)}" class="slide-tabs"> <i class="fa fa-home"></i> Home</a>
                                 </li>
                                 <li t-if="channel.presentations" t-attf-class="slide-tabs-li #{types == 'presentation' and 'active' ''}">
-                                    <a t-attf-href="/slides/#{slug(channel)}/presentation" class="slide-tabs" data-toggle="tab"> <span class="badge"><t t-esc="channel.presentations"/></span> Presentations</a>
+                                    <a t-attf-href="/slides/#{slug(channel)}/presentation" class="slide-tabs"> <span class="badge"><t t-esc="channel.presentations"/></span> Presentations</a>
                                 </li>
                                 <li t-if="channel.videos" t-attf-class="slide-tabs-li #{types == 'video' and 'active' ''}">
-                                    <a t-attf-href="/slides/#{slug(channel)}/video" class="slide-tabs" data-toggle="tab"> <span class="badge"><t t-esc="channel.videos"/></span> Videos</a>
+                                    <a t-attf-href="/slides/#{slug(channel)}/video" class="slide-tabs"> <span class="badge"><t t-esc="channel.videos"/></span> Videos</a>
                                 </li>
                                 <li t-if="channel.documents" t-attf-class="slide-tabs-li #{types == 'document' and 'active' ''}">
-                                    <a t-attf-href="/slides/#{slug(channel)}/document" class="slide-tabs" data-toggle="tab"> <span class="badge"><t t-esc="channel.documents"/></span> Documents</a>
+                                    <a t-attf-href="/slides/#{slug(channel)}/document" class="slide-tabs"> <span class="badge"><t t-esc="channel.documents"/></span> Documents</a>
                                 </li>
                                 <li t-if="channel.infographics" t-attf-class="slide-tabs-li #{types == 'infographic' and 'active' ''}">
-                                    <a t-attf-href="/slides/#{slug(channel)}/infographic" class="slide-tabs" data-toggle="tab"><span class="badge"><t t-esc="channel.infographics"/></span> Infographics</a>
+                                    <a t-attf-href="/slides/#{slug(channel)}/infographic" class="slide-tabs"><span class="badge"><t t-esc="channel.infographics"/></span> Infographics</a>
                                 </li>
                             </ul>
                         </div>
@@ -196,19 +196,19 @@
                         <div class="col-md-8 col-sm-12 col-xs-12">
                             <ul class="nav nav-tabs nav-tabs-simple nav-tabs-sm nav-tabs-border">
                                 <li t-attf-class="slide-tabs-li #{not types and 'active' ''}">
-                                    <a  t-attf-href="/slides/#{slug(channel)}/category/#{slug(category)}" class="slide-tabs" data-toggle="tab"> <i class="fa fa-home"></i> Home</a>
+                                    <a  t-attf-href="/slides/#{slug(channel)}/category/#{slug(category)}" class="slide-tabs"> <i class="fa fa-home"></i> Home</a>
                                 </li>
                                 <li t-if="category.presentations" t-attf-class="slide-tabs-li #{types == 'presentation' and 'active' ''}">
-                                    <a t-attf-href="/slides/#{slug(channel)}/category/#{slug(category)}/presentation" class="slide-tabs" data-toggle="tab"> <span class="badge"><t t-esc="category.presentations"/></span> Presentations</a>
+                                    <a t-attf-href="/slides/#{slug(channel)}/category/#{slug(category)}/presentation" class="slide-tabs"> <span class="badge"><t t-esc="category.presentations"/></span> Presentations</a>
                                 </li>
                                 <li t-if="category.videos" t-attf-class="slide-tabs-li #{types == 'video' and 'active' ''}">
-                                    <a t-attf-href="/slides/#{slug(channel)}/category/#{slug(category)}/video" class="slide-tabs" data-toggle="tab"> <span class="badge"><t t-esc="category.videos"/></span> Videos</a>
+                                    <a t-attf-href="/slides/#{slug(channel)}/category/#{slug(category)}/video" class="slide-tabs"> <span class="badge"><t t-esc="category.videos"/></span> Videos</a>
                                 </li>
                                 <li t-if="category.documents" t-attf-class="slide-tabs-li #{types == 'document' and 'active' ''}">
-                                    <a t-attf-href="/slides/#{slug(channel)}/category/#{slug(category)}/document" class="slide-tabs" data-toggle="tab"> <span class="badge"><t t-esc="category.documents"/></span> Documents</a>
+                                    <a t-attf-href="/slides/#{slug(channel)}/category/#{slug(category)}/document" class="slide-tabs"> <span class="badge"><t t-esc="category.documents"/></span> Documents</a>
                                 </li>
                                 <li t-if="category.infographics" t-attf-class="slide-tabs-li #{types == 'infographic' and 'active' ''}">
-                                    <a t-attf-href="/slides/#{slug(channel)}/category/#{slug(category)}/infographic" class="slide-tabs" data-toggle="tab"><span class="badge"><t t-esc="category.infographics"/></span> Infographics</a>
+                                    <a t-attf-href="/slides/#{slug(channel)}/category/#{slug(category)}/infographic" class="slide-tabs"><span class="badge"><t t-esc="category.infographics"/></span> Infographics</a>
                                 </li>
                             </ul>
                         </div>
@@ -370,7 +370,7 @@
                 <div t-attf-class="oe-grid-thumbnail">
                     <a t-attf-href="/slides/#{slug(channel)}/#{slide.slide_type}/#{slug(slide)}">
                         <span t-attf-class="oe-image-thumbnail">
-                            <img t-attf-src="/website/image/slide.slide/#{slide.id}/image_medium" class="img-responsive slide-width"/>
+                            <img t-attf-src="/website/image/slide.slide/#{slide.id}/image_thumb" class="img-responsive slide-width"/>
                         </span>
                     </a>
                     <span t-if="not slide.website_published" class="label label-danger" style="position: absolute;right: 20px;top: 7px;">Not Published</span>
@@ -524,7 +524,7 @@
                                     </div>
                                 </div>
                                 <div class="text-muted mt4">
-                                    <div class="pull-right mb16 col-md-6 text-right slide-pr0">
+                                    <div class="pull-right mb16 text-right slide-pr0">
                                         <a id="like" t-att-user-id="user.id" t-att-attachment-id="slide.id" class="slide-like text-muted" data-count-el='.count-likes' t-attf-data-href="/slides/#{slug(channel)}/view/#{slug(slide)}/like"><span class="fa fa-thumbs-up fa-1x count-likes"><t t-esc="slide.likes"/></span></a> Like
 
                                         <a id="unlike" t-att-user-id="user.id" t-att-attachment-id="slide.id" class="slide-unlike text-muted" data-count-el=".count-dislikes" t-attf-data-href="/slides/#{slug(channel)}/view/#{slug(slide)}/dislike"><i class="fa fa-thumbs-down fa-1x count-dislikes"><t t-esc="slide.dislikes"/></i></a>
@@ -810,14 +810,14 @@
                         </div>
                     </section>
                     <section>
-                        <div class="container mt16" t-if="not attachment_ids">
+                        <div class="container mt16" t-if="not slides">
                             <div class="alert alert-danger" role="alert">
-                                Sorry , but nothing matched your search criteria <code><t t-esc="query"/></code>. Please try again with some different keywords.
+                                Sorry , but nothing matched your search criteria <b><t t-esc="query"/></b>. Please try again with some different keywords.
                             </div>
                         </div>
-                        <div class="container mt16" t-if="attachment_ids">
+                        <div class="container mt16" t-if="slides">
                             <div class="alert alert-success mb0" role="alert">
-                                <t t-esc="len(attachment_ids)"/> results found, for the given criteria <code><t t-esc="query"/></code>
+                                <b t-esc="len(slides)"/> results found, for the given criteria <b><t t-esc="query"/></b>
                             </div>
                             <div class="row slide-pr0 slide-pl0 mt0">
                                 <t t-call="website_slides.gridview"/>
