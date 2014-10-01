@@ -40,14 +40,14 @@ class Channel(models.Model):
     template_id = fields.Many2one('email.template', 'Email Template', html="Email template use to send slide notification through email")
 
     visibility = fields.Selection([('public','Public'), ('private','Hide Channel'), ('group','Show channel but presentations based on groups')], string='Visiblity', default='public')
-    group_ids = fields.Many2many('res.groups', 'rel_attachments_groups', 'attachment_id', 'group_id', string='Accessible Groups')
+    group_ids = fields.Many2many('res.groups', 'rel_channel_groups', 'channel_id', 'group_id', string='Accessible Groups')
 
     @api.multi
     def _compute_presentations(self):
-        attachment = self.env['slide.slide']
+        slide_obj = self.env['slide.slide']
         for record in self:
             domain = [('website_published','=',True), ('channel_id','=',record.id)]
-            counts = attachment.read_group(domain, ['slide_type'], groupby='slide_type')
+            counts = slide_obj.read_group(domain, ['slide_type'], groupby='slide_type')
             countvals = {}
             for count in counts:
                 countvals[count.get('slide_type')] = count.get('slide_type_count', 0)
@@ -95,10 +95,10 @@ class Category(models.Model):
 
     @api.multi
     def _compute_presentations(self):
-        attachment = self.env['slide.slide']
+        slide_obj = self.env['slide.slide']
         for record in self:
             domain = [('website_published','=',True), ('category_id','=',record.id)]
-            counts = attachment.read_group(domain, ['slide_type'], groupby='slide_type')
+            counts = slide_obj.read_group(domain, ['slide_type'], groupby='slide_type')
             countvals = {}
             for count in counts:
                 countvals[count.get('slide_type')] = count.get('slide_type_count')
@@ -123,24 +123,24 @@ class EmbededView(models.Model):
 
     '''Track number of views on embed urls'''
 
-    attachment_id = fields.Many2one('slide.slide', string="Presentation")
+    slide_id = fields.Many2one('slide.slide', string="Presentation")
     name = fields.Char('Name')
     count_views = fields.Integer(string='# Views on Embed', default=0)
 
-    def set_count(self, attachment_id, url):
+    def set_count(self, slide_id, url):
         baseurl = url
         urls = url.split('?')
         if urls:
             baseurl = urls[0]
-        domain = [('name','=',baseurl), ('attachment_id','=',int(attachment_id))]
+        domain = [('name','=',baseurl), ('slide_id','=',int(slide_id))]
         count = self.search(domain, limit=1)
         if count:
             count.count_views += 1
         else:
             vals = {
-                'attachment_id':attachment_id,
-                'name':baseurl,
-                'count_views':1
+                'slide_id': slide_id,
+                'name': baseurl,
+                'count_views': 1
             }
             self.create(vals)
 
@@ -168,7 +168,7 @@ class Slide(models.Model):
     channel_id = fields.Many2one('slide.channel', string="Channel")
     category_id = fields.Many2one('slide.category', string="Category")
     tag_ids = fields.Many2many('slide.tag', 'rel_slide_tag', 'slide_id', 'tag_id', string='Tags')
-    embedcount_ids = fields.One2many('slide.embed', 'attachment_id', string="Embed Count")
+    embedcount_ids = fields.One2many('slide.embed', 'slide_id', string="Embed Count")
     
     slide_type = fields.Selection([('infographic','Infographic'), ('presentation', 'Presentation'), ('document', 'Document'), ('video', 'Video')], string='Type', help="Document type will be set automatically depending on the height and width, however you can change it manually.")
     

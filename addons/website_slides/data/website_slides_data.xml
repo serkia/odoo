@@ -48,7 +48,7 @@
                                         <img alt="${object.name}" src="${ctx['image_url']}" style="height:auto;width:600px;background-color: #ccc;margine: 0px auto 10px auto">
                                     % endif
                                     % if not ctx['image_url']:
-                                        <img alt="${object.name}" src="/website/image?model=ir.attachment&id=${object.id}&field=image" style="height:auto;width:600px;background-color: #ccc;margine: 0px auto 10px auto">
+                                        <img alt="${object.name}" src="/website/image/slide.slide/${object.id}/image_medium" style="height:auto;width:600px;background-color: #ccc;margine: 0px auto 10px auto">
                                     % endif
                                 </a>
                                 <br>

@@ -216,7 +216,6 @@
         get_value: function () {
             var self = this;
             var default_val = {
-                'is_slide': true,
                 'website_published': false
             };
             var values = {};
@@ -233,7 +232,6 @@
                 'name': this.$('#name').val(),
                 'tag_ids': this.$('.slide-tags').textext()[0].tags()._formData,
                 'datas': self.file.data || '',
-                'datas_fname': self.file.name || '',
                 'mimetype': self.file.type,
                 'url': this.$('#url').val(),
                 'channel_id': self.channel_id || '',
@@ -287,10 +285,10 @@
 
     website.slide.PDFViewer_Launcher = function ($PDFViewer) {
         website.slide.template.then(function () {
-            var file = '/slides/content/' + $PDFViewer.attr('slide-id'),
-                id = $PDFViewer.attr('slide-id');
-            if (file) {
-                var PDFViewer = new website.slide.PDFViewer(id, file);
+            var slide_id = $PDFViewer.attr('slide-id'),
+                file = '/slides/content/' + slide_id;
+            if (slide_id) {
+                var PDFViewer = new website.slide.PDFViewer(slide_id, file);
                 PDFViewer.replace($PDFViewer);
                 website.slide.PDFViewer_inst = PDFViewer;
             }

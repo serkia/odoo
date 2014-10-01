@@ -18,11 +18,11 @@
         <template id="assets_frontend" inherit_id="website.assets_frontend" name="Slide">
             <xpath expr="." position="inside">
                 <link type="text/less" href="/website_slides/static/src/less/website_slides.less" rel="stylesheet" t-ignore="true"/>
-                <script type="text/javascript" src="/website_slides/static/src/js/slides.js"></script>
             </xpath>
         </template>
 
         <template id="head" name="slides">
+            <script type="text/javascript" src="/website_slides/static/src/js/slides.js"></script>
             <script type="text/javascript" src="/website_slides/static/lib/pdfjs/build/pdf.js"></script>
         </template>
 
