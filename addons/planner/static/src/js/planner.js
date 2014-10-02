@@ -87,6 +87,7 @@
         },
         update_progress_value: function(progress_value) {
             this.$el.find(".progress-bar").css('width', progress_value+"%");
+            
         },
         toggle_dialog: function() {
             this.dialog.$('#PlannerModal').modal('toggle');
@@ -194,7 +195,8 @@
                 self.update_planner_data(data, total_progress).then(function () {
                     //update inner and outer progress bar value
                     self.planner_manager.update_progress_value(total_progress);
-                    self.$el.find(".progress-bar").css('width', total_progress+"%").text(total_progress+"%");
+                    self.$el.find(".progress-bar").css('width', total_progress+"%");
+                    self.$el.find(".progress_col").find('span.counter').text(total_progress+"%");
                     self.planner_data['data'] = data;
                     self.planner_data['progress'] = total_progress;
                 });
@@ -322,16 +324,18 @@
                 self.fill_input_data(self.planner_data.data);
                 //fill inner progress bar value
                 var progress_bar_val = parseInt((self.progress/self.btn_mark_as_done.length)*100, 10);
-                self.$el.find(".progress-bar").css('width', progress_bar_val+"%").text(progress_bar_val+"%");
+                self.$el.find(".progress-bar").css('width', progress_bar_val+"%");
+                self.$el.find(".progress_col").find('span.counter').text(progress_bar_val+"%");
 
 
                 // If colors are bootstraps default, change style
                 var checkB = self.$el.find(".btn-primary").css('background-color');
                 if ( (checkB == '#428bca') || (checkB == 'rgb(66, 139, 202)') ) {
-                    var link = document.createElement("link");
+                    /*var link = document.createElement("link");
                     link.rel = "stylesheet";
                     link.href = "/planner_crm/static/src/css/odoo_colors.css";
-                    document.getElementsByTagName("head")[0].appendChild(link);
+                    document.getElementsByTagName("head")[0].appendChild(link);*/
+                    self.$el.find('#PlannerModal').addClass("odoo_colors");
                 }
 
                 /*==== Stefano ====  Call resize function at the beginning*/

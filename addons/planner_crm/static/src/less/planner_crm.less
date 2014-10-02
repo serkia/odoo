@@ -194,7 +194,9 @@
 		background: #a24689;
 	}
 
-	
+	.counter {
+		padding: 5px 0 0 11px;
+	}
 	
 
 	// BUTTONS
@@ -215,7 +217,7 @@
 
 	button.fa-check-square-o {
 		background-color: transparent;
-		color: #26A38A;
+		//color: #26A38A;
 		line-height: 0.8em;
 		font-size: 2em;
 		border: none;
@@ -237,6 +239,11 @@
 		display: none;
 		}
 	}
+
+	button.fa-check-square-o span{
+		font-size: 13px;
+	}
+
 
 	button.fa-check-square-o:after {
 		color: #7C7C7C;
@@ -431,7 +438,7 @@
 		width: 94%;
 		left: 20px;
 		background: transparent;
-		height: 20px;
+		height: 100%;
 		position: absolute;
 		bottom: -5px;
 		z-index: 0;
@@ -668,6 +675,37 @@
 		}
 	}
 
+	&.odoo_colors	{
+		a {color: #2E917D}
+		a:hover, a:focus {color: #21b799; text-decoration: none;}
+		textarea:focus, input:focus, select:focus, option:focus, .btn:focus, a:focus {outline-color: #26A38A;}
+
+
+
+		.btn-default {
+			background-color: transparent;
+			color: #7C7C7C;
+			line-height: 19px;
+		}
+
+		.btn-default:hover {
+			color: #333;
+		}
+
+		.btn-primary {
+			background: #21b799;
+			border-color: #26A38A;
+			text-shadow: 0 1px 0 #2E917D;
+			font-weight: normal;
+			line-height: 19px;
+			color: white;
+		}
+
+		.btn-primary:hover {
+			background-color: #2E917D;
+			color: white;
+		}
+	}
 
 }
 
@@ -705,6 +743,12 @@
 		text-align: left;
 	}
 
+}
+
+#planner_page2,#planner_page3 {
+	textarea{
+		width: 95%;
+	}
 }
 
 #planner_page5, #planner_page7, #planner_page8, #planner_page10, #planner_page11 {
