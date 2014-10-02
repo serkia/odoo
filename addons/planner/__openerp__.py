@@ -10,7 +10,9 @@
         'security/ir.model.access.csv',
         'views/planner.xml',
     ],
-
+    'qweb': [
+        'static/src/xml/planner.xml'
+    ],
     'installable': True,
     'auto_install': True,
 }

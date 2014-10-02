@@ -1,6 +1,6 @@
 from openerp import api, models
 
-class PlannerCrm(models.Model):
+class planner_crm(models.Model):
     _inherit = 'planner.planner'
 
     @api.model

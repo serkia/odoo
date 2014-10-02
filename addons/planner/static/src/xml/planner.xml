@@ -14,21 +14,26 @@
     </t>
 
     <t t-name="PlannerFooter">
-        <div class="planner_footer hidden-print">
-            <br/>
-            <t t-if="!start and !end">
-                <button t-attf-id='input_element_btn_#{current_page_id}' 
-                    t-attf-data-progress='#{current_page_id}'
-                    class='fa fa-square-o btn btn-primary mark_as_done'> <span>Mark As Done</span>
-                </button>
-            </t>
-            <t t-if="!end">
-                <a data-toggle='collapse'
-                    t-attf-class="pull-right btn btn-#{start and 'primary' or 'default'} fa fa-arrow-circle-right"
-                    t-attf-data-parent='#{current_page_id}' 
-                    t-attf-href='##{next_page_id}'> <span>Next Step: <t t-esc="next_page_name"/></span>
-                </a>
-            </t>
+        <div class="planner_footer col-sm-8 col-md-9 col-xs-12 hidden-print">
+            <span class="shadow" />
+            <div class="col-xs-6 text-right mark-block">
+                <t t-if="!start and !end">
+                    <button t-attf-id='input_element_btn_#{current_page_id}' 
+                        t-attf-data-progress='#{current_page_id}'
+                        class='fa fa-square-o btn btn-primary mark_as_done'><i /> <span>Mark As Done</span>
+                    </button>
+                </t>
+            </div>
+            <div class="col-xs-6 next-block">
+                <t t-if="!end">
+                    <a data-toggle='collapse'
+                        t-attf-class="pull-left btn btn-#{start and 'primary' or 'default'} btn-next"
+                        t-attf-data-parent='#{current_page_id}' 
+                        t-attf-href='##{next_page_id}'>Next step<i class="fa fa-angle-right"></i>
+                    </a>
+                    <span class="help-block span-next"> <t t-esc="next_page_name"/></span>
+                </t>
+            </div>
         </div>
     </t>
 
@@ -36,24 +41,23 @@
         <div>
             <div class="modal fade" id="PlannerModal" tabindex="-1" role="dialog" aria-labelledby="PlannerModalLabel" aria-hidden="true">
                 <div class="modal-dialog planner-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">x</span><span class="sr-only">Close</span></button>
-                            <div class="row">
-                                <div class="col-md-2 col-xs-2">
-                                    <span class="fa fa-question-circle fa-2x pull-left"/>
-                                    <div class="progress" style="margin-top:3px;">
-                                        <div class="progress-bar" t-attf-style="width :0%;">
+                    <div class="modal-content"> 
+
+                        <div class="modal-body"> 
+                            <button type="button" class="close" data-dismiss="modal"><i class="fa fa-times"></i></button>
+                            
+                            <div class="content"> 
+                                
+                                <div class="col-sm-12 col-xs-4 progress_container">
+                                    <div class="col-sm-4 col-md-3 col-xs-12 progress_col">
+                                        <div class="progress">
+                                            <div class="progress-bar" t-attf-style="width :50%;"></div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="col-md-8 col-xs-8">
-                                    <h2 class="oe_planner_title"></h2>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-body">
-                            <div class="content"></div>
+                                </div> 
+                                        
+                            </div> <!-- / content -->
+
                         </div>
                     </div>
                 </div>

@@ -1,0 +1,31 @@
+/* This file will be loaded only if defaults bootstrap colors are in use  */
+
+#PlannerModal a {color: #2E917D}
+#PlannerModal a:hover, #PlannerModal a:focus {color: #21b799; text-decoration: none;}
+#PlannerModal textarea:focus, #PlannerModal input:focus, #PlannerModal select:focus, #PlannerModal option:focus, #PlannerModal .btn:focus, #PlannerModal a:focus {outline-color: #26A38A;}
+
+
+
+#PlannerModal .btn-default {
+	background-color: #FFFFFF;
+	color: #7C7C7C;
+	line-height: 19px;
+}
+
+#PlannerModal .btn-default:hover {
+	color: #333;
+}
+
+#PlannerModal .btn-primary {
+	background: #21b799;
+	border-color: #26A38A;
+	text-shadow: 0 1px 0 #2E917D;
+	font-weight: normal;
+	line-height: 19px;
+	color: white;
+}
+
+#PlannerModal .btn-primary:hover {
+	background-color: #2E917D;
+	color: white;
+}

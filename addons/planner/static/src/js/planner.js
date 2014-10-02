@@ -3,7 +3,14 @@
     var instance = openerp;
     var QWeb = instance.web.qweb;
 
-    QWeb.add_template('/planner/static/src/xml/planner.xml');
+    var planner_manager;
+    instance.web.planner_manager = function () {
+        // FIXME: Hackish planner manager singleton lazy loader
+        if (!planner_manager) {
+            planner_manager = new instance.web.PlannerManager();
+        }
+        return planner_manager;
+    }
 
     instance.web.Planner = instance.web.Menu.include({
         open_menu: function() {
@@ -11,16 +18,17 @@
             this._super.apply(this, arguments);
             self.fetch_application_planner().done(function(application) {
                 if (_.size(application)) { 
-                    instance.web.planner_manager.prependTo(window.$('.oe_systray'));
+                    var planner_manager = instance.web.planner_manager();
+                    planner_manager.prependTo(window.$('.oe_systray'));
                     var id = self.$el.find('.active').children().data("menu");
                     if (_.contains(_.keys(application), ''+id)) {
                         self.reflow(); //to handle progressbar display in case of menu overflowing
-                        instance.web.planner_manager.planner_data = application[id];
-                        instance.web.planner_manager.set_planner_tooltip(application[id].tooltip_planner);
-                        instance.web.planner_manager.update_progress_value(application[id].progress);
-                        instance.web.planner_manager.show();
+                        planner_manager.planner_data = application[id];
+                        planner_manager.set_planner_tooltip(application[id].tooltip_planner);
+                        planner_manager.update_progress_value(application[id].progress);
+                        planner_manager.show();
                     } else {
-                        instance.web.planner_manager.hide();
+                        planner_manager.hide();
                     }
                 }
             });
@@ -96,15 +104,16 @@
         events: {
             'show.bs.modal': 'show',
             'click .oe_planner div[id^="planner_page"] a[href^="#planner_page"]': 'next_page',
-            'click .oe_planner li a[href^="#planner_page"]': 'onclick_menu',
+            'click  li a[data-parent^="#planner_page"]': 'onclick_menu',
             'click .oe_planner div[id^="planner_page"] button[data-progress^="planner_page"]': 'mark_as_done',
             'click .oe_planner .print_planner_report': 'print_planner_report',
         },
 
         onclick_menu: function(ev) {
+            console.log(this.$target);
             this.$el.find("#PlannerModal").scrollTop(0);
             //remove class active from other menu except current menu
-            this.$el.find(".oe_planner li a[href^='#planner_page']").parent().removeClass('active');
+            this.$el.find("li a[data-parent^='#planner_page']").parent().removeClass('active');
             this.$el.find(ev.target).parent().addClass('active');
             //hide other pages
             this.$el.find(".oe_planner div[id^='planner_page']").removeClass('in');
@@ -116,15 +125,15 @@
             var next_page_id = $(next_button).attr('href');
             if (next_page_id) {
                 this.$el.find(".oe_planner div[id="+$(next_button).attr('data-parent')+"]").removeClass('in');
-                this.$el.find(".oe_planner li a[href^='#planner_page']").parent().removeClass('active');
+                this.$el.find("li a[data-parent^='#planner_page']").parent().removeClass('active');
                 //find active menu
-                this.$el.find(".oe_planner li a[href^='#planner_page'][href="+next_page_id+"]").parent().addClass('active');
+                this.$el.find("li a[data-parent^='#planner_page'][href="+next_page_id+"]").parent().addClass('active');
             }
         },
         print_planner_report: function(ev) {
             var self = this;
             var newWindow = window.open();
-            var pages = self.$el.find(".oe_planner div[id^='planner_page']").clone();
+            var pages = self.$el.find(".oe_planner div[id^='planner_page']:not(.hidden-print)").clone();
             $(pages).find('.hidden-print').remove();//remove element which we do not want to show during print
             var html = '';
             //append header to each page
@@ -132,6 +141,9 @@
             _.each(pages, function(el) {
                 html += $('<div>').append($(el).prepend(header).removeClass('panel-collapse collapse').addClass('oe_planner_page').clone()).html();
             });
+
+             html += $('<style>* {color: red;}</style>');
+
             var report = QWeb.render('PlannerReport', {'widget': this, 'content': html});
             newWindow.document.write(report);
             newWindow.document.close();
@@ -146,9 +158,11 @@
         mark_as_done: function(ev) {
             var self = this;
             var btn = $(ev.target).is("span") ? $(ev.target).parent() : $(ev.target);
-            var active_menu = self.$el.find(".oe_planner li a span[data-check="+btn.attr('data-progress')+"]");
+            var active_menu = self.$el.find("li a span[data-check="+btn.attr('data-progress')+"]");
+            var active_page = self.$el.find("div[id^='planner_page'].panel-collapse.collapse.in");
+
             //find all inputs elements of current page
-            var input_element = self.$el.find(".oe_planner div[id="+btn.attr('data-progress')+"] input[id^='input_element'], select[id^='input_element']");
+            var input_element = self.$el.find(".oe_planner div[id="+btn.attr('data-progress')+"] textarea[id^='input_element'], .oe_planner div[id="+btn.attr('data-progress')+"] input[id^='input_element'], select[id^='input_element']");
             var next_button = self.$el.find(".oe_planner a[data-parent="+btn.attr('data-progress')+"]");
             if (!btn.hasClass('fa-check-square-o')) {
                 //find menu element and marked as check
@@ -159,6 +173,10 @@
                 self.update_input_value(input_element, true);
                 self.values[btn.attr('id')] = 'checked';
                 self.progress = self.progress + 1;
+   
+                active_page.addClass('marked');
+                setTimeout(function() { active_page.removeClass('marked'); }, 1000);
+
             } else {
                 btn.removeClass('fa-check-square-o btn-default').addClass('fa fa-square-o btn-primary');
                 next_button.addClass('btn-default').removeClass('btn-primary');
@@ -167,6 +185,8 @@
                 self.update_input_value(input_element, false);
                 self.progress = self.progress - 1;
             }
+            
+
             var data = JSON.stringify(self.values);
             var total_progress = parseInt((self.progress / self.btn_mark_as_done.length) * 100, 10);
             if (data) {
@@ -216,7 +236,7 @@
             //find all the pages and append footer to each pages
             _.each(self.$el.find('.oe_planner div[id^="planner_page"]'), function(element) {
                 var $el = $(element);
-                var next_page_name = self.$el.find(".oe_planner .oe_planner_menu li a[href='#"+$el.next().attr('id')+"']").text() || ' Finished!';
+                var next_page_name = self.$el.find(".oe_planner li a[data-parent='#"+$el.next().attr('id')+"']").text() || ' Finished!';
                 var footer_template = QWeb.render("PlannerFooter", {
                     'next_page_name': next_page_name, 
                     'next_page_id': $el.next().attr('id'),
@@ -261,7 +281,7 @@
                     if (val == 'checked') {
                         self.progress = self.progress + 1;
                         //find the menu,which need to checked
-                        self.$el.find(".oe_planner li a span[data-check="+$('#'+id).attr('data-progress')+"]").addClass('fa-check');
+                        self.$el.find("li a span[data-check="+$('#'+id).attr('data-progress')+"]").addClass('fa-check');
                         var page_id = self.$el.find('#'+id).addClass('fa-check-square-o btn-default').removeClass('fa-square-o btn-primary').attr('data-progress');
                         self.$el.find(".oe_planner .planner_footer a[data-parent="+page_id+"]").addClass('btn-primary').removeClass('btn-default');
                     }
@@ -280,32 +300,76 @@
         },
         load_page: function() {
             var self = this;
-            self.planner_manager = instance.web.planner_manager;
+            self.planner_manager = instance.web.planner_manager();
             self.planner_data = self.planner_manager.planner_data;
             self.values = {}; // to store values and id of all input elements
             self.progress = 0;
             this.get_planner_page_template(self.planner_data.view_id[0], self.planner_data.planner_application).then(function(res) {
-                self.$('.content').html(res);
+                
+                // ==== Stefano ==== HACK for include 'progress_container' into 'res' parent element 
+                var data = self.$('.progress_container').add(res) ; 
+                self.$('.content').html(data);
+
+
                 //set title in modal-header
                 self.$el.find('.oe_planner_title').html(self.planner_data.name);
                 //add footer to each page
                 self.add_footer();
                 //find all input elements having id start with 'input_element'
-                self.input_elements = self.$el.find(".oe_planner input[id^='input_element'], select[id^='input_element']");
+                self.input_elements = self.$el.find(".oe_planner textarea[id^='input_element'], .oe_planner input[id^='input_element'], select[id^='input_element']");
                 //find 'mark as done' button to calculate the progress bar.
                 self.btn_mark_as_done = self.$el.find(".oe_planner button[id^='input_element'][data-progress^='planner_page']");
                 self.fill_input_data(self.planner_data.data);
                 //fill inner progress bar value
                 var progress_bar_val = parseInt((self.progress/self.btn_mark_as_done.length)*100, 10);
                 self.$el.find(".progress-bar").css('width', progress_bar_val+"%").text(progress_bar_val+"%");
+
+
+                // If colors are bootstraps default, change style
+                var checkB = self.$el.find(".btn-primary").css('background-color');
+                if ( (checkB == '#428bca') || (checkB == 'rgb(66, 139, 202)') ) {
+                    var link = document.createElement("link");
+                    link.rel = "stylesheet";
+                    link.href = "/planner_crm/static/src/css/odoo_colors.css";
+                    document.getElementsByTagName("head")[0].appendChild(link);
+                }
+
+                /*==== Stefano ====  Call resize function at the beginning*/
+                self.winDim();
+                
+                $(document).on('keyup load change',"textarea",function(){               
+                    if (this.scrollHeight != this.clientHeight) {
+                        this.style.height = this.scrollHeight + "px";
+                    }
+                });
+
             });
+            /*==== Stefano ====  Call resize function on window resize*/
+            $(window).on('rezize', self.winDim());
+
+
+            
         },
+
+        // ==== Stefano ==== Resize function for dinamically fix columns height
+        winDim: function(){
+            self = this;
+            var winH  = $(window).height(),
+                modal = self.$el.find('.planner-dialog');
+
+            modal.height(winH/1.1);
+            self.$el.find('.pages').height(modal.height() - 60);
+            self.$el.find('.side').height(modal.height() - 75);
+            
+        },
+
         show: function() {
             this.load_page();
+            $(window).on('resize', function(){
+                self.winDim()
+            });
         }
 
     });
-
-    instance.web.planner_manager = new instance.web.PlannerManager();
 
 })();
