@@ -20,13 +20,14 @@
         },
         edit: function () {
             var self = this;
-            window.snippets = this.snippets = new website.snippet.BuildingBlock(this);
-            this.snippets.appendTo(this.$el);
             website.snippet.stop_animation();
             this.on('rte:ready', this, function () {
+                var $editable = $(".o_editable");
+                window.snippets = this.snippets = new website.snippet.BuildingBlock(this, $editable);
+                this.snippets.appendTo(this.$el);
                 self.snippets.$button.removeClass("hidden");
                 website.snippet.start_animation();
-                $(".o_editable *").off('mousedown mouseup click');
+                $editable.find("*").off('mousedown mouseup click');
             });
 
             return this._super.apply(this, arguments);
@@ -70,8 +71,10 @@
     website.snippet.BuildingBlock = openerp.Widget.extend({
         template: 'website.snippets',
         activeSnippets: [],
-        init: function (parent) {
+        init: function (parent, $editable) {
             this.parent = parent;
+            this.$editable = $editable;
+
             this._super.apply(this, arguments);
             if(!$('#oe_manipulators').length){
                 $("<div id='oe_manipulators'></div>").appendTo('body');
@@ -94,7 +97,8 @@
             this.$button.click(_.bind(this.show_blocks, this));
 
             this.$snippet = $("#oe_snippets");
-            $(document).on('click', ".o_editable", function () {
+
+            this.$editable.on('click', function () {
                 self.$el.addClass("hidden");
             });
 
@@ -252,7 +256,7 @@
             var snipped_event_flag;
             $(document).on('click', function (event) {
                 var srcElement = event.srcElement || (event.originalEvent && (event.originalEvent.originalTarget || event.originalEvent.target)) || event.target;
-                if (!$(srcElement).closest(".o_editable").length && $(srcElement).closest("#oe_manipulators, .o_undo").length) {
+                if (!$(srcElement).is(":o_editable") && $(srcElement).closest("#oe_manipulators, .o_undo").length) {
                     return;
                 }
                 if (snipped_event_flag || !srcElement) {
@@ -298,12 +302,12 @@
             for (var k in template) {
                 var Option = options[template[k]['option']];
                 if (Option && Option.prototype.clean_for_save !== dummy) {
-                    $(".o_editable").find(template[k].selector).each(function () {
+                    self.$editable.find(template[k].selector).each(function () {
                         new Option(self, null, $(this), k).clean_for_save();
                     });
                 }
             }
-            $(".o_editable").find("*[contentEditable], *[attributeEditable]")
+            this.$editable.find("*[contentEditable], *[attributeEditable]")
                 .removeAttr('contentEditable')
                 .removeAttr('attributeEditable');
         },
@@ -437,15 +441,15 @@
                 stop: function(ev, ui){
                     $toInsert.removeClass('oe_snippet_body');
                     
-                    if (action === 'insert' && ! dropped && $(".o_editable").find('.oe_drop_zone') && ui.position.top > 3) {
-                        var el = $(".o_editable").find('.oe_drop_zone').nearest({x: ui.position.left, y: ui.position.top}).first();
+                    if (action === 'insert' && ! dropped && self.$editable.find('.oe_drop_zone') && ui.position.top > 3) {
+                        var el = self.$editable.find('.oe_drop_zone').nearest({x: ui.position.left, y: ui.position.top}).first();
                         if (el.length) {
                             el.after($toInsert);
                             dropped = true;
                         }
                     }
 
-                    $(".o_editable").find('.oe_drop_zone').droppable('destroy').remove();
+                    self.$editable.find('.oe_drop_zone').droppable('destroy').remove();
                     
                     if (dropped) {
 
@@ -566,8 +570,6 @@
                 });
             }
 
-            var $editable = $(".o_editable");
-
             var count;
             do {
                 count = 0;
@@ -575,13 +577,13 @@
                 // count += $zones.length;
                 // $zones.remove();
 
-                $zones = $editable.find('.oe_drop_zone > .oe_drop_zone:not(.oe_vertical)').remove();   // no recursive zones
+                $zones = self.$editable.find('.oe_drop_zone > .oe_drop_zone:not(.oe_vertical)').remove();   // no recursive zones
                 count += $zones.length;
                 $zones.remove();
             } while (count > 0);
 
             // Cleaning consecutive zone and up zones placed between floating or inline elements. We do not like these kind of zones.
-            var $zones = $editable.find('.oe_drop_zone:not(.oe_vertical)');
+            var $zones = self.$editable.find('.oe_drop_zone:not(.oe_vertical)');
             $zones.each(function (){
                 var zone = $(this);
                 var prev = zone.prev();
@@ -1768,6 +1770,16 @@
             }
 
             this.$overlay.remove();
+
+
+            console(parent);
+            if (parent && parent.firstChild) {
+                dom.removeSpace(parent, parent.firstChild, 0, parent.lastChild, 1);
+                if (!parent.firstChild.tagName && parent.firstChild.textContent === " ") {
+                    parent.firstChild.parentNode.removeChild(parent.firstChild);
+                }
+            }
+
             return false;
         },
 

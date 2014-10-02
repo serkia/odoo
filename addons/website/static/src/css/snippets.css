@@ -17,7 +17,6 @@
 }
 #oe_snippets .scroll {
   white-space: nowrap;
-  overflow-y: none;
 }
 #oe_snippets .nav {
   display: inline-block;
@@ -64,11 +63,11 @@
   -ms-transform: translate(-39px, 44px);
   -o-transform: translate(-39px, 44px);
   transform: translate(-39px, 44px);
-  -webkit-transform-origin: 50% 50% 50%;
-  -moz-transform-origin: 50% 50% 50%;
-  -ms-transform-origin: 50% 50% 50%;
-  -o-transform-origin: 50% 50% 50%;
-  transform-origin: 50% 50% 50%;
+  -webkit-transform-origin: 50% 50%;
+  -moz-transform-origin: 50% 50%;
+  -ms-transform-origin: 50% 50%;
+  -o-transform-origin: 50% 50%;
+  transform-origin: 50% 50%;
 }
 
 .oe_snippet {

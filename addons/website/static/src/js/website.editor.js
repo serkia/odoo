@@ -531,7 +531,7 @@
         this.tab($editable, options, true);
     };
     eventHandler.editor.enter = function ($editable, options) {
-        $editable.data('NoteHistory').recordUndo($editable);
+        $editable.data('NoteHistory').recordUndo($editable, "visible");
         
         var r = range.create();
         if (!r.isCollapsed()) {
@@ -545,7 +545,7 @@
         range.createFromNode(clone).select();
     };
     eventHandler.editor.visible = function ($editable, options) {
-        $editable.data('NoteHistory').recordUndo($editable);
+        $editable.data('NoteHistory').recordUndo($editable, "visible");
         
         var r = range.create();
         var node = r.sc;
@@ -575,7 +575,7 @@
         return true;
     };
     eventHandler.editor.delete = function ($editable, options) {
-        $editable.data('NoteHistory').recordUndo($editable);
+        $editable.data('NoteHistory').recordUndo($editable, "delete");
         
         var r = range.create();
         if (!r || !r.isCollapsed()) {
@@ -648,7 +648,7 @@
         return false;
     };
     eventHandler.editor.backspace = function ($editable, options) {
-        $editable.data('NoteHistory').recordUndo($editable);
+        $editable.data('NoteHistory').recordUndo($editable, "backspace");
 
         var r = range.create();
         if (!r || !r.isCollapsed()) {
@@ -1425,11 +1425,10 @@
         };
 
         var last;
-        this.recordUndo = function ($editable) {
-            if (event && event.type === "keydown") {
-                var test = event.keyCode === 8 || event.keyCode === 46;
-                if (last === test) return;
-                last = test;
+        this.recordUndo = function ($editable, event) {
+            if (event) {
+                if (event === last) return;
+                else last = event;
             }
             aUndo.splice(pos, aUndo.length);
             aUndo[pos] = this.makeSnap($editable);
@@ -1569,6 +1568,7 @@
                 .removeClass('o_dirty o_editable cke_focus oe_carlos_danger')
                 .map(function () {
                     var $el = $(this);
+
                     // TODO: Add a queue with concurrency limit in webclient
                     // https://github.com/medikoo/deferred/blob/master/lib/ext/function/gate.js
                     return self.saving_mutex.exec(function () {
