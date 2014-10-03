@@ -25,7 +25,7 @@
             </li>
         </ul>
 
-        <ul id="oe_editzone" class="nav navbar-nav hidden-xs" style="padding-left: 20px; display:none;" groups="base.group_website_publisher">
+        <ul id="oe_editzone" class="nav navbar-nav hidden-xs" style="padding-left: 20px; display: none;" groups="base.group_website_publisher">
             <li><button type="button" data-action="edit" class="btn btn-primary btn-xs">Edit</button></li>
         </ul>
 

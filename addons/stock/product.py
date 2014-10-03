@@ -151,7 +151,7 @@ class product_product(osv.osv):
         for field, operator, value in domain:
             #to prevent sql injections
             assert field in ('qty_available', 'virtual_available', 'incoming_qty', 'outgoing_qty'), 'Invalid domain left operand'
-            assert operator in ('<', '>', '=', '<=', '>='), 'Invalid domain operator'
+            assert operator in ('<', '>', '=', '!=', '<=', '>='), 'Invalid domain operator'
             assert isinstance(value, (float, int)), 'Invalid domain right operand'
 
             if operator == '=':
@@ -306,7 +306,7 @@ class product_template(osv.osv):
         for field, operator, value in domain:
             #to prevent sql injections
             assert field in ('qty_available', 'virtual_available', 'incoming_qty', 'outgoing_qty'), 'Invalid domain left operand'
-            assert operator in ('<', '>', '=', '<=', '>='), 'Invalid domain operator'
+            assert operator in ('<', '>', '=', '!=', '<=', '>='), 'Invalid domain operator'
             assert isinstance(value, (float, int)), 'Invalid domain right operand'
 
             if operator == '=':
@@ -441,6 +441,13 @@ class product_template(osv.osv):
             result['domain'] = "[('product_id','in',[" + ','.join(map(str, products)) + "])]"
             result['context'] = "{'tree_view_ref':'stock.view_move_tree'}"
         return result
+
+    def write(self, cr, uid, ids, vals, context=None):
+        if 'uom_po_id' in vals:
+            product_ids = self.pool.get('product.product').search(cr, uid, [('product_tmpl_id', 'in', ids)], context=context)
+            if self.pool.get('stock.move').search(cr, uid, [('product_id', 'in', product_ids)], context=context, limit=1):
+                raise osv.except_osv(_('Error!'), _("You can not change the unit of measure of a product that has already been used in a stock move. If you need to change the unit of measure, you may deactivate this product.") % ())
+        return super(product_template, self).write(cr, uid, ids, vals, context=context)
 
 
 class product_removal_strategy(osv.osv):

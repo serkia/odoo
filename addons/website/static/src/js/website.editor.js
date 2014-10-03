@@ -1512,7 +1512,6 @@
 
             this.$('#website-top-edit').hide();
             this.$('#website-top-view').show();
-            this.$buttons.edit.show();
 
             var $edit_button = this.$buttons.edit
                     .prop('disabled', website.no_editor);
@@ -1895,7 +1894,6 @@
                 if (m.target && m.target instanceof SVGElement) {
                     return false;
                 }
-
                 // ignore any change related to mundane image-edit-button
                 if (m.target && m.target.className
                         && m.target.className.indexOf('image-edit-button') !== -1) {
@@ -1905,6 +1903,7 @@
                     case 'attributes':
                         // ignore contenteditable modification
                         if (m.attributeName === 'contenteditable') { return false; }
+                        if (m.attributeName === 'attributeeditable') { return false; }
                         // ignore id modification
                         if (m.attributeName === 'id') { return false; }
                         // style not change
@@ -2353,6 +2352,10 @@
             },
             'click button.filepicker': function () {
                 this.$('input[type=file]').click();
+            },
+            'click .js_disable_optimization': function () {
+                this.$('input[name="disable_optimization"]').val('1');
+                this.$('button.filepicker').click();
             },
             'change input[type=file]': 'file_selection',
             'submit form': 'form_submit',
