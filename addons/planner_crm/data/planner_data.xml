@@ -733,7 +733,7 @@
                               <p>
                                   This email address has been preconfigured as the default 
                                   for your sales department.<br/>
-                                  <a t-att-href="prepare_backend_url(
+                                  <a class="hidden-print" t-att-href="prepare_backend_url(
                                       'sales_team.crm_case_section_salesteams_act', 'form')"
                                       target="_blank">(you can change it here)</a>
                               </p>
