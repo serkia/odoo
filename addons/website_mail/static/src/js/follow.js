@@ -53,7 +53,6 @@
             }
         },
         toggle_subscription: function(follow, email) {
-            console.log(follow, email);
             follow = follow || (!email && this.$target.attr('data-unsubscribe'));
             if (follow) {
                 this.$target.find(".js_follow_btn").addClass("hidden");
