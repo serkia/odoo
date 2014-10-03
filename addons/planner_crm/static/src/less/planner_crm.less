@@ -300,7 +300,7 @@
 		position: relative;
 	}
 
-	.odoo_purple{
+	.odoo_purple, a.btn.odoo_purple{
 		background-color: #A24689;
 		border:none;
 		text-shadow:none;
@@ -309,6 +309,7 @@
 
 	.odoo_purple.btn:hover{
 		background: #a24689;
+		color: #fff;
 	}
 
 	.counter {
@@ -371,7 +372,7 @@
 		color: #7C7C7C;
 		content: "Unckeck";
 		position: absolute;
-		right: 6em;
+		left: 5.5em;
 		font-size: .5em;
 		opacity: 0;
 		-webkit-transition: all 0.3s ease-in-out;
@@ -380,7 +381,7 @@
 	  -o-transition:      all 0.3s ease-in-out;
 	}
 	button.fa-check-square-o:hover:after {
-		right: 5.5em;
+		left: 5em;
 		opacity: 1;
 		-webkit-transition: all 0.3s ease-in-out;
 	  -moz-transition:    all 0.3s ease-in-out;
@@ -679,7 +680,12 @@
 		}
 
 		.dropdown-menu a{
-			padding: 0 15px;
+			color: #333;
+			padding: 3px;
+		}
+
+		.dropdown-menu > .active > a, .dropdown-menu > .active > a:hover, .dropdown-menu > .active > a:focus {
+			background-color: #F3F3F3;
 		}
 
 		.dropdown-menu h4{
@@ -688,7 +694,7 @@
 		}
 		.fa {
 			color: #21b799;
-			margin-left: 10px;
+			margin-right: 5px;
 		}
 	}
 
@@ -728,7 +734,8 @@
 		}
 		.fa.fa-fw.fa-check {
 			color: #21b799;
-			margin-left: 10px;
+			margin-left: -5px;
+			margin-right: 5px;
 		}
 		
 	}
@@ -868,7 +875,6 @@
 		margin-bottom: 0px;
 		font-style: normal;
 		line-height: 1.42857143;
-		margin-top: -16px;
 		font-size: 12px;
 		text-align: left;
 	}
@@ -900,9 +906,18 @@
 	.container-fluid {
 		.col-xs-12 .panel-heading{
 			min-height: 200px;
-			padding-top: 40px;
-			font-size: 1.2em;
+			padding: 0;
+			font-size: 1.1em;
 			color: #407241;
+			a {
+				display: block;
+				padding: 20px;
+				height: 100%;
+				width: 100%;
+				position: absolute;
+				padding-top: 40px;
+				padding-left: 10px;
+			}
 		}
 	}
 }

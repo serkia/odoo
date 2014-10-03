@@ -17,82 +17,82 @@
       <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
         <li class="active">
           <a data-toggle="collapse" data-parent="#planner_page1" href="#planner_page1">
-              Welcome<span data-check="planner_page1" class="fa fa-fw"/>
+              <span data-check="planner_page1" class="fa fa-fw"/>Welcome
           </a>
         </li>
         <h4>Goals</h4>
         <li>
             <a data-toggle="collapse" data-parent="#planner_page2" href="#planner_page2">
-                Your Expectation<span data-check="planner_page2" class="fa fa-fw"/>
+                <span data-check="planner_page2" class="fa fa-fw"/>Your Expectation
             </a>
         </li>
         <li>
             <a data-toggle="collapse" data-parent="#planner_page3" href="#planner_page3">
-                Your KPIs<span data-check="planner_page3" class="fa fa-fw"/>
+                <span data-check="planner_page3" class="fa fa-fw"/>Your KPIs
             </a>
         </li>
         <h4>Sale Flow</h4>
         <li>
             <a data-toggle="collapse" data-parent="#planner_page4" href="#planner_page4">
-                Your Pipeline<span data-check="planner_page4" class="fa fa-fw"/>
+                <span data-check="planner_page4" class="fa fa-fw"/>Your Pipeline
             </a>
         </li>
         <li>
             <a data-toggle="collapse" data-parent="#planner_page5" href="#planner_page5">
-                Your Customization<span data-check="planner_page5" class="fa fa-fw"/>
+                <span data-check="planner_page5" class="fa fa-fw"/>Your Customization
             </a>
         </li>
         <li>
             <a data-toggle="collapse" data-parent="#planner_page6" href="#planner_page6">
-                Your Proposals<span data-check="planner_page6" class="fa fa-fw"/>
+                <span data-check="planner_page6" class="fa fa-fw"/>Your Proposals
             </a>
         </li>
          <li>
             <a data-toggle="collapse" data-parent="#planner_page7" href="#planner_page7">
-                Import Products<span data-check="planner_page7" class="fa fa-fw"/>
+                <span data-check="planner_page7" class="fa fa-fw"/>Import Products
             </a>
         </li>
         <h4>Lead acquisition</h4>
         <li>
             <a data-toggle="collapse" data-parent="#planner_page8" href="#planner_page8">
-                Incoming Emails<span data-check="planner_page8" class="fa fa-fw"/>
+                <span data-check="planner_page8" class="fa fa-fw"/>Incoming Emails
             </a>
         </li>
         <li>
             <a data-toggle="collapse" data-parent="#planner_page9" href="#planner_page9">
-                LinkedIn<span data-check="planner_page9" class="fa fa-fw"/>
+                <span data-check="planner_page9" class="fa fa-fw"/>LinkedIn
             </a>
         </li>
         <h4>Deployment</h4>
         <li>
             <a data-toggle="collapse" data-parent="#planner_page10" href="#planner_page10">
-                Reporting<span data-check="planner_page10" class="fa fa-fw"/>
+                <span data-check="planner_page10" class="fa fa-fw"/>Reporting
             </a>
         </li>
         <li>
             <a data-toggle="collapse" data-parent="#planner_page11" href="#planner_page11">
-                Your Users<span data-check="planner_page11" class="fa fa-fw"/>
+                <span data-check="planner_page11" class="fa fa-fw"/>Your Users
             </a>
         </li>
         <h4>Grow Revenues</h4>
         <li>
             <a data-toggle="collapse" data-parent="#planner_page12" href="#planner_page12">
-                Weekly Meeting<span data-check="planner_page12" class="fa fa-fw"/>
+                <span data-check="planner_page12" class="fa fa-fw"/>Weekly Meeting
             </a>
         </li>
         <li>
             <a data-toggle="collapse" data-parent="#planner_page13" href="#planner_page13">
-                Boost Sales<span data-check="planner_page13" class="fa fa-fw"/>
+                <span data-check="planner_page13" class="fa fa-fw"/>Boost Sales
             </a>
         </li>
         <li>
             <a data-toggle="collapse" data-parent="#planner_page14" href="#planner_page14">
-                Fine Tune<span data-check="planner_page14" class="fa fa-fw"/>
+                <span data-check="planner_page14" class="fa fa-fw"/>Fine Tune
             </a>
         </li>
         <li>
             <a data-toggle="collapse" data-parent="#planner_page15" href="#planner_page15">
-                Boost Leads<span data-check="planner_page15" class="fa fa-fw"/>
+                <span data-check="planner_page15" class="fa fa-fw"/>Boost Leads
             </a>
         </li>
 
@@ -116,82 +116,82 @@
 
               <li class="active">
                   <a data-toggle="collapse" data-parent="#planner_page1" href="#planner_page1">
-                      Welcome<span data-check="planner_page1" class="fa fa-fw"/>
+                      <span data-check="planner_page1" class="fa fa-fw"/>Welcome
                   </a>
               </li>
               <h4><i class="fa fa-trophy"></i> Goals</h4>
               <li>
                   <a data-toggle="collapse" data-parent="#planner_page2" href="#planner_page2">
-                      Your Expectation<span data-check="planner_page2" class="fa fa-fw"/>
+                      <span data-check="planner_page2" class="fa fa-fw"/>Your Expectation
                   </a>
               </li>
               <li>
                   <a data-toggle="collapse" data-parent="#planner_page3" href="#planner_page3">
-                      Your KPIs<span data-check="planner_page3" class="fa fa-fw"/>
+                      <span data-check="planner_page3" class="fa fa-fw"/>Your KPIs
                   </a>
               </li>
               <h4><i class="fa fa-tag"></i> Sale Flow</h4>
               <li>
                   <a data-toggle="collapse" data-parent="#planner_page4" href="#planner_page4">
-                      Your Pipeline<span data-check="planner_page4" class="fa fa-fw"/>
+                      <span data-check="planner_page4" class="fa fa-fw"/>Your Pipeline
                   </a>
               </li>
               <li>
                   <a data-toggle="collapse" data-parent="#planner_page5" href="#planner_page5">
-                      Your Customization<span data-check="planner_page5" class="fa fa-fw"/>
+                      <span data-check="planner_page5" class="fa fa-fw"/>Your Customization
                   </a>
               </li>
               <li>
                   <a data-toggle="collapse" data-parent="#planner_page6" href="#planner_page6">
-                      Your Proposals<span data-check="planner_page6" class="fa fa-fw"/>
+                      <span data-check="planner_page6" class="fa fa-fw"/>Your Proposals
                   </a>
               </li>
                <li>
                   <a data-toggle="collapse" data-parent="#planner_page7" href="#planner_page7">
-                      Import Products<span data-check="planner_page7" class="fa fa-fw"/>
+                      <span data-check="planner_page7" class="fa fa-fw"/>Import Products
                   </a>
               </li>
               <h4><i class="fa fa-magnet"></i> Lead acquisition</h4>
               <li>
                   <a data-toggle="collapse" data-parent="#planner_page8" href="#planner_page8">
-                      Incoming Emails<span data-check="planner_page8" class="fa fa-fw"/>
+                      <span data-check="planner_page8" class="fa fa-fw"/>Incoming Emails
                   </a>
               </li>
               <li>
                   <a data-toggle="collapse" data-parent="#planner_page9" href="#planner_page9">
-                      LinkedIn<span data-check="planner_page9" class="fa fa-fw"/>
+                      <span data-check="planner_page9" class="fa fa-fw"/>LinkedIn
                   </a>
               </li>
               <h4><i class="fa fa-magic"></i> Deployment</h4>
               <li>
                   <a data-toggle="collapse" data-parent="#planner_page10" href="#planner_page10">
-                      Reporting<span data-check="planner_page10" class="fa fa-fw"/>
+                      <span data-check="planner_page10" class="fa fa-fw"/>Reporting
                   </a>
               </li>
               <li>
                   <a data-toggle="collapse" data-parent="#planner_page11" href="#planner_page11">
-                      Your Users<span data-check="planner_page11" class="fa fa-fw"/>
+                      <span data-check="planner_page11" class="fa fa-fw"/>Your Users
                   </a>
               </li>
               <h4><i class="fa fa-bolt"></i>  Grow Revenues</h4>
               <li>
                   <a data-toggle="collapse" data-parent="#planner_page12" href="#planner_page12">
-                      Weekly Meeting<span data-check="planner_page12" class="fa fa-fw"/>
+                      <span data-check="planner_page12" class="fa fa-fw"/>Weekly Meeting
                   </a>
               </li>
               <li>
                   <a data-toggle="collapse" data-parent="#planner_page13" href="#planner_page13">
-                      Boost Sales<span data-check="planner_page13" class="fa fa-fw"/>
+                      <span data-check="planner_page13" class="fa fa-fw"/>Boost Sales
                   </a>
               </li>
               <li>
                   <a data-toggle="collapse" data-parent="#planner_page14" href="#planner_page14">
-                      Fine Tune<span data-check="planner_page14" class="fa fa-fw"/>
+                      <span data-check="planner_page14" class="fa fa-fw"/>Fine Tune
                   </a>
               </li>
               <li>
                   <a data-toggle="collapse" data-parent="#planner_page15" href="#planner_page15">
-                      Boost Leads<span data-check="planner_page15" class="fa fa-fw"/>
+                      <span data-check="planner_page15" class="fa fa-fw"/>Boost Leads
                   </a>
               </li>
           </ul>
@@ -431,7 +431,7 @@
               </table>
 
               <div class="row hidden-print">
-                  <div class="col-md-8 col-xs-8 ">
+                  <div class="col-md-8 col-xs-12 ">
                       <div class="well well-lg footer-well">
                           <span><strong>Recommended actions:</strong></span>
                           <li>
@@ -448,7 +448,7 @@
                           </li>
                       </div>
                   </div>
-                  <div class="col-md-4 col-xs-4">
+                  <div class="col-md-4 col-xs-12">
                       <div class="well well-lg footer-well">
                           <span><strong>Need help to structure your sale process ?</strong></span><br/>
                           <a href="https://www.odoo.com/page/live-chat" style="margin-right:10px"><span class="fa fa-comment-o"/> Live Chat on</a><br/>
@@ -553,47 +553,47 @@
                       <div class="col-xs-6">
                           <h4 class="text-center"><b>Fixed price offer</b></h4>
                           <div class="well well-sm">
-                              <h4><b>Standard quotation</b></h4>
-                              (standard product or service)
+                            <h4><b>Standard quotation</b></h4>
+                            (standard product or service)
+                            <span>
+                                <li>Import or create your catalog <a href="#planner_page7" data-parent="planner_page6" data-toggle='collapse'>(see next step)</a></li>
+                            </span>
                           </div>
-                          <span>
-                              <li>Import or create your catalog <a href="#planner_page7" data-parent="planner_page6" data-toggle='collapse'>(see next step)</a></li>
-                          </span>
                       </div>
 
                       <div class="col-xs-6">
                           <h4 class="text-center"><b>Recurring contract</b></h4>
                           <div class="well well-sm">
-                              <h4><b>Fixed price</b></h4>
-                              (ex: monthly subscription)
+                            <h4><b>Fixed price</b></h4>
+                            (ex: monthly subscription)
+                            <span>
+                                <li>Activate contracts</li>
+                                <li>Create contracts template</li>
+                            </span>
                           </div>
-                          <span>
-                              <li>Activate contracts</li>
-                              <li>Create contracts template</li>
-                          </span>
                       </div>
                   </div>
                   <div class="row">
                       <div class="col-xs-6">
 
                           <div class="well well-sm">
-                              <h4><b>Quote template</b></h4>
-                              (packaged services)
+                            <h4><b>Quote template</b></h4>
+                            (packaged services)
+                            <span>
+                                <li>Read the <a href="">blog post on the Quote Builder</a></li>
+                                <li>Create your templates</li>
+                            </span>
                           </div>
-                          <span>
-                              <li>Read the <a href="">blog post on the Quote Builder</a></li>
-                              <li>Create your templates</li>
-                          </span>
                       </div>
 
                       <div class="col-xs-6">
                           <div class="well well-sm">
-                              <h4><b>Time &amp; material</b></h4>
-                              (ex: consulting mission)
+                            <h4><b>Time &amp; material</b></h4>
+                            (ex: consulting mission)
+                            <span>
+                                <li>Configure your prices</li>
+                            </span>
                           </div>
-                          <span>
-                              <li>Configure your prices</li>
-                          </span>
                       </div>
 
 
@@ -655,9 +655,9 @@
                                           'product.product_template_action')"
                                           target="_blank">Create 3</a> products manually
                                   </p>
-                                  <p><span class="text-primary">Export</span> these 3 products by selecting them and chosing 'Export' from the 'More' menu</p>
+                                  <p><a href="#">Export</a> these 3 products by selecting them and chosing 'Export' from the 'More' menu</p>
                                   <p>Add your existing products to this CSV file</p>
-                                  <p><span class="text-primary">Import</span> the file</p>
+                                  <p><a href="#">Import</a> the file</p>
                               </div>
                           </div>
                       </div>
@@ -928,8 +928,8 @@
             </p>
             <div class="container-fluid paragraphs ">
               <div class="row">
-                <div class="col-sm-1 col-md-2 icon"><span  data-icon="&#xe075;" /></div>
-                <div class="col-sm-11 col-md-10">
+                <div class="hidden-xs hidden-sm col-md-2 icon"><span  data-icon="&#xe075;" /></div>
+                <div class="col-xs-12 col-md-10">
                   <p>
                       <strong>Organize weekly sales meetings</strong><br/>
                       It's  a great way to keep track of your pipeline. Start the pipeline review  
@@ -946,8 +946,8 @@
                   </p>
                 </div>
 
-                <div class="col-sm-1 col-md-2 icon"><span  data-icon="&#xe090;" /></div>
-                <div class="col-sm-11 col-md-10">
+                <div class="hidden-xs hidden-sm col-md-2 icon"><span  data-icon="&#xe090;" /></div>
+                <div class="col-xs-12 col-md-10">
                   <p>
                       <strong>Study the best opportunities together</strong><br/>
                       Once  you have a clear idea of the big picture, focus in on the best  opportunities.
@@ -963,8 +963,8 @@
                   </p>
                 </div>
 
-                <div class="col-sm-1 col-md-2 icon"><span  data-icon="&#xe05c;" /></div>
-                <div class="col-sm-11 col-md-10">
+                <div class="hidden-xs hidden-sm col-md-2 icon"><span  data-icon="&#xe05c;" /></div>
+                <div class="col-xs-12 col-md-10">
                   <p>
                       <strong>Forecast the future revenues</strong><br/>
                       You can assess the maturity of a sales team by its ability to forecasts  future revenues
@@ -1111,7 +1111,7 @@
                           <span class="fa fa-envelope fa-4x"></span>
                           <h3><strong>Mass mailing</strong></h3>
                           <p>Design efficient email campaigns. Send, convert and track your success</p>
-                          <a t-att-href="prepare_backend_url('base.open_module_tree', 'form', 'mass_mailing')" class="btn btn-primary hidden-print odoo_purple btn_install"
+                          <a t-att-href="prepare_backend_url('base.open_module_tree', 'form', 'mass_mailing')" class="btn hidden-print odoo_purple btn_install"
                               target="_blank"
                               ><span class="fa fa-arrow-circle-o-down"/> Install Mailing</a>
                       </div>
@@ -1120,7 +1120,7 @@
                           <h3><strong>Live Chat</strong></h3>
                           <p>Engage directly with your website visitors to attract leads and boost online sales.</p>
                           <a t-att-href="prepare_backend_url('base.open_module_tree', 'form', 'im_livechat')"
-                              class="btn btn-primary hidden-print odoo_purple btn_install"
+                              class="btn hidden-print odoo_purple btn_install"
                               target="_blank">
                               <span class="fa fa-arrow-circle-o-down"/> Install Live Chat</a>
                       </div>
@@ -1132,7 +1132,7 @@
                           <h3><strong>Survey</strong></h3>
                           <p>Gain high quality insight from surveys, a great way to engage with prospects</p>
                           <a t-att-href="prepare_backend_url('base.open_module_tree', 'form', 'survey')"
-                              class="btn btn-primary hidden-print odoo_purple btn_install" target="_blank">
+                              class="btn hidden-print odoo_purple btn_install" target="_blank">
                               <span class="fa fa-arrow-circle-o-down"/> Install Surveys</a>
                       </div>
 
@@ -1143,7 +1143,7 @@
                           <h3><strong>Website Builder</strong></h3>
                           <p>Get an awesome website for your business. Fully customizable and SEO friendly.</p>
                           <a t-att-href="prepare_backend_url('base.open_module_tree', 'form', 'website')"
-                              class="btn btn-primary hidden-print odoo_purple btn_install" target="_blank">
+                              class="btn hidden-print odoo_purple btn_install" target="_blank">
                               <span class="fa fa-arrow-circle-o-down"/> Install Website Builder</a>
                       </div>
 
@@ -1154,7 +1154,7 @@
                           <h3><strong>Events</strong></h3>
                           <p>Create sleek and attractive event pages. Sell online and organize on site.</p>
                           <a t-att-href="prepare_backend_url('base.open_module_tree', 'form', 'event')"
-                              class="btn btn-primary hidden-print odoo_purple btn_install" target="_blank">
+                              class="btn hidden-print odoo_purple btn_install" target="_blank">
                               <span class="fa fa-arrow-circle-o-down"/> Install Events</a>
                       </div>
                       <div class="text-center col-md-4 col-xs-6">
@@ -1162,7 +1162,7 @@
                           <h3><strong>e-Commerce</strong></h3>
                           <p>Boost your online sales with sleek product pages.</p>
                           <a t-att-href="prepare_backend_url('base.open_module_tree', 'form', 'website_sale')"
-                              class="btn btn-primary hidden-print odoo_purple btn_install"
+                              class="btn hidden-print odoo_purple btn_install"
                               target="_blank">
                               <span class="fa fa-arrow-circle-o-down"/> Install e-Commerce</a>
                       </div>

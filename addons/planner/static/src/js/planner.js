@@ -329,15 +329,11 @@
 
 
                 // If colors are bootstraps default, change style
-                var checkB = self.$el.find(".btn-primary").css('background-color');
+                /*var checkB = self.$el.find(".btn-primary").css('background-color');
                 if ( (checkB == '#428bca') || (checkB == 'rgb(66, 139, 202)') ) {
-                    /*var link = document.createElement("link");
-                    link.rel = "stylesheet";
-                    link.href = "/planner_crm/static/src/css/odoo_colors.css";
-                    document.getElementsByTagName("head")[0].appendChild(link);*/
                     self.$el.find('#PlannerModal').addClass("odoo_colors");
                 }
-
+*/
                 /*==== Stefano ====  Call resize function at the beginning*/
                 self.winDim();
                 

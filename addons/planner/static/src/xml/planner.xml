@@ -16,7 +16,7 @@
     <t t-name="PlannerFooter">
         <div class="planner_footer col-sm-8 col-md-9 col-xs-12 hidden-print">
             <span class="shadow" />
-            <div class="col-xs-6 text-right mark-block">
+            <div class="col-xs-5 text-left mark-block">
                 <t t-if="!start and !end">
                     <button t-attf-id='input_element_btn_#{current_page_id}' 
                         t-attf-data-progress='#{current_page_id}'
@@ -39,7 +39,7 @@
 
     <t t-name="PlannerDialog">
         <div>
-            <div class="modal fade" id="PlannerModal" tabindex="-1" role="dialog" aria-labelledby="PlannerModalLabel" aria-hidden="true">
+            <div class="modal fade odoo_colors" id="PlannerModal" tabindex="-1" role="dialog" aria-labelledby="PlannerModalLabel" aria-hidden="true">
                 <div class="modal-dialog planner-dialog">
                     <div class="modal-content"> 
 
