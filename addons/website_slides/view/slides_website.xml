@@ -18,13 +18,12 @@
         <template id="assets_frontend" inherit_id="website.assets_frontend" name="Slide">
             <xpath expr="." position="inside">
                 <link type="text/less" href="/website_slides/static/src/less/website_slides.less" rel="stylesheet" t-ignore="true"/>
+                <script type="text/javascript" src="/website_slides/static/src/js/slides.js"/>
+                <script type="text/javascript" src="/web/static/lib/jquery.textext/jquery.textext.js"/>
+                <link rel='stylesheet' href="/web/static/lib/jquery.textext/jquery.textext.css"/>
             </xpath>
         </template>
 
-        <template id="head" name="slides">
-            <script type="text/javascript" src="/website_slides/static/src/js/slides.js"></script>
-            <script type="text/javascript" src="/website_slides/static/lib/pdfjs/build/pdf.js"></script>
-        </template>
 
         <!-- search box -->
         <template id="search" name="search">
@@ -91,7 +90,7 @@
                     <div class="input-group col-md-6">
                         <input type="text" class="form-control" placeholder="your-friend@domain.com"/>
                         <span class="input-group-btn">
-                            <button class="btn btn-primary form-control sendbymail" type="button" t-attf-slide-id="#{slide.id}" style="border-top-right-radius: 4px;border-bottom-right-radius: 4px;"><i class="fa fa-envelope-o"></i> Send Email</button>
+                            <button class="btn btn-primary sendbymail" type="button" t-attf-slide-id="#{slide.id}" style="border-top-right-radius: 4px;border-bottom-right-radius: 4px;"><i class="fa fa-envelope-o"></i> Send Email</button>
                         </span>
                     </div>
                     <span class="help-block">Send presentation through email, with beautiful email</span>
@@ -123,12 +122,15 @@
                             <h3 class="mt0">
                                 <t t-esc="channel.name"/>
                                 <t t-if="is_public_user">
-                                    <a t-attf-href="/web?redirect=#{request.httprequest.url}" class="btn btn-danger slide-border-radius">
+                                    <a t-attf-href="/web?redirect=#{request.httprequest.url}" title="Upload Presentation" class="btn btn-danger slide-border-radius">
                                         <i class="fa fa-cloud-upload"></i> Upload 
                                     </a>
                                 </t>
                                 <t t-if="not is_public_user">
-                                    <a class="btn btn-danger upload slide-border-radius" t-attf-channel_id="#{channel.id}">
+                                    <a title="Add New Category" t-attf-channel_id="#{channel.id}" class="btn btn-danger slide-border-radius add_new_category">
+                                        <i class="fa fa-plus-circle"></i>
+                                    </a>
+                                    <a class="btn btn-danger upload slide-border-radius" title="Upload Presentation" t-attf-channel_id="#{channel.id}">
                                         <i class="fa fa-cloud-upload"></i> Upload 
                                     </a>
                                 </t>
@@ -178,12 +180,15 @@
                                 <a t-attf-href="/slides/#{slug(channel)}"><t t-esc="channel.name"/></a>
                                 <t t-if="category">/ <t t-esc="category.name"/></t>
                                 <t t-if="is_public_user">
-                                    <a t-attf-href="/web?redirect=#{request.httprequest.url}" class="btn btn-danger slide-border-radius">
+                                    <a t-attf-href="/web?redirect=#{request.httprequest.url}" title="Upload Presentation" class="btn btn-danger slide-border-radius">
                                         <i class="fa fa-cloud-upload"></i> Upload 
                                     </a>
                                 </t>
                                 <t t-if="not is_public_user">
-                                    <a class="btn btn-danger upload slide-border-radius" t-attf-channel_id="#{channel.id}" t-attf-category_id="#{category.id}">
+                                    <a title="Add New Category" t-attf-channel_id="#{channel.id}" class="btn btn-danger slide-border-radius add_new_category">
+                                        <i class="fa fa-plus-circle"></i>
+                                    </a>
+                                    <a class="btn btn-danger upload slide-border-radius" title="Upload Presentation" t-attf-channel_id="#{channel.id}" t-attf-category_id="#{category.id}">
                                         <i class="fa fa-cloud-upload"></i> Upload 
                                     </a>
                                 </t>
@@ -242,9 +247,6 @@
 
         <template id='home' name="Odoo Slides">
             <t t-set="head">
-                <t t-call="website_slides.head"/>
-                <script type="text/javascript" src="/web/static/lib/jquery.textext/jquery.textext.js"/>
-                <link rel='stylesheet' href="/web/static/lib/jquery.textext/jquery.textext.css"/>
                 <script type="text/javascript" src="/website_slides/static/lib/pdfjs/build/pdf.js"></script>
             </t>
             <t t-call="website.layout">
@@ -714,7 +716,6 @@
         <!-- display one slide -->
         <template id='slide_view' name="Odoo Slide">
             <t t-set="head">
-                <t t-call="website_slides.head"/>
                 <t t-if="not private">
                     <meta property="og:title" t-attf-content="#{slide.name}" />
                     <meta property="og:type" content="website" />
@@ -736,9 +737,6 @@
 
         <!-- channel list, will be display if more then one channel available -->
         <template id="channels" name="Channels">
-            <t t-set="head">
-                <t t-call="website_slides.head"/>
-            </t>
             <t t-call="website.layout">
                 <div class="oe_structure"/>
                 <div class="container mt16">
@@ -971,6 +969,19 @@
                  <!-- End of body -->
                 </body>
             </html>
+        </template>
+
+        <template id="assets_editor" inherit_id="website.assets_editor" name="Channel Editor">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/website_slides/static/src/js/website_slides.editor.js"></script>
+            </xpath>
+        </template>
+
+        <!-- User Navbar -->
+        <template id="content_new_channel" inherit_id="website.user_navbar">
+            <xpath expr="//ul[@id='oe_systray']/li/ul[@class='dropdown-menu oe_content_menu']" position="inside">
+                <li><a href="#" data-action="new_channel">New Channel</a></li>
+            </xpath>
         </template>
 
     </data>

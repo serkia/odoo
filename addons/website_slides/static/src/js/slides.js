@@ -501,6 +501,8 @@
 
 $(document).ready(function () {
     var website = openerp.website;
+    var _t = openerp._t;
+
     website.slide.PDFViewer_Launcher($('#PDFViewer'));
     $("timeago.timeago").timeago();
 
@@ -640,5 +642,21 @@ $(document).ready(function () {
         }).then(function (data) {
             $input.closest('.form-group').html($('<div class="alert alert-info" role="alert"><strong>Thank you!</strong> Mail has been sent.</div>'));
         });
+    });
+
+    $('.add_new_category').on('click', function (ev) {
+        ev.preventDefault();
+        var channel_id = $(this).attr('channel_id');
+        website.prompt({
+                id: "editor_new_category",
+                window_title: _t("New category"),
+                input: "Category Name",
+            }).then(function (category_name) {
+                website.session.model('slide.category')
+                    .call('create', [{'name': category_name,'channel_id': channel_id}], { context: website.get_context() })
+                    .then(function(category_id){
+                         document.location = '/slides/' + channel_id + '/category/' + category_id;
+                    });
+            });
     });
 });
