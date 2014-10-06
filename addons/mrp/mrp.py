@@ -332,15 +332,8 @@ class mrp_bom(osv.osv):
         result2 = []
         phantom = False
         if bom.type == 'phantom' and not bom.bom_lines:
-            newbom = self._bom_find(cr, uid, bom.product_id.id, bom.product_uom.id, properties)
+            raise osv.except_osv(_('Error!'), _("Phantom BoM '%s' can not have a empty BoM line.") %(bom.name))
 
-            if newbom:
-                res = self._bom_explode(cr, uid, self.browse(cr, uid, [newbom])[0], factor*bom.product_qty, properties, addthis=True, level=level+10)
-                result = result + res[0]
-                result2 = result2 + res[1]
-                phantom = True
-            else:
-                phantom = False
         if not phantom:
             if addthis and not bom.bom_lines:
                 result.append(
