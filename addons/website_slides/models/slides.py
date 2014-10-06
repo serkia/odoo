@@ -7,6 +7,7 @@ import hashlib
 import datetime
 import requests
 import cStringIO
+import re
 
 from PIL import Image
 from urlparse import urlparse,parse_qs
@@ -437,19 +438,13 @@ class Slide(models.Model):
         return slide_id
 
     #TODO: convert this to regural expression
+    #converted to regular expression (VIP)
     def extract_youtube_id(self, url):
         youtube_id = ""
-        query = urlparse(url)
-        if query.hostname == 'youtu.be':
-            youtube_id = query.path[1:]
-        elif query.hostname in ('www.youtube.com', 'youtube.com'):
-            if query.path == '/watch':
-                p = parse_qs(query.query)
-                youtube_id = p['v'][0]
-            elif query.path[:7] == '/embed/':
-                youtube_id = query.path.split('/')[2]
-            elif query.path[:3] == '/v/':
-                youtube_id = query.path.split('/')[2]
+        regex_y = r'.*(?:v=|/v/|^|/youtu.be/|/embed/)(?P<id>[^&]*)'
+        regex_y = re.compile(regex_y)
+        erg = regex_y.match(url)
+        youtube_id = erg.group('id')
         return youtube_id
 
     def get_youtube_statistics(self, video_id, part='statistics', fields='statistics'):
