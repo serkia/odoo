@@ -23,6 +23,7 @@ import time
 import unittest2
 
 import werkzeug.serving
+from werkzeug.debug import DebuggedApplication
 
 try:
     import fcntl
@@ -888,6 +889,7 @@ def start(preload=None, stop=False):
             watcher.start()
         else:
             _logger.warning("'watchdog' module not installed. Code autoreload feature is disabled")
+        server.app = DebuggedApplication(server.app, evalex=True)
 
     rc = server.run(preload, stop)
 
