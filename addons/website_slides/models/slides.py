@@ -43,22 +43,23 @@ class Channel(models.Model):
     visibility = fields.Selection([('public','Public'), ('private','Hide Channel'), ('group','Show channel but presentations based on groups')], string='Visiblity', default='public')
     group_ids = fields.Many2many('res.groups', 'rel_channel_groups', 'channel_id', 'group_id', string='Accessible Groups')
 
-    @api.multi
+    @api.one
     def _compute_presentations(self):
         slide_obj = self.env['slide.slide']
-        for record in self:
-            domain = [('website_published','=',True), ('channel_id','=',record.id)]
-            counts = slide_obj.read_group(domain, ['slide_type'], groupby='slide_type')
-            countvals = {}
+        domain = [('website_published','=',True), ('channel_id','=',self.id)]
+        counts = slide_obj.read_group(domain, ['slide_type'], groupby=['slide_type'])
+
+        countvals = {}
+        if counts:
             for count in counts:
                 countvals[count.get('slide_type')] = count.get('slide_type_count', 0)
 
-            record.presentations = countvals.get('presentation', 0)
-            record.documents = countvals.get('document', 0)
-            record.videos = countvals.get('video', 0)
-            record.infographics = countvals.get('infographic', 0)
-
-            record.total = countvals.get('presentation', 0) + countvals.get('document', 0) + countvals.get('video', 0) + countvals.get('infographic', 0)
+        self.presentations = countvals.get('presentation', 0)
+        self.documents = countvals.get('document', 0)
+        self.videos = countvals.get('video', 0)
+        self.infographics = countvals.get('infographic', 0)
+        
+        self.total = self.presentations + self.documents + self.videos + self.infographics
 
     def get_promoted_slide(self):
         '''Return promoted slide based on the promote type'''
@@ -81,7 +82,7 @@ class Channel(models.Model):
 
 class Category(models.Model):
     _name = 'slide.category'
-    _description = "Category of Slides"
+    _description = "Category of slides"
     _order = "sequence"
 
     channel_id = fields.Many2one('slide.channel', string="Channel")
@@ -94,22 +95,21 @@ class Category(models.Model):
     infographics = fields.Integer(compute='_compute_presentations', string="Number of Infographics")
     total = fields.Integer(compute='_compute_presentations', string="Total")
 
-    @api.multi
+    @api.one
     def _compute_presentations(self):
         slide_obj = self.env['slide.slide']
-        for record in self:
-            domain = [('website_published','=',True), ('category_id','=',record.id)]
-            counts = slide_obj.read_group(domain, ['slide_type'], groupby='slide_type')
-            countvals = {}
-            for count in counts:
-                countvals[count.get('slide_type')] = count.get('slide_type_count')
+        domain = [('website_published','=',True), ('category_id','=',self.id)]
+        counts = slide_obj.read_group(domain, ['slide_type'], groupby='slide_type')
+        countvals = {}
+        for count in counts:
+            countvals[count.get('slide_type')] = count.get('slide_type_count')
 
-            record.presentations = countvals.get('presentation', 0)
-            record.documents = countvals.get('document', 0)
-            record.videos = countvals.get('video', 0)
-            record.infographics = countvals.get('infographic', 0)
+        self.presentations = countvals.get('presentation', 0)
+        self.documents = countvals.get('document', 0)
+        self.videos = countvals.get('video', 0)
+        self.infographics = countvals.get('infographic', 0)
 
-            record.total = countvals.get('presentation', 0) + countvals.get('document', 0) + countvals.get('video', 0) + countvals.get('infographic', 0)
+        self.total = countvals.get('presentation', 0) + countvals.get('document', 0) + countvals.get('video', 0) + countvals.get('infographic', 0)
 
     @api.multi
     def get_slides_by_category(self, domain, limit, order):
@@ -129,10 +129,9 @@ class EmbededView(models.Model):
     count_views = fields.Integer(string='# Views on Embed', default=0)
 
     def set_count(self, slide_id, url):
-        baseurl = url
-        urls = url.split('?')
-        if urls:
-            baseurl = urls[0]
+        schema = urlparse(url)
+
+        baseurl = schema.netloc
         domain = [('name','=',baseurl), ('slide_id','=',int(slide_id))]
         count = self.search(domain, limit=1)
         if count:
@@ -220,6 +219,7 @@ class Slide(models.Model):
 
     @api.multi
     def check_constraint(self, values):
+        '''called from website to check if already available or not'''
         if values.get('video_id'):
             domain = [('channel_id','=',values['channel_id']), ('youtube_id','=',values['video_id'])]
             slide = self.search(domain)
@@ -456,12 +456,12 @@ class Slide(models.Model):
             req = urllib2.Request(request_url)
             content = urllib2.urlopen(req).read()
             values = json.loads(content)
-            vals = self.parse_update_youtube(values)
+            vals = self.parse_youtube_statistics(values)
         except urllib2.HTTPError, e:
             pass
         return vals
 
-    def parse_update_youtube(self, values):
+    def parse_youtube_statistics(self, values):
 
         def _get_image_data(image_url):
             image_date = False

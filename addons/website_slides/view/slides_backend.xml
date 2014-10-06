@@ -48,7 +48,7 @@
                     </div>
                 </form>
             </field>
-        </record>s
+        </record>
 
         <record id="view_slides_slide_tree" model="ir.ui.view">
             <field name="model">slide.slide</field>
@@ -151,7 +151,7 @@
                             <group>
 
                             </group>
-                            <field name="group_ids" attrs="{'invisible':[('visibility','in',('public','private'))]}" colspan="4" nolabel="1"/>
+                            <field name="group_ids" attrs="{'invisible':[('visibility','in',('public'))]}" colspan="4" nolabel="1"/>
                         </group>
 
                         <label for="description"/>

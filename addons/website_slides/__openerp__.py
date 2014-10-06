@@ -22,8 +22,9 @@ You can upload presentations, videos, documents and infographic and moderate and
     'data': [
         'view/slides_website.xml',
         'view/slides_backend.xml',
+        'data/website_slides_data.xml',
         'security/ir.model.access.csv',
-        'data/website_slides_data.xml'
+        'security/website_slides_security.xml'
     ],
     'demo': [
         'data/website_slides_demo.xml'

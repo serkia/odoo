@@ -13,7 +13,6 @@ class main(http.Controller):
     _slides_per_page = 12
     _slides_per_list = 20
 
-
     @http.route('/slides/editmessage/<model("slide.channel"):channel>', type='http', auth="user", website=True)
     def edit_error_message(self, channel):
         values = {
@@ -29,7 +28,15 @@ class main(http.Controller):
         '''
         channel_obj = request.env['slide.channel']
         user = request.env.user
-        channels = channel_obj.search([('website_published','=', True), ('visibility','!=','private')], order='sequence')
+        domain = []
+
+        if user.id == request.website.user_id.id:
+            domain += [('website_published','=', True), ('visibility','!=','private')]
+
+        if user.id not in (request.website.user_id.id, SUPERUSER_ID):
+            domain += [('website_published','=', True)]
+
+        channels = channel_obj.search(domain, order='sequence')
 
         if len(channels) <= 1:
             return request.redirect("/slides/%s" % channels.id)
@@ -154,7 +161,7 @@ class main(http.Controller):
 
         values = {
             'most_viewed_ids':most_viewed_ids,
-            'related_ids': related_ids,
+            'relatedslides': related_ids,
             'channel': slide.channel_id,
             'user':user,
             'types':types,
@@ -166,21 +173,17 @@ class main(http.Controller):
             'slidename':slide.name
         }
 
-        if slide.channel_id.visibility in ('private', 'group') and user != SUPERUSER_ID:
+        if slide.channel_id.visibility in ('private', 'group') and user.id != SUPERUSER_ID:
             access = False
             for group in slide.channel_id.group_ids:
                 if user in group.sudo().users:
                     access = True
                     break
 
-            if access:
-                values.update({
-                    'slide':slide,
-                    'comments': comments,
-                    'private':False
-                })
+        if slide.channel_id.visibility == 'public' or user.id == SUPERUSER_ID:
+            access = True
 
-        if slide.channel_id.visibility == 'public' or user == SUPERUSER_ID:
+        if access:
             values.update({
                 'slide':slide,
                 'comments': comments,
@@ -211,31 +214,39 @@ class main(http.Controller):
     def slides_embed_count(self, slide, url):
         request.env['slide.embed'].sudo().set_count(slide, url)
 
-    def _slides_message(self, user, slide_id=0, **post):
-        slide_obj = request.env['slide.slide']
-        partner_obj = request.env['res.partner']
-
-        if request.uid != request.website.user_id.id:
-            partner_ids = [user.partner_id.id]
-        else:
-            partner_ids = slide_obj.sudo()._find_partner_from_emails(0, [post.get('email')])
-            if not partner_ids or not partner_ids[0]:
-                partner_ids = [partner_obj.sudo().create({'name': post.get('name'), 'email': post.get('email')})]
-        
-        message_id = slide_obj.search([('id', '=', int(slide_id))]).sudo().with_context(mail_create_nosubcribe=True).message_post(
-            body=post.get('comment'),
-            type='comment',
-            subtype='mt_comment',
-            author_id=partner_ids[0],
-            path=post.get('path', False),
-        )
-        return message_id
 
     @http.route('/slides/comment/<model("slide.slide"):slide>', type='http', auth="public", methods=['POST'], website=True)
     def slides_comment(self, slide, **post):
         slide_obj = request.env['slide.slide']
+        partner_obj = request.env['res.partner']
+        partner_ids = False
+        message_id = False
+
+        #TODO: make website_published False by default and write an method to send email with random back link, 
+        #which will post all comments posted with that email address
+        website_published = True
+
         if post.get('comment'):
-            self._slides_message(request.env.user, slide.id, **post)
+            if request.uid != request.website.user_id.id:
+                partner_ids = [request.env.user.partner_id]
+                website_published = True
+            else:
+                partner_ids = partner_obj.sudo().search([('email','=',post.get('email'))])
+                if not partner_ids or not partner_ids[0]:
+                    partner_ids = [partner_obj.sudo().create({
+                        'name': post.get('name'), 
+                        'email': post.get('email')
+                    })]
+
+            if partner_ids:
+                message_id = slide.sudo().with_context(mail_create_nosubcribe=True).message_post(
+                    body=post.get('comment'),
+                    type='comment',
+                    subtype='mt_comment',
+                    author_id=partner_ids[0].id,
+                    website_published = website_published
+                )
+
         return werkzeug.utils.redirect(request.httprequest.referrer + "#discuss")
 
     @http.route('/slides/<model("slide.channel"):channel>/view/<model("slide.slide"):slide>/like', type='json', auth="public", website=True)
