@@ -129,6 +129,7 @@ class hr_job(osv.Model):
     _defaults = {
         'company_id': lambda self, cr, uid, ctx=None: self.pool.get('res.company')._company_default_get(cr, uid, 'hr.job', context=ctx),
         'state': 'recruit',
+        'no_of_recruitment' : 1,
     }
 
     _sql_constraints = [

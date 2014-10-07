@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+
+
+        <record model="web.tip" id="hr_tip_1">
+            <field name="title"></field>
+            <field name="description">By clicking here, you can keep a track of yours applications concerning this job position. You'll be able to plan meetings and manage documents related to the applicants.</field>
+            <field name="model">hr.job</field>
+            <field name="mode">form</field>
+            <field name="trigger_selector">.oe_stat_button:visible</field>
+            <field name="highlight_selector">.oe_stat_button:visible</field>
+            <field name="placement">bottom</field>
+        </record>
+
+
+
+    </data>
+</openerp>
