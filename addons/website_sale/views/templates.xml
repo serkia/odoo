@@ -790,6 +790,14 @@
                   </small>
               </h3>
               <div class="row">
+                  <div t-if="error.get('email_msg') or error.get('vat')" class="alert alert-danger alert-error" style="margin-left: 15px; margin-right: 15px;">
+                      <t t-if="error.get('vat')">
+                          <t t-esc="error.get('vat')"/><br />
+                      </t>
+                      <t t-if="error.get('email_msg')">
+                          <t t-esc="error.get('email_msg')"/><br />
+                      </t>
+                  </div>
                   <div t-attf-class="form-group #{error.get('name') and 'has-error' or ''} col-lg-6">
                       <label class="control-label" for="contact_name">Your Name</label>
                       <input type="text" name="name" class="form-control" t-att-value="checkout.get('name')"/>
@@ -800,7 +808,7 @@
                       <input type="text" name="street" class="form-control" t-att-value="checkout.get('street')"/>
                   </div>
                   <div t-if="has_check_vat" t-attf-class="form-group #{error.get('vat') and 'has-error' or ''} col-lg-6">
-                      <label class="control-label" for="vat" style="font-weight: normal">VAT Number</label>
+                      <label class="control-label" for="vat">VAT Number</label>
                       <input type="text" name="vat" class="form-control" t-att-value="checkout.get('vat')"/>
                   </div>
                   <div t-attf-class="form-group #{error.get('email') and 'has-error' or ''} col-lg-6">
