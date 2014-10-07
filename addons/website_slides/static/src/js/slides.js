@@ -147,9 +147,9 @@
                         self.index_content = "";
                         for (var j = 1; j <= maxPages; j++) {
                             var page = pdf.getPage(j);
-                            page.then(function (p) {
-                                var page_number = p.pageInfo.pageIndex + 1;
-                                p.getTextContent().then(function (data) {
+                            page.then(function (page_obj) {
+                                var page_number = page_obj.pageIndex + 1;
+                                page_obj.getTextContent().then(function (data) {
                                     var page_content = '';
                                     _.each(data.items, function (obj) {
                                         page_content = page_content + obj.str + " ";

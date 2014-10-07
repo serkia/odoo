@@ -6,6 +6,7 @@ import simplejson
 from openerp import SUPERUSER_ID
 from openerp.http import request
 from openerp.addons.web import http
+from openerp.tools.translate import _
 
 
 class main(http.Controller):
