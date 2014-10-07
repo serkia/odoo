@@ -1,11 +1,58 @@
 <?xml version="1.0"?>
 <openerp>
     <data noupdate="1">
+        <record model="mail.message" id="module_install_notification">
+            <field name="model">mail.group</field>
+            <field name="res_id" ref="mail.group_all_employees"/>
+            <field name="type">notification</field>
+            <field name="subtype_id" ref="mail.mt_comment"/>
+            <field name="subject">Claim Tracker application installed!</field>
+            <field name="body"><![CDATA[<p>Manage the claim you might face in a product, such as bugs in a system, client complaints or material breakdowns.</p><p>
+You can record claim, assign them to a responsible person, and keep track of their status as they evolve over time.</p><p>
+Access all claim from the top menu, and access the claim of a specific product via the product gallery view.</p>]]></field>
+        </record>
+
+        <!-- claim-related subtypes for messaging / Chatter -->
+        <record id="mt_claim_new" model="mail.message.subtype">
+            <field name="name">Claim Created</field>
+            <field name="res_model">crm.claim</field>
+            <field name="default" eval="False"/>
+            <field name="hidden" eval="True"/>
+            <field name="description">Claim created</field>
+        </record>
+
+        <record id="mt_claim_assigned" model="mail.message.subtype">
+            <field name="name">Claim Assigned</field>
+            <field name="res_model">crm.claim</field>
+            <field name="default" eval="False"/>
+            <field name="description">Claim assigned</field>
+        </record>
+
+        <record id="mt_claim_blocked" model="mail.message.subtype">
+            <field name="name">Claim Blocked</field>
+            <field name="res_model">crm.claim</field>
+            <field name="default" eval="False"/>
+            <field name="description">Claim blocked</field>
+        </record>
+
+        <record id="mt_claim_ready" model="mail.message.subtype">
+            <field name="name">Claim Ready for Next Stage</field>
+            <field name="res_model">crm.claim</field>
+            <field name="default" eval="False"/>
+            <field name="description">Claim Ready for Next Stage</field>
+        </record>
+
+        <record id="mt_claim_stage" model="mail.message.subtype">
+            <field name="name">Stage Changed</field>
+            <field name="res_model">crm.claim</field>
+            <field name="default" eval="False"/>
+            <field name="description">Stage changed</field>
+        </record>
 
         <!--
         Claims Categories
         -->
-        
+
         <record model="crm.case.categ" id="categ_claim1">
             <field name="name">Factual Claims</field>
             <field name="section_id" ref="sales_team.section_sales_department"/>
@@ -56,11 +103,13 @@
             <field name="name">Settled</field>
             <field name="sequence">28</field>
             <field name="case_default" eval="True"/>
+            <field name="fold" eval="True"/>
         </record>
         <record model="crm.claim.stage" id="stage_claim3">
             <field name="name">Rejected</field>
             <field name="sequence">29</field>
             <field name="case_default" eval="True"/>
+            <field name="fold" eval="True"/>
         </record>
         
 

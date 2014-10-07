@@ -25,6 +25,7 @@ from openerp.osv import fields, osv
 from openerp import tools
 from openerp.tools.translate import _
 from openerp.tools import html2plaintext
+from openerp import SUPERUSER_ID
 
 
 class crm_claim_stage(osv.osv):
@@ -45,6 +46,9 @@ class crm_claim_stage(osv.osv):
                         help="Link between stages and sales teams. When set, this limitate the current stage to the selected sales teams."),
         'case_default': fields.boolean('Common to All Teams',
                         help="If you check this field, this stage will be proposed by default on each sales team. It will not assign this stage to existing teams."),
+        'fold': fields.boolean('Folded in Kanban View',
+                               help='This stage is folded in the kanban view when'
+                               'there are no records in that stage to display.')
     }
 
     _defaults = {
@@ -57,7 +61,30 @@ class crm_claim(osv.osv):
     _name = "crm.claim"
     _description = "Claim"
     _order = "priority,date desc"
-    _inherit = ['mail.thread']
+    _inherit = ['mail.thread', 'ir.needaction_mixin']
+
+    _mail_post_access = 'read'
+    _track = {
+        'stage_id': {
+            # this is only an heuristics; depending on your particular stage configuration it may not match all 'new' stages
+            'crm_claim.mt_claim_new': lambda self, cr, uid, obj, ctx=None: obj.stage_id and obj.stage_id.sequence <= 1,
+            'crm_claim.mt_claim_stage': lambda self, cr, uid, obj, ctx=None: obj.stage_id and obj.stage_id.sequence > 1,
+        },
+        'user_id': {
+            'crm_claim.mt_claim_assigned': lambda self, cr, uid, obj, ctx=None: obj.user_id and obj.user_id.id,
+        },
+        'kanban_state': {
+            'crm_claim.mt_claim_blocked': lambda self, cr, uid, obj, ctx=None: obj.kanban_state == 'blocked',
+            'crm_claim.mt_claim_ready': lambda self, cr, uid, obj, ctx=None: obj.kanban_state == 'done',
+        },
+    }
+    def _get_default_partner(self, cr, uid, context=None):
+        section_id = self._get_default_section_id(cr, uid, context)
+        if section_id:
+            section = self.pool.get('crm.lead').browse(cr, uid, section_id, context=context)
+            if section and section.partner_id:
+                return section.partner_id.id
+        return False
 
     def _get_default_section_id(self, cr, uid, context=None):
         """ Gives default section by checking if present in the context """
@@ -66,7 +93,50 @@ class crm_claim(osv.osv):
     def _get_default_stage_id(self, cr, uid, context=None):
         """ Gives default stage_id """
         section_id = self._get_default_section_id(cr, uid, context=context)
-        return self.stage_find(cr, uid, [], section_id, [('sequence', '=', '1')], context=context)
+        return self.stage_find(cr, uid, [], section_id, [('fold', '=', False)], context=context)
+
+    def _resolve_section_id_from_context(self, cr, uid, context=None):
+        """ Returns ID of claim based on the value of 'default_section_id'
+            context key, or None if it cannot be resolved to a single
+            section.
+        """
+        if context is None:
+            context = {}
+        if type(context.get('default_section_id')) in (int, long):
+            return context.get('default_section_id')
+        if isinstance(context.get('default_section_id'), basestring):
+            section_name = context['default_section_id']
+            section_ids = self.pool.get('crm.lead').name_search(cr, uid, name=section_name, context=context)
+            if len(section_ids) == 1:
+                return int(section_ids[0][0])
+        return None
+
+    def _read_group_stage_ids(self, cr, uid, ids, domain, read_group_order=None, access_rights_uid=None, context=None):
+        access_rights_uid = access_rights_uid or uid
+        stage_obj = self.pool.get('crm.claim.stage')
+        order = stage_obj._order
+        # lame hack to allow reverting search, should just work in the trivial case
+        if read_group_order == 'stage_id desc':
+            order = "%s desc" % order
+        # retrieve section_id from the context and write the domain
+        # - ('id', 'in', 'ids'): add columns that should be present
+        # - OR ('case_default', '=', True), ('fold', '=', False): add default columns that are not folded
+        # - OR ('section_ids', 'in', section_id), ('fold', '=', False) if section_id: add section columns that are not folded
+        search_domain = []
+        section_id = self._resolve_section_id_from_context(cr, uid, context=context)
+        if section_id:
+            search_domain += ['|', ('section_ids', '=', section_id)]
+        search_domain += [('id', 'in', ids)]
+        # perform search
+        stage_ids = stage_obj._search(cr, uid, search_domain, order=order, access_rights_uid=access_rights_uid, context=context)
+        result = stage_obj.name_get(cr, access_rights_uid, stage_ids, context=context)
+        # restore order of the search
+        result.sort(lambda x,y: cmp(stage_ids.index(x[0]), stage_ids.index(y[0])))
+
+        fold = {}
+        for stage in stage_obj.browse(cr, access_rights_uid, stage_ids, context=context):
+            fold[stage.id] = stage.fold or False
+        return result, fold
 
     _columns = {
         'id': fields.integer('ID', readonly=True),
@@ -101,6 +171,16 @@ class crm_claim(osv.osv):
         'stage_id': fields.many2one ('crm.claim.stage', 'Stage', track_visibility='onchange',
                 domain="['|', ('section_ids', '=', section_id), ('case_default', '=', True)]"),
         'cause': fields.text('Root Cause'),
+        'color': fields.integer('Color Index'),
+        'date_action_last': fields.datetime('Last Action', readonly=1),
+        'date_last_stage_update': fields.datetime('Last Stage Update', select=True),
+        'kanban_state': fields.selection([('normal', 'Normal'),('blocked', 'Blocked'),('done', 'Ready for next stage')], 'Kanban State',
+                                         track_visibility='onchange',
+                                         help="A Cliam's kanban state indicates special situations affecting it:\n"
+                                              " * Normal is the default situation\n"
+                                              " * Blocked indicates something is preventing the progress of this issue\n"
+                                              " * Ready for next stage indicates the claim is ready to be pulled to the next stage",
+                                         required=False),
     }
 
     _defaults = {
@@ -110,7 +190,12 @@ class crm_claim(osv.osv):
         'company_id': lambda s, cr, uid, c: s.pool.get('res.company')._company_default_get(cr, uid, 'crm.case', context=c),
         'priority': '1',
         'active': lambda *a: 1,
+        'kanban_state': 'normal',
+        'date_last_stage_update': fields.datetime.now,
         'stage_id': lambda s, cr, uid, c: s._get_default_stage_id(cr, uid, c)
+    }
+    _group_by_full = {
+        'stage_id': _read_group_stage_ids
     }
 
     def stage_find(self, cr, uid, cases, section_id, domain=[], order='sequence', context=None):
@@ -158,7 +243,19 @@ class crm_claim(osv.osv):
             context['default_section_id'] = vals.get('section_id')
 
         # context: no_log, because subtype already handle this
-        return super(crm_claim, self).create(cr, uid, vals, context=context)
+        create_context = dict(context, mail_create_nolog=True)
+        return super(crm_claim, self).create(cr, uid, vals, context=create_context)
+
+    def write(self, cr, uid, ids, vals, context=None):
+        # stage change: update date_last_stage_update
+        if 'stage_id' in vals:
+            vals['date_last_stage_update'] = fields.datetime.now()
+            if 'kanban_state' not in vals:
+                vals['kanban_state'] = 'normal'
+        # user_id change: update date_start
+        if vals.get('user_id'):
+            vals['date_start'] = fields.datetime.now()
+        return super(crm_claim, self).write(cr, uid, ids, vals, context)
 
     def copy(self, cr, uid, id, default=None, context=None):
         claim = self.browse(cr, uid, id, context=context)
@@ -170,6 +267,25 @@ class crm_claim(osv.osv):
     # -------------------------------------------------------
     # Mail gateway
     # -------------------------------------------------------
+
+    def message_get_reply_to(self, cr, uid, ids, context=None):
+        """ Override to get the reply_to of the parent project. """
+        claims = self.browse(cr, SUPERUSER_ID, ids, context=context)
+        section_ids = set([claim.section_id.id for claim in claims if claim.section_id])
+        aliases = self.pool['crm_claim'].message_get_reply_to(cr, uid, list(section_ids), context=context)
+        return dict((claim.id, aliases.get(claim.section_id and claim.section_id.id or 0, False)) for claim in claims)
+
+    def message_get_suggested_recipients(self, cr, uid, ids, context=None):
+        recipients = super(crm_claim, self).message_get_suggested_recipients(cr, uid, ids, context=context)
+        try:
+            for claim in self.browse(cr, uid, ids, context=context):
+                if claim.partner_id:
+                    self._message_add_suggested_recipient(cr, uid, recipients, claim, partner=claim.partner_id, reason=_('Customer'))
+                elif claim.email_from:
+                    self._message_add_suggested_recipient(cr, uid, recipients, claim, email=claim.email_from, reason=_('Customer Email'))
+        except (osv.except_osv, orm.except_orm):  # no read access rights -> just ignore suggested recipients because this imply modifying followers
+            pass
+        return recipients
 
     def message_new(self, cr, uid, msg, custom_values=None, context=None):
         """ Overrides mail_thread message_new that is called by the mailgateway
@@ -191,8 +307,20 @@ class crm_claim(osv.osv):
         defaults.update(custom_values)
         return super(crm_claim, self).message_new(cr, uid, msg, custom_values=defaults, context=context)
 
+    def message_post(self, cr, uid, thread_id, body='', subject=None, type='notification', subtype=None, parent_id=False, attachments=None, context=None, content_subtype='html', **kwargs):
+        """ Overrides mail_thread message_post so that we can set the date of last action field when
+            a new message is posted on the issue.
+        """
+        if context is None:
+            context = {}
+        res = super(crm_claim, self).message_post(cr, uid, thread_id, body=body, subject=subject, type=type, subtype=subtype, parent_id=parent_id, attachments=attachments, context=context, content_subtype=content_subtype, **kwargs)
+        if thread_id and subtype:
+            self.write(cr, SUPERUSER_ID, thread_id, {'date_action_last': fields.datetime.now()}, context=context)
+        return res
+
 class res_partner(osv.osv):
     _inherit = 'res.partner'
+
     def _claim_count(self, cr, uid, ids, field_name, arg, context=None):
         Claim = self.pool['crm.claim']
         return {
