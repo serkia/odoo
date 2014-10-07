@@ -7,6 +7,19 @@ from openerp.tools.translate import _
 class sale_order(osv.Model):
     _inherit = "sale.order"
 
+    def _cart_update(self, cr, uid, ids, product_id=None, line_id=None, add_qty=0, set_qty=0, context=None, **kwargs):
+        value = super(sale_order, self)._cart_update(cr, uid, ids, product_id, line_id, add_qty, set_qty, context, **kwargs)
+        sol_obj = self.pool['sale.order.line']
+        line_id = value.get('line_id')
+        quantity = value.get('quantity')
+        if line_id and quantity:
+            order_line = sol_obj.browse(cr, SUPERUSER_ID, line_id, context=context)
+            if order_line.event_ticket_id and quantity > order_line.event_ticket_id.seats_available:
+                sol_obj.write(cr, SUPERUSER_ID, line_id,{'product_uom_qty':order_line.event_ticket_id.seats_available}, context)
+                value['available_qty'] = order_line.event_ticket_id.seats_available
+                value['warning'] = 'Sorry, Only ' + str(order_line.event_ticket_id.seats_available) + ' Ticket availalble'
+        return value
+
     def _cart_find_product_line(self, cr, uid, ids, product_id=None, line_id=None, context=None, **kwargs):
         line_ids = super(sale_order, self)._cart_find_product_line(cr, uid, ids, product_id, line_id, context=context)
         if line_id:

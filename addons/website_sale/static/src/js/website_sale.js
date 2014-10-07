@@ -43,6 +43,10 @@ $('.oe_website_sale').each(function () {
                 $input.val(data.quantity);
                 $('.js_quantity[data-line-id='+line_id+']').val(data.quantity).html(data.quantity);
                 $("#cart_total").replaceWith(data['website_sale.total']);
+                if (data.warning) {
+                    $('.oe_cart').prepend('<div class="alert alert-danger alert-dismissable oe_forum_alert" id="vote_alert">' + '<button type="button" class="close notification_close" data-dismiss="alert" aria-hidden="true">&times;</button>'+ data.warning + '</div>');
+                    $input.val(data.available_qty)
+                }
             });
     });
 
