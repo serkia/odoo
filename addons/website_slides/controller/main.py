@@ -224,7 +224,7 @@ class main(http.Controller):
 
         #TODO: make website_published False by default and write an method to send email with random back link, 
         #which will post all comments posted with that email address
-        website_published = True
+        website_published = False
 
         if post.get('comment'):
             if request.uid != request.website.user_id.id:

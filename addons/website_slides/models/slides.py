@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import re
 import io
 import json
 import urllib2
@@ -7,7 +8,6 @@ import hashlib
 import datetime
 import requests
 import cStringIO
-import re
 
 from PIL import Image
 from urlparse import urlparse,parse_qs
@@ -475,7 +475,6 @@ class Slide(models.Model):
             item = values['items'][0]
 
             if item.get('snippet'):
-                print "item['snippet']['thumbnails']['medium']['url'] : ", item['snippet']['thumbnails']['medium']['url']
                 vals['image_thumb'] = _get_image_data(item['snippet']['thumbnails']['medium']['url'])
                 vals['image_medium'] = _get_image_data(item['snippet']['thumbnails']['high']['url'])
                 vals['image'] = _get_image_data(item['snippet']['thumbnails']['standard']['url'])
