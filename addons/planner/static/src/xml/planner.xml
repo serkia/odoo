@@ -70,21 +70,5 @@
         </div>
     </t>
 
-    <t t-name="PlannerReport">
-       <html>
-           <head>
-                <!--we need to link this files because we are generating new html page for reports -->
-                <link rel="stylesheet" href="/web/static/lib/bootstrap/css/bootstrap.css"/>
-                <link rel="stylesheet" href="/planner/static/src/css/planner.css"/>
-                <link rel="stylesheet" href="/web/static/lib/fontawesome/css/font-awesome.css"/>
-                <script type="text/javascript" src="/web/static/lib/bootstrap/js/bootstrap.js"></script>
-            </head>
-            <body>
-                <div class="oe_planner">
-                    <t t-raw="content"/>
-                </div>
-           </body>
-       </html>
-    </t>
 
 </templates>
