@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="print_provider_form_view" model="ir.ui.view">
+            <field name="name">print.provider.docsaway.form</field>
+            <field name="model">print.provider</field>
+            <field name="inherit_id" ref="print.print_provider_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr='//notebook' position='inside'>
+                    <page string="DocsAway Details" attrs="{'invisible': [('provider', '!=', 'docsaway')]}">
+                        <group>
+                            <field name="docsaway_email"/>
+                            <field name="docsaway_key"/>
+                            <field name="docsaway_volume"/>
+                            <field name="docsaway_reference"/>
+                            <field name="docsaway_name"/>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="print_order_form_view" model="ir.ui.view">
+            <field name="name">print.order.docsaway.form</field>
+            <field name="model">print.order</field>
+            <field name="inherit_id" ref="print.print_order_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr='//notebook' position='inside'>
+                    <page string="DocsAway Details">
+                        <group>
+                            <field name="docsaway_station"/>
+                            <field name="docsaway_courier"/>
+                            <field name="docsaway_zone"/>
+                            <field name="docsaway_reference"/>
+                            <field name="docsaway_approved"/>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</openerp>
