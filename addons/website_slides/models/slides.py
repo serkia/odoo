@@ -4,16 +4,14 @@ import re
 import io
 import json
 import urllib2
-import hashlib
 import datetime
 import requests
 import cStringIO
 
 from PIL import Image
-from urlparse import urlparse,parse_qs
-
+from urlparse import urlparse
 from openerp.tools import mail
-from openerp import models, fields, api, _
+from openerp import models, fields, api
 from openerp.addons.website.models.website import slug
 
 
@@ -27,7 +25,7 @@ class Channel(models.Model):
     website_published = fields.Boolean(string='Publish', help="Publish on the website", copy=False)
     description = fields.Text(string='Website Description', translate=True)
 
-    promote = fields.Selection([('none','Do not Promote'), ('latest','Newest'), ('popular','Most Popular'), ('mostview','Most Viewed'), ('custom','Promote my Presentation')], string="Promoted Video", default='none', required=True)
+    promote = fields.Selection([('none', 'Do not Promote'), ('latest', 'Newest'), ('popular', 'Most Popular'), ('mostview', 'Most Viewed'), ('custom', 'Promote my Presentation')], string="Promoted Video", default='none', required=True)
 
     presentations = fields.Integer(compute='_compute_presentations', string="Number of Presentations")
     documents = fields.Integer(compute='_compute_presentations', string="Number of Documents")
@@ -40,13 +38,13 @@ class Channel(models.Model):
     errormessage = fields.Html('Error Message', help="Html message when channel's content is not accessible for a user")
     template_id = fields.Many2one('email.template', 'Email Template', html="Email template use to send slide notification through email")
 
-    visibility = fields.Selection([('public','Public'), ('private','Hide Channel'), ('group','Show channel but presentations based on groups')], string='Visiblity', default='public')
+    visibility = fields.Selection([('public', 'Public'), ('private', 'Hide Channel'), ('group', 'Show channel but presentations based on groups')], string='Visiblity', default='public')
     group_ids = fields.Many2many('res.groups', 'rel_channel_groups', 'channel_id', 'group_id', string='Accessible Groups')
 
     @api.one
     def _compute_presentations(self):
         slide_obj = self.env['slide.slide']
-        domain = [('website_published','=',True), ('channel_id','=',self.id)]
+        domain = [('website_published', '=', True), ('channel_id', '=', self.id)]
         counts = slide_obj.read_group(domain, ['slide_type'], groupby=['slide_type'])
 
         countvals = {}
@@ -58,7 +56,7 @@ class Channel(models.Model):
         self.documents = countvals.get('document', 0)
         self.videos = countvals.get('video', 0)
         self.infographics = countvals.get('infographic', 0)
-        
+
         self.total = self.presentations + self.documents + self.videos + self.infographics
 
     def get_promoted_slide(self):
@@ -67,13 +65,13 @@ class Channel(models.Model):
         slide_obj = self.env['slide.slide']
         famous = None
         if self.promote == 'mostview':
-            domain = [('website_published', '=', True), ('channel_id','=',self.id)]
+            domain = [('website_published', '=', True), ('channel_id', '=', self.id)]
             famous = slide_obj.search(domain, limit=1, offset=0, order="total_views desc")
         elif self.promote == 'popular':
-            domain = [('website_published', '=', True), ('channel_id','=',self.id)]
+            domain = [('website_published', '=', True), ('channel_id', '=', self.id)]
             famous = slide_obj.search(domain, limit=1, offset=0, order="likes desc")
         elif self.promote == 'latest':
-            domain = [('website_published', '=', True), ('channel_id','=',self.id)]
+            domain = [('website_published', '=', True), ('channel_id', '=', self.id)]
             famous = slide_obj.search(domain, limit=1, offset=0, order="date_publish desc")
         elif self.promote == 'custom':
                 famous = self.slide_id
@@ -98,7 +96,7 @@ class Category(models.Model):
     @api.one
     def _compute_presentations(self):
         slide_obj = self.env['slide.slide']
-        domain = [('website_published','=',True), ('category_id','=',self.id)]
+        domain = [('website_published', '=', True), ('category_id', '=', self.id)]
         counts = slide_obj.read_group(domain, ['slide_type'], groupby='slide_type')
         countvals = {}
         for count in counts:
@@ -132,7 +130,7 @@ class EmbededView(models.Model):
         schema = urlparse(url)
 
         baseurl = schema.netloc
-        domain = [('name','=',baseurl), ('slide_id','=',int(slide_id))]
+        domain = [('name', '=', baseurl), ('slide_id', '=', int(slide_id))]
         count = self.search(domain, limit=1)
         if count:
             count.count_views += 1
@@ -169,9 +167,9 @@ class Slide(models.Model):
     category_id = fields.Many2one('slide.category', string="Category")
     tag_ids = fields.Many2many('slide.tag', 'rel_slide_tag', 'slide_id', 'tag_id', string='Tags')
     embedcount_ids = fields.One2many('slide.embed', 'slide_id', string="Embed Count")
-    
-    slide_type = fields.Selection([('infographic','Infographic'), ('presentation', 'Presentation'), ('document', 'Document'), ('video', 'Video')], string='Type', help="Document type will be set automatically depending on the height and width, however you can change it manually.")
-    
+
+    slide_type = fields.Selection([('infographic', 'Infographic'), ('presentation', 'Presentation'), ('document', 'Document'), ('video', 'Video')], string='Type', help="Document type will be set automatically depending on the height and width, however you can change it manually.")
+
     image = fields.Binary('Image')
     image_medium = fields.Binary('Medium')
     image_thumb = fields.Binary('Thumbnail')
@@ -189,7 +187,7 @@ class Slide(models.Model):
 
     likes = fields.Integer(string='Likes', default=0)
     dislikes = fields.Integer(string='Dislikes', default=0)
-    
+
     height = fields.Integer(string='Height', default=600)
     width = fields.Integer(string='Width', default=800)
 
@@ -198,16 +196,15 @@ class Slide(models.Model):
     youtube_views = fields.Integer(string='Number of Views on Embed', default=0)
     total_views = fields.Integer(compute='_compute_total', string="Total", store=True)
 
-
     @api.multi
-    @api.depends('slide_views',  'embed_views',  'youtube_views')
+    @api.depends('slide_views', 'embed_views', 'youtube_views')
     def _compute_total(self):
         for record in self:
             record.total_views = record.slide_views + record.embed_views + record.youtube_views
 
     @api.multi
     def get_related_slides(self, limit=20):
-        domain = [('website_published', '=', True), ('id','!=',self.id), ('category_id','=',self.category_id.id)]
+        domain = [('website_published', '=', True), ('id', '!=', self.id), ('category_id', '=', self.category_id.id)]
         related_ids = self.search(domain, limit=limit, offset=0)
         return related_ids
 
@@ -221,12 +218,12 @@ class Slide(models.Model):
     def check_constraint(self, values):
         '''called from website to check if already available or not'''
         if values.get('video_id'):
-            domain = [('channel_id','=',values['channel_id']), ('youtube_id','=',values['video_id'])]
+            domain = [('channel_id', '=', values['channel_id']), ('youtube_id', '=', values['video_id'])]
             slide = self.search(domain)
             if slide:
                 return "/slides/%s/%s/%s" % (slide.channel_id.id, slide.slide_type, slide.id)
         if values.get('file_name'):
-            domain = [('channel_id','=',values['channel_id']), ('name','=',values['file_name'])]
+            domain = [('channel_id', '=', values['channel_id']), ('name', '=', values['file_name'])]
             if self.search(domain):
                 return True
         return False
@@ -251,14 +248,14 @@ class Slide(models.Model):
         return embedcode
 
     def set_viewed(self):
-        #TODO: need to decide which one is better API or SQL
-        #self._cr.execute("""UPDATE ir_attachment SET slide_views = slide_views+1, total_views = total_views+1 WHERE id IN %s""", (self._ids,))
+        # TODO: need to decide which one is better API or SQL
+        # self._cr.execute("""UPDATE ir_attachment SET slide_views = slide_views+1, total_views = total_views+1 WHERE id IN %s""", (self._ids,))
         self.slide_views += 1
         return True
 
     def set_embed_viewed(self):
-        #TODO: need to decide which one is better API or SQL
-        #self._cr.execute("""UPDATE ir_attachment SET embed_views = embed_views+1, total_views = total_views+1 WHERE id IN %s""", (self._ids,))
+        # TODO: need to decide which one is better API or SQL
+        # self._cr.execute("""UPDATE ir_attachment SET embed_views = embed_views+1, total_views = total_views+1 WHERE id IN %s""", (self._ids,))
         self.embed_views += 1
         return True
 
@@ -274,15 +271,15 @@ class Slide(models.Model):
         base_url = self.env['ir.config_parameter'].get_param('web.base.url')
         template = self.env['email.template']
         image_url = "%s/website/image/slide.slide/%s/image" % (base_url, self.id)
-        
+
         msg_context = {
             'message': message or '%s has shared %s with you !' % (self.env.user.name, self.slide_type),
             'image_url': image_url,
-            'access_url':self.get_share_url(),
-            'base_url':base_url
+            'access_url': self.get_share_url(),
+            'base_url': base_url
         }
         msg_context.update(self._context)
-        
+
         message_body = template.with_context(msg_context).render_template(self.channel_id.template_id.body_html, 'slide.slide', self.id)
         return message_body
 
@@ -293,11 +290,10 @@ class Slide(models.Model):
 
         if self.env.user.email:
             result = mail.email_send(email_from=self.env.user.email, email_to=[email], subject=subject, body=body, reply_to=self.env.user.email, subtype="html")
-        
+
         return result
 
     def notify_published(self):
-        base_url = self.env['ir.config_parameter'].get_param('web.base.url')
         if not self.website_published:
             return False
 
@@ -307,13 +303,12 @@ class Slide(models.Model):
             self.channel_id.message_post(subject=self.name, body=body, subtype='website_slides.new_slides')
 
     def notify_request_to_approve(self):
-        base_url = self.env['ir.config_parameter'].get_param('web.base.url')
         message = "A new %s has been uploaded and waiting for publish on %s channel." % (self.slide_type, self.channel_id.name)
         body = self.get_mail_body(message=message)
         if self.channel_id:
             self.channel_id.message_post(subject=message, body=body, subtype='website_slides.new_slides_validation')
 
-    #TODO: check, may be useful to place this image in to website module
+    # TODO: check, may be useful to place this image in to website module
     def crop_image(self, data, type='top', ratio=False, thumbnail_ratio=None, image_format="PNG"):
         """ Used for cropping image and create thumbnail
             :param data: base64 data of image.
@@ -326,7 +321,7 @@ class Slide(models.Model):
                 e.g. thumbnail_ratio=2 will reduce your 500x500 image converted in to 250x250
             :param image_format: return image format PNG,JPEG etc
         """
-        
+
         image = Image.open(cStringIO.StringIO(data.decode('base64')))
         output = io.BytesIO()
         w, h = image.size
@@ -343,13 +338,13 @@ class Slide(models.Model):
 
         if type == "top":
             cropped_image = image.crop((0, 0, new_w, new_h))
-            cropped_image.save(output,format=image_format)
+            cropped_image.save(output, format=image_format)
         elif type == "center":
             cropped_image = image.crop(((w - new_w)/2, (h - new_h)/2, (w + new_w)/2, (h + new_h)/2))
-            cropped_image.save(output,format=image_format)
+            cropped_image.save(output, format=image_format)
         elif type == "bottom":
             cropped_image = image.crop((0, h - new_h, new_w, h))
-            cropped_image.save(output,format=image_format)
+            cropped_image.save(output, format=image_format)
         else:
             raise ValueError('ERROR: invalid value for crop_type')
         if thumbnail_ratio:
@@ -358,7 +353,6 @@ class Slide(models.Model):
             output = io.BytesIO()
             thumb_image.save(output, image_format)
         return output.getvalue().encode('base64')
-
 
     def _detect_type(self, values):
         slide_type = 'presentation'
@@ -392,7 +386,7 @@ class Slide(models.Model):
 
         if values.get('website_published'):
             self.notify_published()
-        
+
         return success
 
     @api.model
@@ -404,10 +398,10 @@ class Slide(models.Model):
             values["youtube_id"] = self.extract_youtube_id(values['url'].strip())
             vals = self.get_youtube_statistics(values['youtube_id'], part='snippet,statistics', fields='id,snippet,statistics')
             values.update(vals)
-        
+
         if values.get('wesite_upload'):
             del values['wesite_upload']
-        
+
         if values.get('mimetype'):
             del values['mimetype']
 
@@ -430,15 +424,13 @@ class Slide(models.Model):
         values['total_views'] = int(values.get('slide_views', 0)) + int(values.get('youtube_views', 0))
         slide_id = super(Slide, self).create(values)
 
-        #notify channel manager to approve uploaded slide
+        # notify channel manager to approve uploaded slide
         slide_id.notify_request_to_approve()
 
-        #notify all users who subscribed to channel
+        # notify all users who subscribed to channel
         slide_id.notify_published()
         return slide_id
 
-    #TODO: convert this to regural expression
-    #converted to regular expression (VIP)
     def extract_youtube_id(self, url):
         youtube_id = ""
         regex_y = r'.*(?:v=|/v/|^|/youtu.be/|/embed/)(?P<id>[^&]*)'
@@ -457,7 +449,7 @@ class Slide(models.Model):
             content = urllib2.urlopen(req).read()
             values = json.loads(content)
             vals = self.parse_youtube_statistics(values)
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError:
             pass
         return vals
 

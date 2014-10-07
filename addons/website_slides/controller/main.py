@@ -17,7 +17,7 @@ class main(http.Controller):
     @http.route('/slides/editmessage/<model("slide.channel"):channel>', type='http', auth="user", website=True)
     def edit_error_message(self, channel):
         values = {
-            'channel':channel
+            'channel': channel
         }
         return request.website.render('website_slides.privatedit', values)
 
@@ -25,17 +25,17 @@ class main(http.Controller):
     def index(self, *args, **post):
         '''
         return list of channels if more then one channel is available
-        else redirect to slides of first channel 
+        else redirect to slides of first channel
         '''
         channel_obj = request.env['slide.channel']
         user = request.env.user
         domain = []
 
         if user.id == request.website.user_id.id:
-            domain += [('website_published','=', True), ('visibility','!=','private')]
+            domain += [('website_published', '=', True), ('visibility', '!=', 'private')]
 
         if user.id not in (request.website.user_id.id, SUPERUSER_ID):
-            domain += [('website_published','=', True)]
+            domain += [('website_published', '=', True)]
 
         channels = channel_obj.search(domain, order='sequence')
 
@@ -69,7 +69,7 @@ class main(http.Controller):
         slide_obj = request.env['slide.slide']
         category_obj = request.env['slide.category']
 
-        domain = [('channel_id','=',channel.id)]
+        domain = [('channel_id', '=', channel.id)]
 
         slides = []
         famous = None
@@ -81,7 +81,7 @@ class main(http.Controller):
             domain += [('tag_ids.name', '=', tags)]
 
         values = {
-            'tags':tags,
+            'tags': tags,
             'channel': channel,
             'user': user,
             'is_public_user': user.id == request.website.user_id.id
@@ -138,17 +138,17 @@ class main(http.Controller):
         })
 
         if not types and not category:
-            category_ids = category_obj.search([('channel_id','=',channel.id)])
+            category_ids = category_obj.search([('channel_id', '=', channel.id)])
             category_datas = {}
             for category_id in category_ids:
                 result = category_id.get_slides_by_category(domain, 4, order)
                 category_datas.update({
-                    category_id.name:result
+                    category_id.name: result
                 })
 
             values.update({
-                'category_datas':category_datas,
-                'category_ids':category_ids,
+                'category_datas': category_datas,
+                'category_ids': category_ids,
             })
 
         return request.website.render('website_slides.home', values)
@@ -161,17 +161,17 @@ class main(http.Controller):
         comments = slide.website_message_ids
 
         values = {
-            'most_viewed_ids':most_viewed_ids,
+            'most_viewed_ids': most_viewed_ids,
             'relatedslides': related_ids,
             'channel': slide.channel_id,
-            'user':user,
-            'types':types,
+            'user': user,
+            'types': types,
             'is_public_user': user.id == request.website.user_id.id,
             'is_super_user': user.id == user.sudo().id,
-            'private':True,
-            'slide_id':slide.id,
-            'type':slide.slide_type,
-            'slidename':slide.name
+            'private': True,
+            'slide_id': slide.id,
+            'type': slide.slide_type,
+            'slidename': slide.name
         }
 
         if slide.channel_id.visibility in ('private', 'group') and user.id != SUPERUSER_ID:
@@ -186,9 +186,9 @@ class main(http.Controller):
 
         if access:
             values.update({
-                'slide':slide,
+                'slide': slide,
                 'comments': comments,
-                'private':False
+                'private': False
             })
 
         return values
@@ -202,7 +202,6 @@ class main(http.Controller):
         slide.sudo().set_viewed()
         return request.website.render('website_slides.slide_view', values)
 
-
     @http.route('/slides/content/<model("slide.slide"):slide>', type='http', auth="public", website=True)
     def slide_view_content(self, slide):
         response = werkzeug.wrappers.Response()
@@ -215,16 +214,13 @@ class main(http.Controller):
     def slides_embed_count(self, slide, url):
         request.env['slide.embed'].sudo().set_count(slide, url)
 
-
     @http.route('/slides/comment/<model("slide.slide"):slide>', type='http', auth="public", methods=['POST'], website=True)
     def slides_comment(self, slide, **post):
-        slide_obj = request.env['slide.slide']
         partner_obj = request.env['res.partner']
         partner_ids = False
-        message_id = False
 
-        #TODO: make website_published False by default and write an method to send email with random back link, 
-        #which will post all comments posted with that email address
+        # TODO: make website_published False by default and write an method to send email with random back link,
+        # which will post all comments posted with that email address
         website_published = False
 
         if post.get('comment'):
@@ -232,20 +228,20 @@ class main(http.Controller):
                 partner_ids = [request.env.user.partner_id]
                 website_published = True
             else:
-                partner_ids = partner_obj.sudo().search([('email','=',post.get('email'))])
+                partner_ids = partner_obj.sudo().search([('email', '=', post.get('email'))])
                 if not partner_ids or not partner_ids[0]:
                     partner_ids = [partner_obj.sudo().create({
-                        'name': post.get('name'), 
+                        'name': post.get('name'),
                         'email': post.get('email')
                     })]
 
             if partner_ids:
-                message_id = slide.sudo().with_context(mail_create_nosubcribe=True).message_post(
+                slide.sudo().with_context(mail_create_nosubcribe=True).message_post(
                     body=post.get('comment'),
                     type='comment',
                     subtype='mt_comment',
                     author_id=partner_ids[0].id,
-                    website_published = website_published
+                    website_published=website_published
                 )
 
         return werkzeug.utils.redirect(request.httprequest.referrer + "#discuss")
@@ -273,9 +269,9 @@ class main(http.Controller):
         tag_obj = request.env['slide.tag']
         slide_obj = request.env['slide.slide']
 
-        if slide_obj.search([('name','=',post['name']),('channel_id','=',post['channel_id'])]):
+        if slide_obj.search([('name', '=', post['name']), ('channel_id', '=', post['channel_id'])]):
             return {
-                'error':_('This title already exists in the channel, rename and try again.')
+                'error': _('This title already exists in the channel, rename and try again.')
             }
 
         tags = post.get('tag_ids')
@@ -305,9 +301,9 @@ class main(http.Controller):
         vals = []
         for suggest in suggested_ids:
             val = {
-                'img_src':'/website/image/slide.slide/%s/image_thumb' % (suggest.id),
-                'caption':suggest.name,
-                'url':suggest.get_share_url()
+                'img_src': '/website/image/slide.slide/%s/image_thumb' % (suggest.id),
+                'caption': suggest.name,
+                'url': suggest.get_share_url()
             }
             vals.append(val)
 
@@ -319,7 +315,7 @@ class main(http.Controller):
         slide.sudo().set_embed_viewed()
 
         values.update({
-            'page':page,
+            'page': page,
         })
         return request.website.render('website_slides.pdfembed', values)
 
@@ -332,7 +328,7 @@ class main(http.Controller):
     @http.route('/slides/get_category/<model("slide.channel"):channel>', type='json', auth="public", website=True)
     def get_category(self, channel):
         category_obj = request.env['slide.category']
-        categories = category_obj.name_search(name='', args=[('channel_id','=',channel.id)], operator='ilike', limit=100)
+        categories = category_obj.name_search(name='', args=[('channel_id', '=', channel.id)], operator='ilike', limit=100)
         res = []
         for category in categories:
             res.append({
@@ -347,7 +343,7 @@ class main(http.Controller):
     def search(self, channel=0, query=False, page=1, order=False):
         slide_obj = request.env['slide.slide']
 
-        domain = [('channel_id','=',channel.id)]
+        domain = [('channel_id', '=', channel.id)]
 
         if request.env.user.id == request.website.user_id.id:
             domain += [('website_published', '=', True)]

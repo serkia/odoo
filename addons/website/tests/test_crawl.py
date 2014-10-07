@@ -28,8 +28,6 @@ class Crawler(openerp.tests.HttpCase):
         else:
             seen.add(url)
 
-        url = werkzeug.urls.url_fix(url, charset='utf-8')
-
         _logger.info("%s %s", msg, url)
         r = self.url_open(url)
         code = r.getcode()
@@ -41,11 +39,15 @@ class Crawler(openerp.tests.HttpCase):
                 href = link.get('href')
 
                 parts = urlparse.urlsplit(href)
+
+                # encode url, fixing lame server errors for e.g, like space within url paths.
+                path = werkzeug.urls.url_fix(parts.path, charset='utf-8')
+
                 # href with any fragment removed
                 href = urlparse.urlunsplit((
                     parts.scheme,
                     parts.netloc,
-                    parts.path,
+                    path,
                     parts.query,
                     ''
                 ))

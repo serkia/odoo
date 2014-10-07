@@ -30,5 +30,5 @@ You can upload presentations, videos, documents and infographic and moderate and
         'data/website_slides_demo.xml'
     ],
     'installable': True,
-    'auto_install': False,   
+    'auto_install': False,
 }
