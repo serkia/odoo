@@ -107,7 +107,7 @@
             'click .oe_planner div[id^="planner_page"] a[href^="#planner_page"]': 'next_page',
             'click  li a[data-parent^="#planner_page"]': 'onclick_menu',
             'click .oe_planner div[id^="planner_page"] button[data-progress^="planner_page"]': 'mark_as_done',
-            'click .oe_planner .print_planner_report': 'print_planner_report',
+            //'click .oe_planner .print_planner_report': 'print_planner_report',
         },
 
         onclick_menu: function(ev) {
@@ -131,6 +131,7 @@
                 this.$el.find("li a[data-parent^='#planner_page'][href="+next_page_id+"]").parent().addClass('active');
             }
         },
+        /*
         print_planner_report: function(ev) {
             var self = this;
             var newWindow = window.open();
@@ -148,7 +149,7 @@
             var report = QWeb.render('PlannerReport', {'widget': this, 'content': html});
             newWindow.document.write(report);
             newWindow.document.close();
-        },
+        },*/
 
         /**
             this method is called when user click on 'mark as done' button.

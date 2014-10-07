@@ -16,7 +16,8 @@
     <t t-name="PlannerFooter">
         <div class="planner_footer col-sm-8 col-md-9 col-xs-12 hidden-print">
             <span class="shadow" />
-            <div class="col-xs-5 text-left mark-block">
+
+            <div class="col-xs-6 text-left mark-block">
                 <t t-if="!start and !end">
                     <button t-attf-id='input_element_btn_#{current_page_id}' 
                         t-attf-data-progress='#{current_page_id}'
@@ -27,7 +28,7 @@
             <div class="col-xs-6 next-block">
                 <t t-if="!end">
                     <a data-toggle='collapse'
-                        t-attf-class="pull-left btn btn-#{start and 'primary' or 'default'} btn-next"
+                        t-attf-class="pull-right btn btn-#{start and 'primary' or 'default'} btn-next"
                         t-attf-data-parent='#{current_page_id}' 
                         t-attf-href='##{next_page_id}'>Next step<i class="fa fa-angle-right"></i>
                     </a>
@@ -48,12 +49,15 @@
                             
                             <div class="content"> 
                                 
-                                <div class="col-sm-12 col-xs-4 progress_container">
+                                <div class="col-sm-12 col-xs-7 progress_container">
+
                                     <div class="col-sm-4 col-md-3 col-xs-12 progress_col">
-                                        <div class="progress col-xs-9 col-sm-10">
+
+                                        <i class="fa fa-question-circle col-xs-1"></i>
+                                        <div class="progress col-xs-9">
                                             <div class="progress-bar" t-attf-style="width :50%;"></div>
                                         </div>
-                                        <span class="counter col-xs-2"></span>
+                                        <span class="counter col-xs-1"></span>
                                     </div>
                                 </div> 
                                         

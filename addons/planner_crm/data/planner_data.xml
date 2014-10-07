@@ -11,7 +11,7 @@
   </script>
 
   <!--Mobile Planner Menu-->
-  <div class="visible-xs-block col-xs-6">
+  <div class="visible-xs-block col-xs-4">
     <div class="dropdown mobile">
       <a class="col-xs-12 btn btn-default" data-toggle="dropdown" href="#">Steps&#32;&#32;<span class="caret"></span></a>
       <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
@@ -217,7 +217,7 @@
 
               <div class="row fabien">
                   <div class="col-xs-12">
-                      <img class="item" src="/planner_crm/static/src/img/fabien_pinckaers.jpeg" />
+                      <img class="item" src="/planner_crm/static/src/img/fabien_pinckaers.jpg" />
                       <div class="item">
                           <img class="signature" src="/planner_crm/static/src/img/fabien_signature.png" />
                           <address>
@@ -886,25 +886,19 @@
           </div>
 
           <div id="planner_page11" class="panel-collapse collapse hidden-print">
-              <h1 class="mb1">Your users</h1>
+              <h1 class="mb2">Your users</h1>
               <h4 class="mb1 text-muted text-center">You're almost finished !</h4>
 
               <section class="container-fluid">
 
-              <div class="col-md-4 col-xs-12 text-center">
+              <div class="col-md-4 col-md-offset-2 col-xs-12 text-center">
                   <div class="panel">
                       <div class="panel-heading">
-                          <a t-att-href="prepare_backend_url('base.action_res_users')" target="_blank"><i class="fa-2x" data-icon="&#xe002;"></i><br/>Create your users here</a>
+                          <a t-att-href="prepare_backend_url('base.action_res_users')" target="_blank"><i class="fa-2x" data-icon="&#xe001;"></i><br/>Create your users here</a>
                       </div>
                   </div>
               </div>
-              <div class="col-md-4 col-xs-12 text-center">
-                  <div class="panel">
-                      <div class="panel-heading">
-                          <a href="#" class="print_planner_report"><i class="fa-2x" data-icon="&#xe02e;"></i><br/>Print your work
-                       on this module and show it to your users</a></div>
-                  </div>
-              </div>
+
               <div class="col-md-4 col-xs-12 text-center">
                   <div class="panel">
                       <div class="panel-heading">
@@ -1193,8 +1187,7 @@
             <field name="progress">0</field>
             <field name="planner_application">planner_crm</field>
             <field name="tooltip_planner"><![CDATA[
-                Plan your sales strategy using our 
-                CRM solution: objectives, leads, KPIs, and much more !
+                Plan your sales strategy: objectives, leads, KPIs, and much more !
                 ]]>
             </field>
         </record>
