@@ -178,13 +178,20 @@ class WebsiteForum(http.Controller):
         question_tag_ids = []
         if post.get('question_tags').strip('[]'):
             tag_names = post.get('question_tags').strip('[]').replace('"', '').split(",")
-            tag_names = list(set([ ma.remove_accents(tag).lower() for tag in tag_names ]))
+            tag_ids = Tag.search(cr, uid, [])
+            tags = Tag.browse(cr, uid, tag_ids, context=context)
+            temp_tag_names = map(lambda tagname : (ma.remove_accents(tagname)).lower(), tag_names)
+            for tag in reversed(tag_names):
+                unaccent_tag = ma.remove_accents(tag).lower()
+                if unaccent_tag in temp_tag_names and temp_tag_names.count(unaccent_tag) > 1:
+                    tag_names.remove(tag)
+                    temp_tag_names.remove(unaccent_tag)
             tag_ids = Tag.search(cr, uid, [])
             tags = Tag.browse(cr, uid, tag_ids, context=context)
             for tag_name in tag_names:
-                tag = Tag._find_unique_name(tags, tag_name)
+                tag = [tag for tag in tags if ma.remove_accents(tag.name).lower() == ma.remove_accents(tag_name).lower() ]
                 if tag:
-                    question_tag_ids.append((4, tag.id))
+                    question_tag_ids.append((4, tag[0].id))
                 else:
                     question_tag_ids.append((0, 0, {'name': tag_name, 'forum_id': forum.id}))
         new_question_id = request.registry['forum.post'].create(
@@ -347,21 +354,28 @@ class WebsiteForum(http.Controller):
     @http.route('/forum/<model("forum.forum"):forum>/post/<model("forum.post"):post>/save', type='http', auth="user", methods=['POST'], website=True)
     def post_save(self, forum, post, **kwargs):
         cr, uid, context = request.cr, request.uid, request.context
-        question_tags = []
+        question_tag_ids = []
         if kwargs.get('question_tag') and kwargs.get('question_tag').strip('[]'):
             Tag = request.registry['forum.tag']
             tag_names = kwargs.get('question_tag').strip('[]').replace('"', '').split(",")
-            tag_names = list(set([ ma.remove_accents(tag).lower() for tag in tag_names ]))
+            tag_ids = Tag.search(cr, uid, [])
+            tags = Tag.browse(cr, uid, tag_ids, context=context)
+            temp_tag_names = map(lambda tagname : (ma.remove_accents(tagname)).lower(), tag_names)
+            for tag in reversed(tag_names):
+                unaccent_tag = ma.remove_accents(tag).lower()
+                if unaccent_tag in temp_tag_names and temp_tag_names.count(unaccent_tag) > 1:
+                    tag_names.remove(tag)
+                    temp_tag_names.remove(unaccent_tag)
             tag_ids = Tag.search(cr, uid, [])
             tags = Tag.browse(cr, uid, tag_ids, context=context)
             for tag_name in tag_names:
-                tag = Tag._find_unique_name(tags, tag_name)
+                tag = [tag for tag in tags if ma.remove_accents(tag.name).lower() == ma.remove_accents(tag_name).lower() ]
                 if tag:
-                    question_tags.append(tag.id)
+                    question_tag_ids.append((4, tag[0].id))
                 else:
-                    question_tags.append((0, 0, {'name': tag_name, 'forum_id': forum.id}))
+                    question_tag_ids.append((0, 0, {'name': tag_name, 'forum_id': forum.id}))
         vals = {
-            'tag_ids': question_tags,
+            'tag_ids': question_tag_ids,
             'name': kwargs.get('question_name'),
             'content': kwargs.get('content'),
         }
