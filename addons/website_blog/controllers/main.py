@@ -59,6 +59,9 @@ class WebsiteBlog(http.Controller):
             group['date_end'] = '%s' % datetime.date.strftime(end_date, tools.DEFAULT_SERVER_DATE_FORMAT)
         return groups
 
+    def has_author_avatar(self, author_id):
+        return bool(request.registry['res.partner'].browse(request.cr, SUPERUSER_ID, author_id).image)
+
     @http.route([
         '/blog',
         '/blog/page/<int:page>',
@@ -150,6 +153,7 @@ class WebsiteBlog(http.Controller):
             'blog_url': blog_url,
             'post_url': post_url,
             'date': date_begin,
+            'has_author_avatar': self.has_author_avatar,
         }
         response = request.website.render("website_blog.blog_post_short", values)
         return response
@@ -227,6 +231,7 @@ class WebsiteBlog(http.Controller):
             'blog_url': blog_url,
             'pager': pager,
             'comments': comments,
+            'has_author_avatar': self.has_author_avatar,
         }
         response = request.website.render("website_blog.blog_post_complete", values)
         response.set_cookie('visited_blogs', ','.join(map(str, visited_ids)))
@@ -305,8 +310,8 @@ class WebsiteBlog(http.Controller):
         create_context = dict(context, mail_create_nosubscribe=True)
         new_blog_post_id = request.registry['blog.post'].create(cr, uid, {
             'blog_id': blog_id,
-            'name': _("Blog Post Title"),
-            'subtitle': _("Subtitle"),
+            'name': _(""),
+            'subtitle': _(""),
             'content': '',
             'website_published': False,
         }, context=create_context)
@@ -350,11 +355,14 @@ class WebsiteBlog(http.Controller):
             ret.append({"path": path, "val": result})
         return ret
 
-    @http.route('/blogpost/change_background', type='json', auth="public", website=True)
-    def change_bg(self, post_id=0, image=None, **post):
+    @http.route([
+        '/blogpost/change_background',
+        '/blogpost/change_cover',
+    ], type='json', auth="public", website=True)
+    def change_cover(self, post_id=0, cover_properties={}, **post):
         if not post_id:
             return False
-        return request.registry['blog.post'].write(request.cr, request.uid, [int(post_id)], {'background_image': image}, request.context)
+        return request.registry['blog.post'].write(request.cr, request.uid, [int(post_id)], {'cover_properties':cover_properties}, request.context)
 
     @http.route('/blog/get_user/', type='json', auth="public", website=True)
     def get_user(self, **post):

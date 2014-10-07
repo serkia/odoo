@@ -2,6 +2,7 @@
 
 from datetime import datetime
 import difflib
+import json
 import lxml
 import random
 
@@ -46,11 +47,19 @@ class BlogPost(osv.Model):
             res[blog_post.id] = blog_post.visits * (0.5+random.random()) / max(3, age.days)
         return res
 
+    def _get_cover_properties(self, cr, uid, ids, name, arg, context=None):
+        res = {}
+        for blog_post in self.browse(cr, uid, ids, context=context):
+            jsonified_data = json.loads(blog_post.cover_properties)
+            res[blog_post.id] = jsonified_data
+        return res
+
     _columns = {
         'name': fields.char('Title', required=True, translate=True),
         'subtitle': fields.char('Sub Title', translate=True),
         'author_id': fields.many2one('res.partner', 'Author'),
-        'background_image': fields.binary('Background Image', oldname='content_image'),
+        'cover_properties':fields.text('Cover Properties'),
+        'cover_properties_json': fields.function(_get_cover_properties, string='Cover Properties JSON',type="html"),
         'blog_id': fields.many2one(
             'blog.blog', 'Blog',
             required=True, ondelete='cascade',
@@ -95,6 +104,7 @@ class BlogPost(osv.Model):
     _defaults = {
         'name': _('Blog Post Title'),
         'subtitle': _('Subtitle'),
+        'cover_properties': '{"background-image": "none", "background-color": "none", "opacity": "1.0", "resize_class": "cover cover_full"}',
         'author_id': lambda self, cr, uid, ctx=None: self.pool['res.users'].browse(cr, uid, uid, context=ctx).partner_id.id,
     }
 
