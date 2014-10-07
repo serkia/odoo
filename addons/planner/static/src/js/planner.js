@@ -107,7 +107,6 @@
             'click .oe_planner div[id^="planner_page"] a[href^="#planner_page"]': 'next_page',
             'click  li a[data-parent^="#planner_page"]': 'onclick_menu',
             'click .oe_planner div[id^="planner_page"] button[data-progress^="planner_page"]': 'mark_as_done',
-            //'click .oe_planner .print_planner_report': 'print_planner_report',
         },
 
         onclick_menu: function(ev) {
@@ -131,32 +130,7 @@
                 this.$el.find("li a[data-parent^='#planner_page'][href="+next_page_id+"]").parent().addClass('active');
             }
         },
-        /*
-        print_planner_report: function(ev) {
-            var self = this;
-            var newWindow = window.open();
-            var pages = self.$el.find(".oe_planner div[id^='planner_page']:not(.hidden-print)").clone();
-            $(pages).find('.hidden-print').remove();//remove element which we do not want to show during print
-            var html = '';
-            //append header to each page
-            var header =  ($('<div>').append($('.oe_planner .oe_report_header').clone().addClass('show')));
-            _.each(pages, function(el) {
-                html += $('<div>').append($(el).prepend(header).removeClass('panel-collapse collapse').addClass('oe_planner_page').clone()).html();
-            });
 
-             html += $('<style>* {color: red;}</style>');
-
-            var report = QWeb.render('PlannerReport', {'widget': this, 'content': html});
-            newWindow.document.write(report);
-            newWindow.document.close();
-        },*/
-
-        /**
-            this method is called when user click on 'mark as done' button.
-            this method call 'update_input_value' method to update the value of all input elements of
-            current page and then call 'update_planner_data' method to store value of all input elements of
-            current page
-        */
         mark_as_done: function(ev) {
             var self = this;
             var btn = $(ev.target).is("span") ? $(ev.target).parent() : $(ev.target);

@@ -26,11 +26,3 @@
   width: 100%;
 }
 
-@media print {
-  .oe_planner_page {
-    page-break-after: always;
-  }
-  .oe_planner_page a[href]:after {
-    content: none !important;
-  }
-}

@@ -1,8 +1,6 @@
 (function(){
     "use strict";
 
-    openerp.qweb.add_template('/planner_crm/static/src/xml/planner_crm.xml');
-
     var stages = {
         'solution_selling': [
             'Territory', 'Qualified', 'Qualified Sponsor',
