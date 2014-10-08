@@ -866,8 +866,8 @@
                             <div class="row" style="padding-top:15px;">
                                 <div class="col-lg-8 col-md-8 col-sm-4 col-xs-4 text-left">
                                     <p class="oe-slides-text-truncation">
-                                        <a class="slide-cursor" target="_new" t-att-href="slideview.get_share_url()">
-                                            <b t-esc="slideview.name" t-attf-title="#{slideview.name}"/>
+                                        <a class="slide-cursor" target="_new" t-att-href="slide.get_share_url()">
+                                            <b t-esc="slide.name" t-attf-title="#{slide.name}"/>
                                         </a>
                                     </p>
                                 </div>
@@ -881,8 +881,8 @@
                                     <b class="toggle-slide-option slide-cursor slide-color" data-slide-option-id="#slide_embed"><i class="fa fa-code"></i> Embed</b>
                                 </div>
                                 <div class="col-lg-1 col-md-1 col-sm-2 col-xs-2 text-right">
-                                    <a id="like" class="slide-like slide-cursor slide-color" data-count-el='.count-likes' t-att-user-id="user.id" t-att-attachment-id="slideview.id" t-attf-data-href="/slides/#{slug(channel)}/view/#{slug(slideview)}/like">
-                                        <i class="fa fa-thumbs-up"></i> <span class="count-likes"><t t-esc="slideview.likes"/></span> Like
+                                    <a id="like" class="slide-like slide-cursor slide-color" data-count-el='.count-likes' t-att-user-id="user.id" t-att-attachment-id="slide.id" t-attf-data-href="/slides/#{slug(channel)}/view/#{slug(slide)}/like">
+                                        <i class="fa fa-thumbs-up"></i> <span class="count-likes"><t t-esc="slide.likes"/></span> Like
                                     </a>
                                 </div>
                             </div>
@@ -891,28 +891,18 @@
                     <!-- pdf container -->
                     <div id="pdf_container" style="position:relative;">
                         <div id="slide_share" class="slide-option-toggle">
-                            <t t-call="website_slides.socialshare">
-                                <t t-set="slide" t-value="slideview"/>
-                            </t>
-                            <t t-call="website_slides.sendemail">
-                                <t t-set="slide" t-value="slideview"/>
-                            </t>
-                            <t t-call="website_slides.embed">
-                                <t t-set="slide" t-value="slideview"/>
-                            </t>
+                            <t t-call="website_slides.socialshare"/>
+                            <t t-call="website_slides.sendemail"/>
+                            <t t-call="website_slides.embed"/>
                         </div>
                         <div id="slide_email" class="slide-option-toggle">
-                            <t t-call="website_slides.sendemail">
-                                <t t-set="slide" t-value="slideview"/>
-                            </t>
+                            <t t-call="website_slides.sendemail"/>
                         </div>
                         <div id="slide_embed" class="slide-option-toggle">
-                            <t t-call="website_slides.embed">
-                                <t t-set="slide" t-value="slideview"/>
-                            </t>
+                            <t t-call="website_slides.embed"/>
                         </div>
                         <div id="slide_suggest" class="slide-option-toggle" style="padding:0px 0px 0px 0px;">
-                            <t t-foreach="related_ids" t-as="slide">
+                            <t t-foreach="relatedslides" t-as="slide">
                                 <div class="col-lg-3 col-md-4 col-sm-4 col-xs-4 slide-pl0 slide-pr0 slide_suggest_detail" t-attf-data-slide-suggest-detail-id="#slide_suggest_detail_#{slide.id}">
                                     <a t-att-href="slide.get_share_url()" target="_new">
                                         <img class="img-responsive" t-attf-src="/website/image/slide.slide/#{slide.id}/image_thumb" alt="slide.name"/>
@@ -923,19 +913,19 @@
                                 </div>
                             </t>
                         </div>
-                        <t t-if="slideview.slide_type in ('presentation', 'document')">
+                        <t t-if="slide.slide_type in ('presentation', 'document')">
                             <div id="slide_loader" class="slide-option-toggle">
                                 <span style="text-center"><i class="fa fa-spinner fa-spin fa-2x"></i>Loading ...</span>
                             </div>
-                            <img id="slide_init_image" t-attf-src="/website/image/slide.slide/#{slideview.id}/image_medium" class="img-responsive" style="margin:auto;height:100%"/>
+                            <img id="slide_init_image" t-attf-src="/website/image/slide.slide/#{slide.id}/image_medium" class="img-responsive" style="margin:auto;height:100%"/>
                             <canvas id="pdfcanvas" class="img-responsive" style="margin:auto;height:100%;display:none;"></canvas>
                         </t>
-                        <t t-if="slideview.slide_type in ('infographic')">
-                            <img t-attf-src="/website/image/slide.slide/#{slideview.id}/datas" class="img-responsive" style="width:100%"/>
+                        <t t-if="slide.slide_type in ('infographic')">
+                            <img t-attf-src="/website/image/slide.slide/#{slide.id}/datas" class="img-responsive" style="width:100%"/>
                         </t>
                     </div>
                     <!-- Fixed bottom navbar -->
-                    <div class="navbar navbar-default navbar-fixed-bottom" role="navigation" t-if="slideview.slide_type in ('presentation', 'document')">
+                    <div class="navbar navbar-default navbar-fixed-bottom" role="navigation" t-if="slide.slide_type in ('presentation', 'document')">
                         <div class="container-fluid">
                             <div class="row" style="padding-top:15px;">
                                 <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2 text-left">
@@ -963,9 +953,9 @@
                             </div>
                         </div>
                     </div>
-                    <input type="hidden" id="pdf_file" t-att-value="slideview.url"/>
+                    <input type="hidden" id="pdf_file" t-attf-value="/slides/content/#{slide.id}"/>
                     <input type="hidden" id="pdf_page" t-att-value="page"/>
-                    <input type="hidden" id="pdf_id" t-att-value="slideview.id"/>
+                    <input type="hidden" id="pdf_id" t-att-value="slide.id"/>
                  <!-- End of body -->
                 </body>
             </html>

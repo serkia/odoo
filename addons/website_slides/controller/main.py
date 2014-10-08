@@ -315,7 +315,7 @@ class main(http.Controller):
 
     @http.route('/slides/embed/<model("slide.slide"):slide>', type='http', auth='public', website=True)
     def slides_embed(self, slide, page="1"):
-        values = self.getslide(channel=False, slideview=slide, types=False, sorting=False, search=False, tags=False)
+        values = self.getslide(channel=False, slide=slide, types=False, sorting=False, search=False, tags=False)
         slide.sudo().set_embed_viewed()
 
         values.update({
