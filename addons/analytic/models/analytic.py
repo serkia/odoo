@@ -182,6 +182,7 @@ class account_analytic_account(osv.osv):
                                   "The special type 'Template of Contract' allows you to define a template with default data that you can reuse easily."),
         'template_id': fields.many2one('account.analytic.account', 'Template of Contract'),
         'description': fields.text('Description'),
+        'warning_message': fields.text(string='Warning Message'),
         'parent_id': fields.many2one('account.analytic.account', 'Parent Analytic Account', select=2),
         'child_ids': fields.one2many('account.analytic.account', 'parent_id', 'Child Accounts'),
         'child_complete_ids': fields.function(_child_compute, relation='account.analytic.account', string="Account Hierarchy", type='many2many'),
