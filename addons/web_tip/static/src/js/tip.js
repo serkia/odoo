@@ -45,7 +45,6 @@
 
             instance.web.bus.on('form_view_saved', this, function(formView) {
                 self.on_form_view(formView);
-                debugger;
             });
         },
 
@@ -92,7 +91,6 @@
             var type = formView.datarecord.type ? formView.datarecord.type : null;
             var mode = 'form';
             formView.on('view_content_has_changed', self, function() {
-                debugger;
                 self.eval_tip(null, model, mode, type);
             });
             if ($('.oe_chatter').length > 0) {
@@ -154,7 +152,6 @@
         },
 
         do_tip: function (tip) {
-            debugger;
             var self = this;
             var def = $.Deferred();
             var Tips = new instance.web.Model('web.tip');

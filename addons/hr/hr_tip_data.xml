@@ -14,7 +14,15 @@
             <field name="placement">bottom</field>
         </record>
 
-
+        <record model="web.tip" id="hr_tip_2">
+            <field name="title"></field>
+            <field name="description">This is where you navigate through your process. Click here to go back to where you came from.</field>
+            <field name="model">hr.applicant</field>
+            <field name="mode">form</field>
+            <field name="trigger_selector">.oe_breadcrumb_title:visible</field>
+            <field name="highlight_selector">.oe_breadcrumb_title > a:nth-child(3)</field>
+            <field name="placement">bottom</field>
+        </record>
 
     </data>
 </openerp>
