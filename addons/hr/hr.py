@@ -134,7 +134,7 @@ class hr_job(osv.Model):
 
     _sql_constraints = [
         ('name_company_uniq', 'unique(name, company_id, department_id)', 'The name of the job position must be unique per department in company!'),
-        ('hired_employee_check', "CHECK ( no_of_hired_employee <= no_of_recruitment )", "Number of hired employee must be less than expected number of employee in recruitment."),
+        
     ]
 
     def set_recruit(self, cr, uid, ids, context=None):
