@@ -22,6 +22,7 @@
                 <page string="Point of Sale">
                     <group>
                         <field name="pos_config" />
+                        <field name="pos_security_pin" />
                         <field name="ean13" />
                         <button name="%(action_edit_ean)d" type="action" string="Set a Custom EAN" class="oe_edit_only" />
                     </group>
