@@ -18,7 +18,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-
+from openerp.addons.website_blog.tests import test_wbsite_blog_flow
 import test_ui
 
+checks = [
+    test_wbsite_blog_flow,
+]
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

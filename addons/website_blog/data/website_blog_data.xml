@@ -47,8 +47,11 @@
             <field name="name">New Post</field>
             <field name="res_model">blog.blog</field>
             <field name="default" eval="True"/>
-            <field name="parent_id" eval="ref('mt_blog_post_new')"/>
-            <field name="relation_field">blog_id</field>
+        </record>
+        <record id="mt_blog_blog_published_post" model="mail.message.subtype">
+            <field name="name">Published Post</field>
+            <field name="res_model">blog.blog</field>
+            <field name="default" eval="True"/>
         </record>
 
 

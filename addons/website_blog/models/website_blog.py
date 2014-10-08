@@ -7,6 +7,7 @@ import random
 
 from openerp import tools
 from openerp import SUPERUSER_ID
+from openerp.addons.website.models.website import slug
 from openerp.osv import osv, fields
 from openerp.tools.translate import _
 
@@ -167,6 +168,15 @@ class BlogPost(osv.Model):
                 }
                 history.create(cr, uid, res)
 
+    def _check_website_published(self, cr, uid, ids, vals, context=None):
+        if context is None:
+            context = {}
+        create_context = dict(context, mail_notify_force_send=False)
+        if vals.get('website_published'):
+            base_url = self.pool['ir.config_parameter'].get_param(cr, uid, 'web.base.url')
+            for post in self.browse(cr, uid, ids, context=create_context):
+                post.blog_id.message_post(body=_('Post <b>%s</b> Published Of <b>%s</b> Blog. <a href="%s/blog/%s/post/%s">Click here to access the post.</a></p>') % (post.name, post.blog_id.name, base_url, slug(post.blog_id), slug(post)), subtype='website_blog.mt_blog_blog_published_post', context=create_context)
+        return True
     def create(self, cr, uid, vals, context=None):
         if context is None:
             context = {}
@@ -175,6 +185,7 @@ class BlogPost(osv.Model):
         create_context = dict(context, mail_create_nolog=True)
         post_id = super(BlogPost, self).create(cr, uid, vals, context=create_context)
         self.create_history(cr, uid, [post_id], vals, context)
+        self._check_website_published(cr, uid, [post_id], vals, context=context)
         return post_id
 
     def write(self, cr, uid, ids, vals, context=None):
@@ -182,6 +193,7 @@ class BlogPost(osv.Model):
             vals['content'] = self._postproces_content(cr, uid, None, vals['content'], context=context)
         result = super(BlogPost, self).write(cr, uid, ids, vals, context)
         self.create_history(cr, uid, ids, vals, context)
+        self._check_website_published(cr, uid, ids, vals, context=context)
         return result
 
 class BlogPostHistory(osv.Model):

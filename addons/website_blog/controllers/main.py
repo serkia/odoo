@@ -303,12 +303,14 @@ class WebsiteBlog(http.Controller):
     def blog_post_create(self, blog_id, **post):
         cr, uid, context = request.cr, request.uid, request.context
         create_context = dict(context, mail_create_nosubscribe=True)
+        partner_id = request.registry['res.users'].browse(cr, uid, uid, context=context).partner_id.id
         new_blog_post_id = request.registry['blog.post'].create(cr, uid, {
             'blog_id': blog_id,
             'name': _("Blog Post Title"),
             'subtitle': _("Subtitle"),
             'content': '',
             'website_published': False,
+            'message_follower_ids': [partner_id]
         }, context=create_context)
         new_blog_post = request.registry['blog.post'].browse(cr, uid, new_blog_post_id, context=context)
         return werkzeug.utils.redirect("/blog/%s/post/%s?enable_editor=1" % (slug(new_blog_post.blog_id), slug(new_blog_post)))
