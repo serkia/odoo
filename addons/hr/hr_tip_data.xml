@@ -24,5 +24,15 @@
             <field name="placement">bottom</field>
         </record>
 
+        <record model="web.tip" id="hr_tip_2">
+            <field name="title"></field>
+            <field name="description">Congratulations !  your employee has been created. In this form, you can modify his personal information or even add a picture.</field>
+            <field name="model">hr.employee</field>
+            <field name="mode">form</field>
+            <field name="trigger_selector">.oe_breadcrumb_title:visible,.oe_form_sheet:visible</field>
+            <field name="highlight_selector">.oe_form_sheet:visible</field>
+            <field name="placement">auto top</field>
+        </record>
+
     </data>
 </openerp>

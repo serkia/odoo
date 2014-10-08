@@ -72,7 +72,6 @@ class hr_employee_category(osv.Model):
         (_check_recursion, 'Error! You cannot create recursive Categories.', ['parent_id'])
     ]
 
-
 class hr_job(osv.Model):
 
     def _get_nbr_employees(self, cr, uid, ids, name, args, context=None):
