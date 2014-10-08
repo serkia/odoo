@@ -180,6 +180,13 @@ class MassMailingCampaign(osv.Model):
             row['replied_ratio'] = 100.0 * row['replied'] / total
         return results
 
+    def _get_total_mail(self, cr, uid, ids, field_name, arg, context=None):
+        mail = self.pool['mail.mass_mailing']
+        return {
+            mail_id: mail.search_count(cr,uid, [('mass_mailing_campaign_id', '=', mail_id)], context=context)
+            for mail_id in ids
+        }
+
     _columns = {
         'name': fields.char('Name', required=True),
         'stage_id': fields.many2one('mail.mass_mailing.stage', 'Stage', required=True),
@@ -245,6 +252,7 @@ class MassMailingCampaign(osv.Model):
             _get_statistics, string='Replied Ratio',
             type='integer', multi='_get_statistics',
         ),
+        'total_mail': fields.function(_get_total_mail, string='Malings', type='integer'),
     }
 
     def _get_default_stage_id(self, cr, uid, context=None):
