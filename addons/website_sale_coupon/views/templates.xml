@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <!-- Editor custom -->
+        <template id="assets_frontend" inherit_id="website.assets_frontend" name="Sale Coupon Assets">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/website_sale_coupon/static/src/js/sale_coupon.js"/>
+            </xpath>
+        </template>
+
+        <template id="cart_product_coupon" inherit_id="website_sale.cart" name="Cart Product Coupon">
+            <xpath expr="//table[@id='cart_products']/tbody//td[last()]/div" position="attributes">
+                <attribute name="t-if">line.product_id</attribute>
+            </xpath>
+            <xpath expr="//table[@id='cart_products']/tbody//td[1]" position="inside">
+                <span t-if="not line.product_id" class="text-danger" t-esc="line.name"/>
+            </xpath>
+            <xpath expr="//table[@id='cart_products']/tbody//td[@name='price']" position="attributes">
+                <attribute name="t-att-style">'' if line.product_id else 'visibility: hidden;'</attribute>
+            </xpath>
+        </template>
+
+        <template id="sales_coupon_code" inherit_id="website_sale.payment" active="True">
+            <xpath expr="//div[@id='right_column']" position="inside">
+                <div class="coupon_box">
+                    <h4>Coupon Code</h4>
+                    <p>
+                    Have a coupon code? Fill in this field and apply.
+                    </p>
+                    <div class="input-group">
+                        <input name="promo" class='form-control' type="text" placeholder="code..." t-att-value="website_sale_order.pricelist_id.code or ''"/>
+                        <div class="input-group-btn">
+                            <a class="btn btn-default a-submit check_coupon">Apply</a>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+
+            <xpath expr="//table[@id='cart_products']/tbody//td[1]" position="inside">
+                <span t-if="not line.product_id" class="text-danger" t-esc="line.name"/>
+            </xpath>
+            <xpath expr="//table[@id='cart_products']/tbody//td[last()]/div" position="attributes">
+                <attribute name="t-att-style">'' if line.product_id else 'visibility: hidden;'</attribute>
+            </xpath>
+            <xpath expr="//table[@id='cart_products']/tbody//td[@class='text-center']" position="attributes">
+                <attribute name="t-att-style">'' if line.product_id else 'visibility: hidden;'</attribute>
+            </xpath>
+        </template>
+
+        <template id="confirmation_product_coupon" inherit_id="website_sale.confirmation" name="confirmation Product">
+            <xpath expr="//table[@class='table']/tbody//td[2]" position="attributes">
+                <attribute name="t-att-style">'' if line.product_id else 'visibility: hidden;'</attribute>
+            </xpath>
+            <xpath expr="//table[@class='table']/tbody//td[3]" position="attributes">
+                <attribute name="t-att-style">'' if line.product_id else 'visibility: hidden;'</attribute>
+            </xpath>
+            <xpath expr="//table[@class='table']/tbody//td[last()]" position="attributes">
+                <attribute name="t-att-style">'' if line.product_id else 'visibility: hidden;'</attribute>
+            </xpath>
+        </template>
+
+        <template id="report_sale_order" inherit_id="sale.report_saleorder_document" name="Report Sale Order">
+            <xpath expr="//table[@class='table table-condensed']/tbody[@class='sale_tbody']//td[2]" position="attributes">
+                <attribute name="t-att-style">'' if l.product_id else 'visibility: hidden;'</attribute>
+            </xpath>
+            <xpath expr="//table[@class='table table-condensed']/tbody[@class='sale_tbody']//td[3]" position="attributes">
+                <attribute name="t-att-style">'' if l.product_id else 'visibility: hidden;'</attribute>
+            </xpath>
+            <xpath expr="//table[@class='table table-condensed']/tbody[@class='sale_tbody']//td[4]" position="attributes">
+                <attribute name="t-att-style">'' if l.product_id else 'visibility: hidden;'</attribute>
+            </xpath>
+            <xpath expr="//table[@class='table table-condensed']/tbody[@class='sale_tbody']//td[5]" position="attributes">
+                <attribute name="t-att-style">'' if l.product_id else 'visibility: hidden;'</attribute>
+            </xpath>
+            <xpath expr="//table[@class='table table-condensed']/tbody[@class='sale_tbody']//td[6]" position="attributes">
+                <attribute name="t-att-style">'' if l.product_id else 'visibility: hidden;'</attribute>
+            </xpath>
+        </template>
+
+    </data>
+</openerp>

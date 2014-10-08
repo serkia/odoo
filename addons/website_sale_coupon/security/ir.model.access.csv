@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sales_coupon_type_public,sales.coupon.type.public,website_sale_coupon.model_sales_coupon_type,base.group_public,1,0,0,0
+access_sales_coupon_type_portal,sales.coupon.type.portal,website_sale_coupon.model_sales_coupon_type,base.group_portal,1,0,0,0
+access_sales_coupon_public,sales.coupon.public,website_sale_coupon.model_sales_coupon,base.group_public,1,1,0,0
+access_sales_coupon_portal,sales.coupon.portal,website_sale_coupon.model_sales_coupon,base.group_portal,1,1,0,0
+access_sale_order_public,sale.order.public,sale.model_sale_order,base.group_public,1,0,0,0
+access_sale_order_portal,sale.order.portal,sale.model_sale_order,base.group_portal,1,0,0,0
+access_sale_order_line_public,sale.order.line.public,sale.model_sale_order_line,base.group_public,1,1,1,0
+access_sale_order_line_portal,sale.order.line.portal,sale.model_sale_order_line,base.group_portal,1,1,1,0
+access_product_product_public,product.product.public,product.model_product_product,,1,0,0,0
+access_product_template_public,product.template.public,product.model_product_template,,1,0,0,0
