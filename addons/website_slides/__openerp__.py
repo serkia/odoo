@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 {
-    'name': 'Presentation',
+    'name': 'Slides',
     'version': '1.0',
     'summary': 'Publish Presentations, Videos, Documents and Infographic',
     'category': 'website',

@@ -29,7 +29,7 @@
         <template id="search" name="search">
             <form t-attf-action="/slides/#{slug(channel)}/search" role="search" method="get">
                 <div class="input-group">
-                    <input type="text" class="form-control slide-border-radius" name="query" placeholder="Search Presentations ..." t-att-value="query"/>
+                    <input type="text" class="form-control slide-border-radius" name="query" t-attf-placeholder="Search in #{channel.name}..." t-att-value="query"/>
                     <span class="input-group-btn">
                         <button class="btn btn-primary slide-border-radius" type="submit">
                             <i class="fa fa-search"></i>
@@ -125,17 +125,17 @@
                                     <a title="Channel Settings" t-attf-href="/web#return_label=Website&amp;view_type=form&amp;model=slide.channel&amp;id=#{channel.id}&amp;action="  class="btn btn-primary slide-border-radius">
                                         <i class="fa fa-cog"></i>
                                     </a>
-                                    <a title="Add New Category" t-attf-channel_id="#{channel.id}" class="btn btn-primary slide-border-radius add_new_category">
+                                    <a title="Add Category" t-attf-channel_id="#{channel.id}" class="btn btn-primary slide-border-radius add_new_category">
                                         <i class="fa fa-plus-circle"></i>
                                     </a>
                                 </t>
                                 <t t-if="is_public_user">
-                                    <a t-attf-href="/web?redirect=#{request.httprequest.url}" title="Upload Presentation" class="btn btn-danger slide-border-radius">
+                                    <a t-attf-href="/web?redirect=#{request.httprequest.url}" title="Upload Slide" class="btn btn-danger slide-border-radius">
                                         <i class="fa fa-cloud-upload"></i> Upload
                                     </a>
                                 </t>
                                 <t t-if="not is_public_user">
-                                    <a class="btn btn-danger upload slide-border-radius" title="Upload Presentation" t-attf-channel_id="#{channel.id}">
+                                    <a class="btn btn-danger upload slide-border-radius" title="Upload Slide" t-attf-channel_id="#{channel.id}">
                                         <i class="fa fa-cloud-upload"></i> Upload
                                     </a>
                                 </t>
@@ -188,17 +188,17 @@
                                     <a title="Channel Settings" t-attf-href="/web#return_label=Website&amp;view_type=form&amp;model=slide.channel&amp;id=#{channel.id}&amp;action="  class="btn btn-primary slide-border-radius">
                                         <i class="fa fa-cog"></i>
                                     </a>
-                                    <a title="Add New Category" t-attf-channel_id="#{channel.id}" class="btn btn-primary slide-border-radius add_new_category">
+                                    <a title="Add Category" t-attf-channel_id="#{channel.id}" class="btn btn-primary slide-border-radius add_new_category">
                                         <i class="fa fa-plus-circle"></i>
                                     </a>
                                 </t>
                                 <t t-if="is_public_user">
-                                    <a t-attf-href="/web?redirect=#{request.httprequest.url}" title="Upload Presentation" class="btn btn-danger slide-border-radius">
+                                    <a t-attf-href="/web?redirect=#{request.httprequest.url}" title="Upload Slide" class="btn btn-danger slide-border-radius">
                                         <i class="fa fa-cloud-upload"></i> Upload
                                     </a>
                                 </t>
                                 <t t-if="not is_public_user">
-                                    <a class="btn btn-danger upload slide-border-radius" title="Upload Presentation" t-attf-channel_id="#{channel.id}" t-attf-category_id="#{category.id}">
+                                    <a class="btn btn-danger upload slide-border-radius" title="Upload Slide" t-attf-channel_id="#{channel.id}" t-attf-category_id="#{category.id}">
                                         <i class="fa fa-cloud-upload"></i> Upload
                                     </a>
                                 </t>
@@ -287,8 +287,8 @@
                                 <div>
                                     <div class="col-md-5 mt16 mb16">
                                         <a t-attf-href="/slides/#{slug(channel)}/#{famous.slide_type}/#{slug(famous)}">
-                                            <span class="slide-promore-image">
-                                                <img t-attf-src="/website/image/slide.slide/#{famous.id}/image" class="img-responsive shadow slide-width slide-opacity"/>
+                                            <span class="slide-promote-image">
+                                                <img t-attf-src="/website/image/slide.slide/#{famous.id}/image" class="img-responsive shadow slide-width"/>
                                                 <t t-call="website_slides.slidelabel">
                                                     <t t-set="slide" t-value="famous"/>
                                                 </t>
@@ -385,7 +385,7 @@
                         </span>
                     </a>
                     <span t-if="not slide.website_published" class="label label-danger" style="position: absolute;right: 20px;top: 7px;">Not Published</span>
-                    <span t-if="not is_public_user and slide.website_published" class="slide-cursor" t-attf-onclick="document.location.href='/slides/promote/#{slug(channel)}/#{slide.id}'" style="position: absolute;right: 20px;top: 7px;">
+                    <span t-if="not is_public_user and slide.website_published" class="slide-cursor" t-attf-onclick="document.location.href='/slides/promote/#{slug(channel)}/#{slide.id}'" style="position: absolute;right: 20px;top: 7px;" t-attf-title="Promote this #{slide.slide_type}">
                         <span class="fa-stack fa-lg">
                           <i class="fa fa-square fa-stack-2x slide-opacity"></i>
                           <i class="fa fa-bullhorn fa-stack-1x fa-inverse"></i>
@@ -762,7 +762,7 @@
                             <div class="oe-channel-grid-thumbnail">
                                 <a t-attf-href="/slides/#{slug(channel)}" t-if="famous">
                                     <span class="channel-box">
-                                        <img t-attf-src="/website/image/slide.slide/#{famous.id}/image_medium" class="img-responsive slide-width slide-opacity"/>
+                                        <img t-attf-src="/website/image/slide.slide/#{famous.id}/image_medium" class="img-responsive slide-width"/>
                                     </span>
                                 </a>
                                 <a t-attf-href="/slides/#{slug(channel)}" t-if="not famous">
