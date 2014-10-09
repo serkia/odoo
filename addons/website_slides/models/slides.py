@@ -485,3 +485,7 @@ class Channel(models.Model):
     _inherit = 'slide.channel'
 
     slide_id = fields.Many2one('slide.slide', string='Promoted Presentation')
+
+    def set_promoted(self, slide_id):
+        self.slide_id = slide_id
+        return True

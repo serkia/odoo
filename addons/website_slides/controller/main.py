@@ -371,3 +371,8 @@ class main(http.Controller):
             'order': order
         }
         return request.website.render('website_slides.searchresult', values)
+    
+    @http.route('/slides/promote/<model("slide.channel"):channel>/<int:slide>', type='http', auth='public', website=True)
+    def slides_set_promoted(self, channel, slide):
+        channel.sudo().set_promoted(slide)
+        return werkzeug.utils.redirect(request.httprequest.referrer)

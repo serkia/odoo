@@ -375,6 +375,12 @@
                         </span>
                     </a>
                     <span t-if="not slide.website_published" class="label label-danger" style="position: absolute;right: 20px;top: 7px;">Not Published</span>
+                    <a t-if="not is_public_user and slide.website_published" t-attf-href="/slides/promote/#{slug(channel)}/#{slide.id}" style="position: absolute;right: 20px;top: 7px;">
+                        <span class="fa-stack fa-lg">
+                          <i class="fa fa-square fa-stack-2x"></i>
+                          <i class="fa fa-bullhorn fa-stack-1x fa-inverse"></i>
+                        </span>
+                    </a>
 
                     <div style="padding: 5px;">
                         <a t-att-title="slide.name" t-attf-href="/slides/#{slug(channel)}/#{slide.slide_type}/#{slug(slide)}">
