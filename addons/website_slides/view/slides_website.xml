@@ -261,7 +261,7 @@
             </t>
             <t t-call="website.layout">
                 <div class="wrap">
-
+                    <t t-set="main_object" t-value="channel"/>
                     <t t-if="not category">
                         <t t-call="website_slides.channelheader"/>
                     </t>
