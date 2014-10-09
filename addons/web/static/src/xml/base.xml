@@ -1851,7 +1851,6 @@
             <button class="oe_button_unable" id="remove_all_field" title="Clear All Fields From List">Remove All</button>
             <button class="oe_button_unable" id="move_up" title="Move Selected Field Up">Move Up</button>
             <button class="oe_button_unable" id="move_down" title="Move Selected Field Down">Move Down</button>
-            <button class="oe_button_unable" id="sort_list" title="Sort List">Sort</button>
         </div>
         <div class="col-md-5 oe_export_fields_selector_right">
             <div class="text-left"><h4>Fields to export   </h4></div>

@@ -39,7 +39,6 @@ instance.web.DataExport = instance.web.Widget.extend({
         'click #move_up':'on_click_move_up',
         'click #move_down':'on_click_move_down',
         'click #add_export_list': 'on_save_export_list',
-        'click #sort_list':'on_click_sort_list',
     },
     init: function(parent, action) {
         var self = this;
@@ -120,20 +119,6 @@ instance.web.DataExport = instance.web.Widget.extend({
         if(next_row.length){
             var selected_rows = self.$('#fields_list option:selected').detach();
             next_row.after(selected_rows);
-        }
-    },
-    on_click_sort_list: function () {
-        var export_list = this.$el.find("#fields_list");
-        if (this.ascending === true) {
-            export_list.find("option").sort(function (a, b) {
-                return $(a).text().localeCompare($(b).text())
-            }).appendTo(export_list);
-            this.ascending = false;
-        } else {
-            export_list.find("option").sort(function (a, b) {
-                return $(b).text().localeCompare($(a).text())
-            }).appendTo(export_list);
-            this.ascending = true;
         }
     },
     exit: function () {
