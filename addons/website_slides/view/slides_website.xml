@@ -921,7 +921,9 @@
                             <t t-foreach="relatedslides" t-as="slide">
                                 <div class="col-lg-3 col-md-4 col-sm-4 col-xs-4 slide-pl0 slide-pr0 slide_suggest_detail" t-attf-data-slide-suggest-detail-id="#slide_suggest_detail_#{slide.id}">
                                     <a t-att-href="slide.get_share_url()" target="_new">
-                                        <img class="img-responsive" t-attf-src="/website/image/slide.slide/#{slide.id}/image_thumb" alt="slide.name"/>
+                                        <span class="oe-image-thumbnail">
+                                            <img class="img-responsive" t-attf-src="/website/image/slide.slide/#{slide.id}/image_thumb" alt="slide.name"/>
+                                        </span>
                                     </a>
                                     <div t-attf-id="slide_suggest_detail_#{slide.id}" class="slide-option-toggle" style="opacity: 0.9;">
                                         <a t-att-href="slide.get_share_url()" target="_new"><t t-esc="slide.name"/></a>
