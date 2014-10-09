@@ -74,7 +74,7 @@ class main(http.Controller):
         slides = []
         famous = None
 
-        if request.env.user.id == request.website.user_id.id:
+        if user.id == request.website.user_id.id:
             domain += [('website_published', '=', True)]
 
         if tags:
@@ -134,7 +134,8 @@ class main(http.Controller):
             'types': types,
             'sorting': sorting,
             'category': category,
-            'famous': famous
+            'famous': famous,
+            'is_super_user': user.id == SUPERUSER_ID,
         })
 
         if not types and not category:
@@ -150,7 +151,6 @@ class main(http.Controller):
                 'category_datas': category_datas,
                 'category_ids': category_ids,
             })
-
         return request.website.render('website_slides.home', values)
 
     def getslide(self, channel, slide, types='', sorting='', search='', tags=''):
@@ -167,7 +167,6 @@ class main(http.Controller):
             'user': user,
             'types': types,
             'is_public_user': user.id == request.website.user_id.id,
-            'is_super_user': user.id == user.sudo().id,
             'private': True,
             'slide_id': slide.id,
             'type': slide.slide_type,

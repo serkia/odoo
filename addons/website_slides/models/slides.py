@@ -23,9 +23,9 @@ class Channel(models.Model):
     name = fields.Char(string="Name", translate=True, required=True)
 
     website_published = fields.Boolean(string='Publish', help="Publish on the website", copy=False)
-    description = fields.Text(string='Website Description', translate=True)
+    description = fields.Text(string='Description', translate=True)
 
-    promote = fields.Selection([('none', 'Do not Promote'), ('latest', 'Newest'), ('popular', 'Most Popular'), ('mostview', 'Most Viewed'), ('custom', 'Promote my Presentation')], string="Promoted Video", default='none', required=True)
+    promote = fields.Selection([('none', 'Do not Promote'), ('latest', 'Newest'), ('popular', 'Most Popular'), ('mostview', 'Most Viewed'), ('custom', 'Promote my slide')], string="Promote Slide", default='none', required=True)
 
     presentations = fields.Integer(compute='_compute_presentations', string="Number of Presentations")
     documents = fields.Integer(compute='_compute_presentations', string="Number of Documents")
@@ -77,6 +77,10 @@ class Channel(models.Model):
                 famous = self.slide_id
         return famous
 
+    def set_promoted(self, slide_id):
+        self.slide_id = slide_id
+        return True
+
 
 class Category(models.Model):
     _name = 'slide.category'
@@ -84,7 +88,7 @@ class Category(models.Model):
     _order = "sequence"
 
     channel_id = fields.Many2one('slide.channel', string="Channel")
-    name = fields.Char(string="Category", tranalate=True)
+    name = fields.Char(string="Category", tranalate=True, required=True)
     sequence = fields.Integer(string='Sequence', default=10)
 
     presentations = fields.Integer(compute='_compute_presentations', string="Number of Presentations")
@@ -154,7 +158,7 @@ class Slide(models.Model):
     _inherit = ['mail.thread', 'website.seo.metadata']
     _description = '''Slides'''
 
-    name = fields.Char('Title')
+    name = fields.Char('Title', required=True)
     description = fields.Text('Description', tranalate=True)
     index_content = fields.Text('Description')
 
@@ -163,7 +167,7 @@ class Slide(models.Model):
 
     date_publish = fields.Datetime('Publish Date')
 
-    channel_id = fields.Many2one('slide.channel', string="Channel")
+    channel_id = fields.Many2one('slide.channel', string="Channel", required=True)
     category_id = fields.Many2one('slide.category', string="Category")
     tag_ids = fields.Many2many('slide.tag', 'rel_slide_tag', 'slide_id', 'tag_id', string='Tags')
     embedcount_ids = fields.One2many('slide.embed', 'slide_id', string="Embed Count")
@@ -484,8 +488,4 @@ class Slide(models.Model):
 class Channel(models.Model):
     _inherit = 'slide.channel'
 
-    slide_id = fields.Many2one('slide.slide', string='Promoted Presentation')
-
-    def set_promoted(self, slide_id):
-        self.slide_id = slide_id
-        return True
+    slide_id = fields.Many2one('slide.slide', string='Promote Slide')

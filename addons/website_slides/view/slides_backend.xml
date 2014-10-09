@@ -2,7 +2,7 @@
 <openerp>
     <data>
         <menuitem name="Marketing" id="base.marketing_menu" sequence="85" groups="base.group_user"/>
-        <menuitem id="main_slides" parent="base.marketing_menu" name="Presentations"/>
+        <menuitem id="main_slides" parent="base.marketing_menu" name="Slides"/>
 
         <record id="view_slides_slide_form" model="ir.ui.view">
             <field name="model">slide.slide</field>
@@ -70,6 +70,7 @@
                 <search string="Search Slides">
                     <field name="name" string="Slide Name"/>
                     <filter name="published" string="Published" domain="[('website_published','=', True)]"/>
+                    <filter name="published" string="Waiting for validation" domain="[('website_published','=', False)]"/>
                     <group expand="0" string="Group By">
                         <filter string="Channel" domain="[]" context="{'group_by':'channel_id'}"/>
                         <filter string="Category" domain="[]" context="{'group_by':'category_id'}"/>
@@ -80,7 +81,7 @@
         </record>
 
         <record id="action_slides_slides" model="ir.actions.act_window">
-            <field name="name">Slides</field>
+            <field name="name">Slide</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">slide.slide</field>
             <field name="view_type">form</field>
@@ -153,7 +154,7 @@
                             <field name="website_published" class="pull-right" widget="website_button"/>
                         </div>
 
-                        <group string="Promote Presentation">
+                        <group string="Promote Slide">
                             <group>
                                 <field name="template_id" domain="[('model','=','slide.slide')]"/>
                                 <field name="promote" widget="radio"/>
@@ -198,7 +199,7 @@
         </record>
 
         <record id="action_slide_channels" model="ir.actions.act_window">
-            <field name="name">Channels</field>
+            <field name="name">Channel</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">slide.channel</field>
             <field name="view_type">form</field>

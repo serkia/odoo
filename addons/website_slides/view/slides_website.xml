@@ -121,17 +121,22 @@
                         <div class="pull-left col-md-8 col-sm-12 col-xs-12 mt16 mb8">
                             <h3 class="mt0">
                                 <t t-esc="channel.name"/>
+                                <t t-if="is_super_user">
+                                    <a title="Channel Settings" t-attf-href="/web#return_label=Website&amp;view_type=form&amp;model=slide.channel&amp;id=#{channel.id}&amp;action="  class="btn btn-primary slide-border-radius">
+                                        <i class="fa fa-cog"></i>
+                                    </a>
+                                    <a title="Add New Category" t-attf-channel_id="#{channel.id}" class="btn btn-primary slide-border-radius add_new_category">
+                                        <i class="fa fa-plus-circle"></i>
+                                    </a>
+                                </t>
                                 <t t-if="is_public_user">
                                     <a t-attf-href="/web?redirect=#{request.httprequest.url}" title="Upload Presentation" class="btn btn-danger slide-border-radius">
-                                        <i class="fa fa-cloud-upload"></i> Upload 
+                                        <i class="fa fa-cloud-upload"></i> Upload
                                     </a>
                                 </t>
                                 <t t-if="not is_public_user">
-                                    <a title="Add New Category" t-attf-channel_id="#{channel.id}" class="btn btn-danger slide-border-radius add_new_category">
-                                        <i class="fa fa-plus-circle"></i>
-                                    </a>
                                     <a class="btn btn-danger upload slide-border-radius" title="Upload Presentation" t-attf-channel_id="#{channel.id}">
-                                        <i class="fa fa-cloud-upload"></i> Upload 
+                                        <i class="fa fa-cloud-upload"></i> Upload
                                     </a>
                                 </t>
                             </h3>
@@ -179,17 +184,22 @@
                             <h3 class="mt0">
                                 <a t-attf-href="/slides/#{slug(channel)}"><t t-esc="channel.name"/></a>
                                 <t t-if="category">/ <t t-esc="category.name"/></t>
+                                <t t-if="is_super_user">
+                                    <a title="Channel Settings" t-attf-href="/web#return_label=Website&amp;view_type=form&amp;model=slide.channel&amp;id=#{channel.id}&amp;action="  class="btn btn-primary slide-border-radius">
+                                        <i class="fa fa-cog"></i>
+                                    </a>
+                                    <a title="Add New Category" t-attf-channel_id="#{channel.id}" class="btn btn-primary slide-border-radius add_new_category">
+                                        <i class="fa fa-plus-circle"></i>
+                                    </a>
+                                </t>
                                 <t t-if="is_public_user">
                                     <a t-attf-href="/web?redirect=#{request.httprequest.url}" title="Upload Presentation" class="btn btn-danger slide-border-radius">
-                                        <i class="fa fa-cloud-upload"></i> Upload 
+                                        <i class="fa fa-cloud-upload"></i> Upload
                                     </a>
                                 </t>
                                 <t t-if="not is_public_user">
-                                    <a title="Add New Category" t-attf-channel_id="#{channel.id}" class="btn btn-danger slide-border-radius add_new_category">
-                                        <i class="fa fa-plus-circle"></i>
-                                    </a>
                                     <a class="btn btn-danger upload slide-border-radius" title="Upload Presentation" t-attf-channel_id="#{channel.id}" t-attf-category_id="#{category.id}">
-                                        <i class="fa fa-cloud-upload"></i> Upload 
+                                        <i class="fa fa-cloud-upload"></i> Upload
                                     </a>
                                 </t>
                             </h3>
@@ -251,7 +261,7 @@
             </t>
             <t t-call="website.layout">
                 <div class="wrap">
-                    
+
                     <t t-if="not category">
                         <t t-call="website_slides.channelheader"/>
                     </t>
@@ -302,7 +312,7 @@
                                                 </div>
                                                 <p t-if="famous.description"><t t-raw="'&lt;br/&gt;'.join(famous.description.split('\n')[0:10])"/></p>
 
-                                                <b>Share:</b> 
+                                                <b>Share:</b>
                                                 <t t-call="website_slides.shareinline">
                                                     <t t-set="slide" t-value="famous"/>
                                                 </t>
@@ -325,7 +335,7 @@
                                         </p>
                                         <p>
                                             <a t-if="is_public_user" t-attf-href="/web?redirect=#{request.httprequest.url}" class="btn btn-danger upload slide-border-radius slide-pading">
-                                                <i class="fa fa-cloud-upload"></i> Upload 
+                                                <i class="fa fa-cloud-upload"></i> Upload
                                             </a>
                                             <a t-if="not is_public_user" class="btn btn-danger upload slide-border-radius slide-pading" t-attf-channel_id="#{channel.id}">
                                                 <i class="fa fa-cloud-upload"></i> Upload
@@ -496,7 +506,7 @@
                                 <p>Category: <a t-attf-href="/slides/#{slug(channel)}/category/#{slug(slide.category_id)}"><t t-esc="slide.category_id.name"/></a></p>
                             </t>
                         </div>
-                        
+
                     </div>
                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 slide-pl0 slide-pr0">
                         <div class="col-lg-1 col-md-1 col-sm-1 col-xs-2 slide-pl0">
