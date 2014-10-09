@@ -15,9 +15,8 @@ class KarmaError(ValueError):
 
 
 class Forum(models.Model):
-    """TDE TODO: set karma values for actions dynamic for a given forum"""
     _name = 'forum.forum'
-    _description = 'Forums'
+    _description = 'Forum'
     _inherit = ['mail.thread', 'website.seo.metadata']
 
     @api.model
@@ -29,23 +28,31 @@ class Forum(models.Model):
 
     name = fields.Char(string='Forum Name', required=True, translate=True)
     faq = fields.Html(string='Guidelines', default=_get_default_faq, translate=True)
-    description = fields.Html(string='Description', default='This community is for professionals and enthusiasts of our products and services.')
-    introduction_message = fields.Html('Introduction Message',
-        default="""<h1 class="mt0">Welcome!</h1>
-            <p> This community is for professionals and enthusiasts of our products and services.
-                Share and discuss the best content and new marketing ideas,
-                build your professional profile and become a better marketer together.
-            </p>""")
+    description = fields.Html(
+        'Description',
+        default='<p> This community is for professionals and enthusiasts of our products and services.'
+                'Share and discuss the best content and new marketing ideas,'
+                'build your professional profile and become a better marketer together.</p>')
+    # introduction_message = fields.Html('Introduction Message',
+    #     default="""<h1 class="mt0">Welcome!</h1>
+    #         <p> This community is for professionals and enthusiasts of our products and services.
+    #             Share and discuss the best content and new marketing ideas,
+    #             build your professional profile and become a better marketer together.
+    #         </p>""")
     relevancy_option_first = fields.Float('First Relevancy Parameter', default=0.8)
     relevancy_option_second = fields.Float('Second Relevancy Parameter', default=1.8)
     default_order = fields.Selection([
-            ('create_date desc','Newest'),
-            ('write_date desc','Last Updated'),
-            ('vote_count desc','Most Voted'),
-            ('relevancy desc','Relevancy'),
-            ('child_count desc','Answered'),
-            ], string='Default Order', required=True, default='write_date desc')
-    default_allow = fields.Selection([('post_link','Link'),('ask_question','Question'),('post_discussion','Discussion')], string='Default Post', required=True, default='ask_question')
+        ('create_date desc', 'Newest'),
+        ('write_date desc', 'Last Updated'),
+        ('vote_count desc', 'Most Voted'),
+        ('relevancy desc', 'Relevancy'),
+        ('child_count desc', 'Answered')],
+        string='Default Order', required=True, default='write_date desc')
+    default_allow = fields.Selection([
+        ('ask_question', 'Question'),
+        ('post_discussion', 'Discussion'),
+        ('post_link', 'Link')],
+        string='Default Post', required=True, default='ask_question')
     allow_link = fields.Boolean('Links', help="When clicking on the post, it redirects to an external link", default=False)
     allow_question = fields.Boolean('Questions', help="Users can answer only once per question. Contributors can edit answers and mark the right ones.", default=True)
     allow_discussion = fields.Boolean('Discussions', default=False)
@@ -86,6 +93,7 @@ class Forum(models.Model):
     def create(self, values):
         return super(Forum, self.with_context(mail_create_nolog=True)).create(values)
 
+
 class Post(models.Model):
     _name = 'forum.post'
     _description = 'Forum Post'
@@ -94,7 +102,7 @@ class Post(models.Model):
 
     @api.multi
     @api.depends('vote_ids', 'vote_ids.vote')
-    def _get_post_relevancy(self):
+    def _compute_relevancy(self):
         for post in self:
             if post.create_date:
                 days = (datetime.today() - datetime.strptime(post.create_date, tools.DEFAULT_SERVER_DATETIME_FORMAT)).days
@@ -153,16 +161,16 @@ class Post(models.Model):
     @api.one
     def _get_post_karma_rights(self):
         user = self.env.user
-        self.can_ask = self._uid == SUPERUSER_ID or user.karma >= self.forum_id.karma_ask
-        self.can_answer = self._uid == SUPERUSER_ID or user.karma >= self.forum_id.karma_answer
-        self.can_accept = self._uid == SUPERUSER_ID or user.karma >= (self.parent_id and self.parent_id.create_uid.id == self._uid and self.forum_id.karma_answer_accept_own or self.forum_id.karma_answer_accept_all)
-        self.can_edit = self._uid == SUPERUSER_ID or user.karma >= (self.create_uid.id == self._uid and self.forum_id.karma_edit_own or self.forum_id.karma_edit_all)
-        self.can_close = self._uid == SUPERUSER_ID or user.karma >= (self.create_uid.id == self._uid and self.forum_id.karma_close_own or self.forum_id.karma_close_all)
-        self.can_unlink = self._uid == SUPERUSER_ID or user.karma >= (self.create_uid.id == self._uid and self.forum_id.karma_unlink_own or self.forum_id.karma_unlink_all)
-        self.can_upvote = self._uid == SUPERUSER_ID or user.karma >= self.forum_id.karma_upvote
-        self.can_downvote = self._uid == SUPERUSER_ID or user.karma >= self.forum_id.karma_downvote
-        self.can_comment = self._uid == SUPERUSER_ID or user.karma >= (self.create_uid.id == self._uid and self.forum_id.karma_comment_own or self.forum_id.karma_comment_all)
-        self.can_comment_convert = self._uid == SUPERUSER_ID or user.karma >= (self.create_uid.id == self._uid and self.forum_id.karma_comment_convert_own or self.forum_id.karma_comment_convert_all)
+        self.can_ask = user.karma >= self.forum_id.karma_ask
+        self.can_answer = user.karma >= self.forum_id.karma_answer
+        self.can_accept = user.karma >= (self.parent_id and self.parent_id.create_uid.id == self._uid and self.forum_id.karma_answer_accept_own or self.forum_id.karma_answer_accept_all)
+        self.can_edit = user.karma >= (self.create_uid.id == self._uid and self.forum_id.karma_edit_own or self.forum_id.karma_edit_all)
+        self.can_close = user.karma >= (self.create_uid.id == self._uid and self.forum_id.karma_close_own or self.forum_id.karma_close_all)
+        self.can_unlink = user.karma >= (self.create_uid.id == self._uid and self.forum_id.karma_unlink_own or self.forum_id.karma_unlink_all)
+        self.can_upvote = user.karma >= self.forum_id.karma_upvote
+        self.can_downvote = user.karma >= self.forum_id.karma_downvote
+        self.can_comment = user.karma >= (self.create_uid.id == self._uid and self.forum_id.karma_comment_own or self.forum_id.karma_comment_all)
+        self.can_comment_convert = user.karma >= (self.create_uid.id == self._uid and self.forum_id.karma_comment_convert_own or self.forum_id.karma_comment_convert_all)
 
     name = fields.Char(string='Title')
     forum_id = fields.Many2one('forum.forum', string='Forum', required=True)
@@ -174,8 +182,9 @@ class Post(models.Model):
     active = fields.Boolean(string='Active', default=True)
     type = fields.Selection([('question', 'Question'), ('link', 'Article'), ('discussion', 'Discussion')], string='Type', default='question')
     is_correct = fields.Boolean(string='Valid Answer', help='Correct Answer or Answer on this question accepted.')
-    relevancy = fields.Float(compute="_get_post_relevancy", string="Relevancy",store=True)
-    website_message_ids = fields.One2many('mail.message', 'res_id',
+    relevancy = fields.Float('Relevancy', compute="_compute_relevancy", store=True)
+    website_message_ids = fields.One2many(
+        'mail.message', 'res_id',
         domain=lambda self: ['&', ('model', '=', self._name), ('type', 'in', ['email', 'comment'])],
         string='Post Messages', help="Comments on forum post",
     )
@@ -195,7 +204,7 @@ class Post(models.Model):
     # hierarchy
     parent_id = fields.Many2one('forum.post', string='Question', ondelete='cascade')
     self_reply = fields.Boolean(string='Reply to own question', compute='_is_self_reply', store=True)
-    child_ids = fields.One2many('forum.post', 'parent_id', string='Answers' , default=list())
+    child_ids = fields.One2many('forum.post', 'parent_id', string='Answers')
     child_count = fields.Integer(string="Answers", compute='_get_child_count', store=True)
     uid_has_answered = fields.Boolean(string='Has Answered', compute='_get_uid_answered')
     has_validated_answer = fields.Boolean(string='Has a Validated Answered', compute='_get_has_validated_answer', store=True)
@@ -404,29 +413,31 @@ class Post(models.Model):
         self._cr.execute("""UPDATE forum_post SET views = views+1 WHERE id IN %s""", (self._ids,))
         return True
 
+
 class PostReason(models.Model):
     _name = "forum.post.reason"
     _description = "Post Closing Reason"
     _order = 'name'
 
-    name = fields.Char(string='Post Reason', required=True, translate=True)
+    name = fields.Char(string='Closing Reason', required=True, translate=True)
+
 
 class Vote(models.Model):
     _name = 'forum.post.vote'
     _description = 'Vote'
 
     post_id = fields.Many2one('forum.post', string='Post', ondelete='cascade', required=True)
-    user_id = fields.Many2one('res.users', string='User', required=True, default=lambda self:self._uid)
-    vote = fields.Selection([('1', '1'), ('-1', '-1'), ('0', '0')], string='Vote', required=True, default=lambda *args: '1')
-    create_date = fields.Datetime(string='Create Date', select=True, readonly=True)
-    forum_id = fields.Many2one('forum.forum', string='Forum', related="post_id.forum_id")
-    recipient_id = fields.Many2one('res.users',string='To', related="post_id.create_uid", help="The user receiving the vote")
+    user_id = fields.Many2one('res.users', string='User', required=True, default=lambda self: self._uid)
+    vote = fields.Selection([('1', '1'), ('-1', '-1'), ('0', '0')], string='Vote', required=True, default='1')
+    create_date = fields.Datetime('Create Date', select=True, readonly=True)
+    forum_id = fields.Many2one('forum.forum', string='Forum', related="post_id.forum_id", store=True)
+    recipient_id = fields.Many2one('res.users', string='To', related="post_id.create_uid", store=True)
 
     def _get_karma_value(self, old_vote, new_vote, up_karma, down_karma):
         _karma_upd = {
-            '-1': {'-1': 0, '0':-1 * down_karma, '1':-1 * down_karma + up_karma},
+            '-1': {'-1': 0, '0': -1 * down_karma, '1': -1 * down_karma + up_karma},
             '0': {'-1': 1 * down_karma, '0': 0, '1': up_karma},
-            '1': {'-1':-1 * up_karma + down_karma, '0':-1 * up_karma, '1': 0}
+            '1': {'-1': -1 * up_karma + down_karma, '0': -1 * up_karma, '1': 0}
         }
         return _karma_upd[old_vote][new_vote]
 
@@ -437,7 +448,7 @@ class Vote(models.Model):
             karma_value = self._get_karma_value('0', vote.vote, vote.forum_id.karma_gen_answer_upvote, vote.forum_id.karma_gen_answer_downvote)
         else:
             karma_value = self._get_karma_value('0', vote.vote, vote.forum_id.karma_gen_question_upvote, vote.forum_id.karma_gen_question_downvote)
-        self.sudo().env['res.users'].search([('id', '=', vote.recipient_id.id)]).add_karma(karma_value)
+        self.sudo().recipient_id.add_karma(karma_value)
         return vote
 
     @api.multi
@@ -448,13 +459,14 @@ class Vote(models.Model):
                     karma_value = self._get_karma_value(vote.vote, values['vote'], vote.forum_id.karma_gen_answer_upvote, vote.forum_id.karma_gen_answer_downvote)
                 else:
                     karma_value = self._get_karma_value(vote.vote, values['vote'], vote.forum_id.karma_gen_question_upvote, vote.forum_id.karma_gen_question_downvote)
-                self.sudo().env['res.users'].search([('id', '=', vote.recipient_id.id)]).add_karma(karma_value)
+                vote.sudo().recipient_id.add_karma(karma_value)
         res = super(Vote, self).write(values)
         return res
 
+
 class Tags(models.Model):
     _name = "forum.tag"
-    _description = "Tag"
+    _description = "Forum Tag"
     _inherit = ['website.seo.metadata']
 
     @api.multi
@@ -463,9 +475,8 @@ class Tags(models.Model):
         for tag in self:
             tag.posts_count = len(tag.post_ids)
 
-    name = fields.Char(string='Name', required=True)
+    name = fields.Char('Name', required=True)
     forum_id = fields.Many2one('forum.forum', string='Forum', required=True)
     post_ids = fields.Many2many('forum.post', 'forum_tag_rel', 'forum_tag_id', 'forum_id', string='Posts')
-    posts_count = fields.Integer(string="Number of Posts", compute='_get_posts_count', store=True)
+    posts_count = fields.Integer('Number of Posts', compute='_get_posts_count', store=True)
     create_uid = fields.Many2one('res.users', string='Created by', readonly=True)
-

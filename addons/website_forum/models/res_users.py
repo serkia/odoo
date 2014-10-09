@@ -36,8 +36,10 @@ class Users(models.Model):
     silver_badge = fields.Integer(string='Number of silver badges', compute="_get_user_badge_level")
     bronze_badge = fields.Integer(string='Number of bronze badges', compute="_get_user_badge_level")
 
+    @api.multi
     def add_karma(self, karma):
-        self.karma += karma
+        for user in self:
+            user.karma += karma
         return True
 
     @api.model
