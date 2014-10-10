@@ -46,7 +46,7 @@
                         <img t-attf-src="/website/image/slide.slide/#{slide.id}/datas" class="img-responsive" style="width:100%"/>
                     </t>
                     <t t-if="slide.slide_type in ('presentation', 'document')">
-                        <div id="PDFViewer" t-attf-slide-id="#{slide.id}" t-att-file="pdf_file"/>
+                        <div id="PDFViewer" t-attf-slide-id="#{slide.id}" t-attf-download="#{slide.download}"/>
                     </t>
                 </div>
             </div>
@@ -463,7 +463,6 @@
                 <div t-if="not private">
                     <t t-if="slide.datas">
                         <t t-call="website_slides.pdfview">
-                            <t t-set="pdf_file" t-value="slide.url"/>
                             <t t-set="slide" t-value="slide"/>
                         </t>
                     </t>

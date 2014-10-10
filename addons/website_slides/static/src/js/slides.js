@@ -288,9 +288,10 @@
     website.slide.PDFViewer_Launcher = function ($PDFViewer) {
         website.slide.template.then(function () {
             var slide_id = $PDFViewer.attr('slide-id'),
-                file = '/slides/content/' + slide_id;
+                file = '/slides/content/' + slide_id,
+                download = $PDFViewer.attr('download');
             if (slide_id) {
-                var PDFViewer = new website.slide.PDFViewer(slide_id, file);
+                var PDFViewer = new website.slide.PDFViewer(slide_id, file, download);
                 PDFViewer.replace($PDFViewer);
                 website.slide.PDFViewer_inst = PDFViewer;
             }
@@ -308,9 +309,10 @@
             'click #fullscreen': 'fullscreen',
             'change #page_number': 'change_page_number',
         },
-        init: function (id, file) {
+        init: function (id, file, download) {
             this.id = id;
             this.file = file;
+            this.download = download;
             this.file_content = null;
             this.scale = 1.5;
             this.page_number = 1;

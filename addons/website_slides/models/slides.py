@@ -166,6 +166,10 @@ class Slide(models.Model):
     url = fields.Char('Access Url')
 
     date_publish = fields.Datetime('Publish Date')
+    download = fields.Selection([('not_downloadeb', 'Not Downloadeb'), ('with_login', 'With Login'), ('without_login', 'Without Loging')], string='Download',
+                help="Not Downloadeb = Slide is not Downloadeb     \
+                      With Login = User login required for Download\
+                      Without Loging = Slide is downloadeb for everyone", default='not_downloadeb')
 
     channel_id = fields.Many2one('slide.channel', string="Channel", required=True)
     category_id = fields.Many2one('slide.category', string="Category")

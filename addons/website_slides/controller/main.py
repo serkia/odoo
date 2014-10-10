@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import base64
 import werkzeug
 import simplejson
 
@@ -7,6 +7,7 @@ from openerp import SUPERUSER_ID
 from openerp.http import request
 from openerp.addons.web import http
 from openerp.tools.translate import _
+from openerp.addons.web.controllers.main import login_redirect
 
 
 class main(http.Controller):
@@ -307,6 +308,17 @@ class main(http.Controller):
             vals.append(val)
 
         return vals
+
+    @http.route('/slides/download/<model("slide.slide"):slide>', type='http', auth="public", website=True)
+    def download_slide(self, slide):
+        if not request.session.uid:
+            return login_redirect()
+        filecontent = base64.b64decode(slide.datas)
+        # TODO not sure convert filename to utf-8 and quote, check with IE if it required
+        disposition = 'attachment; filename=%s.pdf' % slide.name
+        return request.make_response(filecontent,
+                [('Content-Type', 'application/pdf'),
+                 ('Content-Disposition', disposition)])
 
     @http.route('/slides/embed/<model("slide.slide"):slide>', type='http', auth='public', website=True)
     def slides_embed(self, slide, page="1"):

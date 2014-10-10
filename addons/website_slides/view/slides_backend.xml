@@ -26,6 +26,7 @@
                             <group string="Data">
                                 <field name="datas" attrs="{'required':[('slide_type','in',['infographic', 'presentation', 'document'])], 'invisible':[('slide_type','=','video')]}"/>
                                 <field name="url" widget="url" attrs="{'required':[('slide_type','=','video')]}"/>
+                                <field name="download"/>
                             </group>
                             <group string="Others">
                                 <field name="slide_type"/>
