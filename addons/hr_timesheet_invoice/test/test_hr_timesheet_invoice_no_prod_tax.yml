@@ -46,7 +46,7 @@
     type: fixed
     sequence: 1
     company_id: base.main_company
-    type_tax_use: all
+    type_tax_use: purchase
     tax_invoice_line_ids: 
       - code_type: base
         amount: 100

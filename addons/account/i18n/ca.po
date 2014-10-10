@@ -1266,15 +1266,6 @@ msgid "Aged Trial Balance"
 msgstr "Balanç de comprovació anterior"
 
 #. module: account
-#: selection:account.balance.report,display_account:0
-#: selection:account.common.account.report,display_account:0
-#: selection:account.report.general.ledger,display_account:0
-#: selection:account.tax,type_tax_use:0
-#: selection:account.tax.template,type_tax_use:0
-msgid "All"
-msgstr "Tots"
-
-#. module: account
 #: selection:account.aged.trial.balance,target_move:0
 #: selection:account.balance.report,target_move:0
 #: selection:account.central.journal,target_move:0

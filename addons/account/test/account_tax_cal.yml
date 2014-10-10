@@ -184,7 +184,7 @@
     name: Tax10.0
     amount: 10.0
     type: percent
-    type_tax_use: all
+    type_tax_use: purchase
     tax_invoice_line_ids:
       - code_type: base
         amount: 100.0

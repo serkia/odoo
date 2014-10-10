@@ -702,7 +702,7 @@
                             <group>
                                 <field name="account_id" domain="[('type', 'not in', ['view', 'closed', 'consolidation'])]"/>
                                 <field name="amount_type"/>
-                                <field name="tax_id" domain="[('type_tax_use', 'in', ['purchase', 'all']), ('parent_id', '=', False)]"/>
+                                <field name="tax_id" domain="[('type_tax_use', '=', 'purchase'), ('parent_id', '=', False)]"/>
                             </group>
                             <group>
                                 <field name="label"/>
@@ -1028,10 +1028,10 @@
                           <field name="child_ids" nolabel="1" widget="many2many_tags"/>
                     </group>
                     <div attrs="{'invisible': [('type','=','group')]}">
-                        <h2><label name="sale_excluded" string="Journal Items for a 100euros sale (taxes excluded)" attrs="{'invisible':['|', ('price_include','=',True), ('type_tax_use','in','purchase')]}"/></h2>
-                        <h2><label name="sale_included" string="Journal Items for a 100euros sale (taxes included)" attrs="{'invisible':['|', ('price_include','=',False), ('type_tax_use','in','purchase')]}"/></h2>
-                        <h2><label name="purchase_excluded" string="Journal Items for a 100euros purchase (taxes excluded)" attrs="{'invisible':['|', ('price_include','=',True), ('type_tax_use','not in','purchase')]}"/></h2>
-                        <h2><label name="purchase_included" string="Journal Items for a 100euros purchase (taxes included)" attrs="{'invisible':['|', ('price_include','=',False), ('type_tax_use','not in','purchase')]}"/></h2>
+                        <h2><label name="sale_excluded" string="Journal Items for a 100euros sale (taxes excluded)" attrs="{'invisible':['|', ('price_include','=',True), ('type_tax_use','=','purchase')]}"/></h2>
+                        <h2><label name="sale_included" string="Journal Items for a 100euros sale (taxes included)" attrs="{'invisible':['|', ('price_include','=',False), ('type_tax_use','=','purchase')]}"/></h2>
+                        <h2><label name="purchase_excluded" string="Journal Items for a 100euros purchase (taxes excluded)" attrs="{'invisible':['|', ('price_include','=',True), ('type_tax_use','!=','purchase')]}"/></h2>
+                        <h2><label name="purchase_included" string="Journal Items for a 100euros purchase (taxes included)" attrs="{'invisible':['|', ('price_include','=',False), ('type_tax_use','!=','purchase')]}"/></h2>
                         <group colspan="7" name="invoice">
                             <field name="tax_invoice_line_ids" context= "{'default_apply_on':'invoice'}" nolabel="1">
                                 <tree string="Tax Invoice Line" editable="bottom">
@@ -2091,10 +2091,10 @@
                           <field name="child_ids" nolabel="1" widget="many2many_tags"/>
                     </group>
                     <div attrs="{'invisible': [('type','=','group')]}">
-                        <h2><label name="sale_excluded" string="Journal Items for a 100euros sale (taxes excluded)" attrs="{'invisible':['|', ('price_include','=',True), ('type_tax_use','in','purchase')]}"/></h2>
-                        <h2><label name="sale_included" string="Journal Items for a 100euros sale (taxes included)" attrs="{'invisible':['|', ('price_include','=',False), ('type_tax_use','in','purchase')]}"/></h2>
-                        <h2><label name="purchase_excluded" string="Journal Items for a 100euros purchase (taxes excluded)" attrs="{'invisible':['|', ('price_include','=',True), ('type_tax_use','not in','purchase')]}"/></h2>
-                        <h2><label name="purchase_included" string="Journal Items for a 100euros purchase (taxes included)" attrs="{'invisible':['|', ('price_include','=',False), ('type_tax_use','not in','purchase')]}"/></h2>
+                        <h2><label name="sale_excluded" string="Journal Items for a 100euros sale (taxes excluded)" attrs="{'invisible':['|', ('price_include','=',True), ('type_tax_use','=','purchase')]}"/></h2>
+                        <h2><label name="sale_included" string="Journal Items for a 100euros sale (taxes included)" attrs="{'invisible':['|', ('price_include','=',False), ('type_tax_use','=','purchase')]}"/></h2>
+                        <h2><label name="purchase_excluded" string="Journal Items for a 100euros purchase (taxes excluded)" attrs="{'invisible':['|', ('price_include','=',True), ('type_tax_use','!=','purchase')]}"/></h2>
+                        <h2><label name="purchase_included" string="Journal Items for a 100euros purchase (taxes included)" attrs="{'invisible':['|', ('price_include','=',False), ('type_tax_use','!=','purchase')]}"/></h2>
                         <group colspan="7" name="invoice">
                             <field name="tax_invoice_line_ids" context= "{'default_apply_on':'invoice'}" nolabel="1">
                                 <tree string="Tax Invoice Line" editable="bottom">
@@ -2231,12 +2231,12 @@
                         <group>
                             <field name="company_id" widget="selection"/> <!-- we assume that this wizard will be run only by administrators and as this field may cause problem if hidden (because of the default company of the user removed from the selection because already configured), we simply choosed to remove the group "multi company" of it -->
                             <field name="currency_id" class="oe_inline"/>
-                            <field name="sale_tax" attrs="{'invisible': [('complete_tax_set', '!=', True)]}" domain="[('chart_template_id', '=', chart_template_id),('parent_id','=',False),('type_tax_use','in',('sale','all'))]"/>
+                            <field name="sale_tax" attrs="{'invisible': [('complete_tax_set', '!=', True)]}" domain="[('chart_template_id', '=', chart_template_id),('parent_id','=',False),('type_tax_use','=','sale')]"/>
                             <label for="sale_tax_rate" string="Sale Tax" attrs="{'invisible': [('complete_tax_set', '=', True)]}"/>
                             <div attrs="{'invisible': [('complete_tax_set', '=', True)]}">
                                 <field name="sale_tax_rate" class="oe_inline" on_change="onchange_tax_rate(sale_tax_rate)"/> %%
                             </div>
-                            <field name="purchase_tax" attrs="{'invisible': [('complete_tax_set', '!=', True)]}" domain="[('chart_template_id', '=', chart_template_id),('parent_id','=',False),('type_tax_use','in',('purchase', 'all'))]"/>
+                            <field name="purchase_tax" attrs="{'invisible': [('complete_tax_set', '!=', True)]}" domain="[('chart_template_id', '=', chart_template_id),('parent_id','=',False),('type_tax_use','=','purchase')]"/>
                             <label for="purchase_tax_rate" string="Purchase Tax" attrs="{'invisible': [('complete_tax_set', '=', True)]}"/>
                             <div attrs="{'invisible': [('complete_tax_set', '=', True)]}">
                                 <field name="purchase_tax_rate" class="oe_inline"/> %%

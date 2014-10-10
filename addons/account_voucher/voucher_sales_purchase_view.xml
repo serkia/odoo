@@ -107,7 +107,7 @@
                                     <field name="tax_id" 
                                         on_change="onchange_price(line_cr_ids, tax_id, partner_id)" 
                                         widget="selection" nolabel="1" 
-                                        placeholder="Tax" domain="[('type_tax_use','in',('sale','all')), ('parent_id', '=', False)]"/>
+                                        placeholder="Tax" domain="[('type_tax_use','=','sale'), ('parent_id', '=', False)]"/>
                                     <field name="tax_amount" nolabel="1"/>
                                     <div class="oe_subtotal_footer_separator">
                                         <label for="amount"/>
@@ -269,7 +269,7 @@
                                     <field name="tax_id" 
                                         on_change="onchange_price(line_dr_ids, tax_id, partner_id)"
                                         widget="selection" nolabel="1"
-                                        placeholder="Tax" domain="[('type_tax_use','in',('purchase','all')), ('parent_id', '=', False)]"/>
+                                        placeholder="Tax" domain="[('type_tax_use','=','purchase'), ('parent_id', '=', False)]"/>
                                     <field name="tax_amount" nolabel="1"/>
                                     <div class="oe_subtotal_footer_separator">
                                         <label for="amount"/>

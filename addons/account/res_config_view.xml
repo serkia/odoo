@@ -66,13 +66,13 @@
                             <div attrs="{'invisible': ['|', ('chart_template_id','=',False), ('complete_tax_set','=',False)]}">
                                 <label for="sale_tax"/>
                                 <field name="sale_tax"
-                                    domain="[('chart_template_id', '=', chart_template_id),('parent_id','=',False),('type_tax_use','in',('sale','all'))]"
+                                    domain="[('chart_template_id', '=', chart_template_id),('parent_id','=',False),('type_tax_use','=','sale')]"
                                     class="oe_inline"/>
                             </div>
                             <div attrs="{'invisible': ['|', ('chart_template_id','=',False), ('complete_tax_set','=',False)]}">
                                 <label for="purchase_tax"/>
                                 <field name="purchase_tax"
-                                    domain="[('chart_template_id', '=', chart_template_id),('parent_id','=',False),('type_tax_use','in',('purchase', 'all'))]"
+                                    domain="[('chart_template_id', '=', chart_template_id),('parent_id','=',False),('type_tax_use','=','purchase')]"
                                     class="oe_inline"/>
                             </div>
                             <div attrs="{'invisible': ['|', ('chart_template_id','=',False), ('complete_tax_set','=',True)]}">

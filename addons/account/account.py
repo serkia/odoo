@@ -1870,7 +1870,7 @@ class account_tax(osv.osv):
         'company_id': fields.many2one('res.company', 'Company', required=True),
         'description': fields.char('Display on Reports'),
         'price_include': fields.boolean('Tax Included in Price', help="Check this if the price you use on the product and invoices includes this tax."),
-        'type_tax_use': fields.selection([('sale', 'Sale'), ('purchase', 'Purchase'), ('all', 'All Documents')], 'Tax Application', required=True),
+        'type_tax_use': fields.selection([('sale', 'Sale'), ('purchase', 'Purchase')], 'Tax Application', required=True),
         'parent_id': fields.many2one('account.tax', 'Parent Tax Account', select=True),
         'child_ids': fields.one2many('account.tax', 'parent_id', 'Child Tax Accounts'),
         'tax_invoice_line_ids': fields.one2many('account.tax.line', 'tax_id', 'Tax Invoice', domain=[('apply_on', '=', 'invoice')]),
@@ -1966,14 +1966,14 @@ class account_tax(osv.osv):
 
         if context.get('type'):
             if context.get('type') in ('out_invoice','out_refund'):
-                args += [('type_tax_use','in',['sale','all'])]
+                args += [('type_tax_use','=','sale')]
             elif context.get('type') in ('in_invoice','in_refund'):
-                args += [('type_tax_use','in',['purchase','all'])]
+                args += [('type_tax_use','=','purchase')]
 
         if context.get('journal_id'):
             journal = journal_pool.browse(cr, uid, context.get('journal_id'))
             if journal.type in ('sale', 'purchase'):
-                args += [('type_tax_use','in',[journal.type,'all'])]
+                args += [('type_tax_use','=',journal.type)]
 
         return super(account_tax, self).search(cr, uid, args, offset, limit, order, context, count)
 
@@ -2000,7 +2000,7 @@ class account_tax(osv.osv):
         'amount': 0,
         'price_include': 0,
         'active': 1,
-        'type_tax_use': 'all',
+        'type_tax_use': 'sale',
         'sequence': 1,
         'include_base_amount': False,
         'company_id': _default_company,
@@ -2810,7 +2810,7 @@ class account_tax_template(osv.osv):
         'include_base_amount': fields.boolean('Included in base amount', help="Indicates if the amount of tax must be included in the base amount for the computation of the next taxes"),
         'description': fields.char('Display on Reports'),
         'price_include': fields.boolean('Tax Included in Price', help="Check this if the price you use on the product and invoices includes this tax."),
-        'type_tax_use': fields.selection([('sale', 'Sale'),('purchase', 'Purchase'),('all', 'All Documents')], 'Tax Application', required=True),
+        'type_tax_use': fields.selection([('sale', 'Sale'),('purchase', 'Purchase')], 'Tax Application', required=True),
         'parent_id': fields.many2one('account.tax.template', 'Parent Tax Account', select=True),
         'child_ids': fields.one2many('account.tax.template', 'parent_id', 'Child Tax Accounts'),
         'tax_invoice_line_ids': fields.one2many('account.tax.line.template', 'tax_id', 'Tax Invoice', domain=[('apply_on','=','invoice')]),
@@ -2844,7 +2844,7 @@ class account_tax_template(osv.osv):
         'amount': 0,
         'sequence': 1,
         'include_base_amount': False,
-        'type_tax_use': 'all',
+        'type_tax_use': 'sale',
         'price_include': 0,
         'active': True,
     }
@@ -2991,8 +2991,8 @@ class wizard_multi_charts_accounts(osv.osv_memory):
         'chart_template_id': fields.many2one('account.chart.template', 'Chart Template', required=True),
         'bank_accounts_id': fields.one2many('account.bank.accounts.wizard', 'bank_account_id', 'Cash and Banks', required=True),
         'code_digits':fields.integer('# of Digits', required=True, help="No. of Digits to use for account code"),
-        "sale_tax": fields.many2one("account.tax.template", "Default Sale Tax"),
-        "purchase_tax": fields.many2one("account.tax.template", "Default Purchase Tax"),
+        'sale_tax': fields.many2one("account.tax.template", "Default Sale Tax"),
+        'purchase_tax': fields.many2one("account.tax.template", "Default Purchase Tax"),
         'sale_tax_rate': fields.float('Sales Tax(%)'),
         'purchase_tax_rate': fields.float('Purchase Tax(%)'),
         'complete_tax_set': fields.boolean('Complete Set of Taxes', help='This boolean helps you to choose if you want to propose to the user to encode the sales and purchase rates or use the usual m2o fields. This last choice assumes that the set of tax defined for the chosen template is complete'),
@@ -3027,8 +3027,8 @@ class wizard_multi_charts_accounts(osv.osv_memory):
             # default tax is given by the lowest sequence. For same sequence we will take the latest created as it will be the case for tax created while isntalling the generic chart of account
                 chart_ids = self._get_chart_parent_ids(cr, uid, data, context=context)
                 base_tax_domain = [("chart_template_id", "in", chart_ids), ('parent_id', '=', False)]
-                sale_tax_domain = base_tax_domain + [('type_tax_use', 'in', ('sale','all'))]
-                purchase_tax_domain = base_tax_domain + [('type_tax_use', 'in', ('purchase','all'))]
+                sale_tax_domain = base_tax_domain + [('type_tax_use', '=', 'sale')]
+                purchase_tax_domain = base_tax_domain + [('type_tax_use', '=', 'purchase')]
                 sale_tax_ids = tax_templ_obj.search(cr, uid, sale_tax_domain, order="sequence, id desc")
                 purchase_tax_ids = tax_templ_obj.search(cr, uid, purchase_tax_domain, order="sequence, id desc")
                 res['value'].update({'sale_tax': sale_tax_ids and sale_tax_ids[0] or False,
@@ -3071,14 +3071,10 @@ class wizard_multi_charts_accounts(osv.osv_memory):
                 res.update({'only_one_chart_template': len(ids) == 1,
                             'chart_template_id': chart_id})
             if 'sale_tax' in fields:
-                sale_tax_ids = tax_templ_obj.search(cr, uid, [("chart_template_id", "in", chart_hierarchy_ids),
-                                                              ('type_tax_use', 'in', ('sale','all'))],
-                                                    order="sequence")
+                sale_tax_ids = tax_templ_obj.search(cr, uid, [("chart_template_id", "in", chart_hierarchy_ids), ('type_tax_use', '=', 'sale')], order="sequence")
                 res.update({'sale_tax': sale_tax_ids and sale_tax_ids[0] or False})
             if 'purchase_tax' in fields:
-                purchase_tax_ids = tax_templ_obj.search(cr, uid, [("chart_template_id", "in", chart_hierarchy_ids),
-                                                                  ('type_tax_use', 'in', ('purchase','all'))],
-                                                        order="sequence")
+                purchase_tax_ids = tax_templ_obj.search(cr, uid, [("chart_template_id", "in", chart_hierarchy_ids), ('type_tax_use', '=', 'purchase')], order="sequence")
                 res.update({'purchase_tax': purchase_tax_ids and purchase_tax_ids[0] or False})
         res.update({
             'purchase_tax_rate': 15.0,
@@ -3363,11 +3359,11 @@ class wizard_multi_charts_accounts(osv.osv_memory):
         # create tax templates and tax code templates from purchase_tax_rate and sale_tax_rate fields
         if not chart_template.complete_tax_set:
             value = obj_wizard.sale_tax_rate
-            ref_tax_ids = obj_tax_temp.search(cr, uid, [('type_tax_use','in', ('sale','all')), ('chart_template_id', 'in', all_parents)], context=context, order="sequence, id desc", limit=1)
+            ref_tax_ids = obj_tax_temp.search(cr, uid, [('type_tax_use','=', 'sale'), ('chart_template_id', 'in', all_parents)], context=context, order="sequence, id desc", limit=1)
             obj_tax_temp.write(cr, uid, ref_tax_ids, {'amount': value, 'name': _('Tax %.2f%%') % value})
             _set_tax_line_value(ref_tax_ids, value)
             value = obj_wizard.purchase_tax_rate
-            ref_tax_ids = obj_tax_temp.search(cr, uid, [('type_tax_use','in', ('purchase','all')), ('chart_template_id', 'in', all_parents)], context=context, order="sequence, id desc", limit=1)
+            ref_tax_ids = obj_tax_temp.search(cr, uid, [('type_tax_use','=', 'purchase'), ('chart_template_id', 'in', all_parents)], context=context, order="sequence, id desc", limit=1)
             obj_tax_temp.write(cr, uid, ref_tax_ids, {'amount': value, 'name': _('Purchase Tax %.2f%%') % value})
             _set_tax_line_value(ref_tax_ids, value)
         return True

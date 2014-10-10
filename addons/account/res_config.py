@@ -273,10 +273,10 @@ class account_config_settings(osv.osv_memory):
             if chart_template.complete_tax_set:
                 # default tax is given by the lowest sequence. For same sequence we will take the latest created as it will be the case for tax created while isntalling the generic chart of account
                 sale_tax_ids = tax_templ_obj.search(cr, uid,
-                    [("chart_template_id", "=", chart_template_id), ('type_tax_use', 'in', ('sale','all'))],
+                    [("chart_template_id", "=", chart_template_id), ('type_tax_use', '=', 'sale')],
                     order="sequence, id desc")
                 purchase_tax_ids = tax_templ_obj.search(cr, uid,
-                    [("chart_template_id", "=", chart_template_id), ('type_tax_use', 'in', ('purchase','all'))],
+                    [("chart_template_id", "=", chart_template_id), ('type_tax_use', '=', 'purchase')],
                     order="sequence, id desc")
                 res['value']['sale_tax'] = sale_tax_ids and sale_tax_ids[0] or False
                 res['value']['purchase_tax'] = purchase_tax_ids and purchase_tax_ids[0] or False
