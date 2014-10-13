@@ -11,6 +11,7 @@ access_account_account_partner_manager,account.account partner manager,model_acc
 access_account_journal_period_manager,account.journal.period manager,model_account_journal_period,account.group_account_manager,1,0,0,0
 access_account_tax_code,account.tax.code,model_account_tax_code,account.group_account_invoice,1,0,0,0
 access_account_tax,account.tax,model_account_tax,account.group_account_invoice,1,0,0,0
+access_account_tax_statement_line,account.tax.statement.line,model_account_tax_statement_line,account.group_account_invoice,1,0,0,0
 access_account_tax_line_internal_user,account.tax.line,model_account_tax_line,account.group_account_invoice,1,0,0,0
 access_account_model,account.model,model_account_model,account.group_account_user,1,1,1,1
 access_account_model_line,account.model.line,model_account_model_line,account.group_account_user,1,1,1,1

@@ -1260,6 +1260,7 @@ class account_move(osv.osv):
         'narration':fields.text('Internal Note'),
         'company_id': fields.related('journal_id','company_id',type='many2one',relation='res.company',string='Company', store=True, readonly=True),
         'balance': fields.float('balance', digits_compute=dp.get_precision('Account'), help="This is a field only used for internal purpose and shouldn't be displayed"),
+        'tax_line_ids': fields.one2many('account.tax.statement.line', 'move_id', 'Tax Lines'),
     }
 
     _defaults = {
@@ -1559,24 +1560,26 @@ class account_move(osv.osv):
                     'state': 'valid'
                 }, context, check=False)
 
-                account = {}
-                account2 = {}
+                # TODO : can be removed ?
 
-                if journal.type in ('purchase','sale'):
-                    for line in move.line_id:
-                        code = amount = 0
-                        key = (line.account_id.id, line.tax_code_id.id)
-                        if key in account2:
-                            code = account2[key][0]
-                            amount = account2[key][1] * (line.debit + line.credit)
-                        elif line.account_id.id in account:
-                            code = account[line.account_id.id][0]
-                            amount = account[line.account_id.id][1] * (line.debit + line.credit)
-                        if (code or amount) and not (line.tax_code_id or line.tax_amount):
-                            obj_move_line.write(cr, uid, [line.id], {
-                                'tax_code_id': code,
-                                'tax_amount': amount
-                            }, context, check=False)
+                # account = {}
+                # account2 = {}
+
+                # if journal.type in ('purchase','sale'):
+                #     for line in move.line_id:
+                #         code = amount = 0
+                #         key = (line.account_id.id, line.tax_code_id.id)
+                #         if key in account2:
+                #             code = account2[key][0]
+                #             amount = account2[key][1] * (line.debit + line.credit)
+                #         elif line.account_id.id in account:
+                #             code = account[line.account_id.id][0]
+                #             amount = account[line.account_id.id][1] * (line.debit + line.credit)
+                #         if (code or amount) and not (line.tax_code_id or line.tax_amount):
+                #             obj_move_line.write(cr, uid, [line.id], {
+                #                 'tax_code_id': code,
+                #                 'tax_amount': amount
+                #             }, context, check=False)
             elif journal.centralisation:
                 # If the move is not balanced, it must be centralised...
 
@@ -1695,28 +1698,30 @@ class account_tax_code(osv.osv):
 
     This code is used for some tax declarations.
     """
-    def _sum(self, cr, uid, ids, name, args, context, where ='', where_params=()):
+    def _sum(self, cr, uid, ids, name, args, context, where='', where_params=()):
         parent_ids = tuple(self.search(cr, uid, [('parent_id', 'child_of', ids)]))
         if context.get('based_on', 'invoices') == 'payments':
-            cr.execute('SELECT line.tax_code_id, sum(line.tax_amount) \
-                    FROM account_move_line AS line, \
-                        account_move AS move \
-                        LEFT JOIN account_invoice invoice ON \
-                            (invoice.move_id = move.id) \
-                    WHERE line.tax_code_id IN %s '+where+' \
-                        AND move.id = line.move_id \
-                        AND ((invoice.state = \'paid\') \
-                            OR (invoice.id IS NULL)) \
-                            GROUP BY line.tax_code_id',
-                                (parent_ids,) + where_params)
+            cr.execute('''SELECT line.tax_code_id, sum(line.tax_amount)
+                    FROM account_tax_statement_line AS line,
+                        account_move AS move
+                        LEFT JOIN account_invoice invoice ON
+                            (invoice.move_id = move.id)
+                    WHERE line.tax_code_id IN %s
+                        ''' + where + '''
+                        AND move.id = line.move_id
+                        AND ((invoice.state = 'paid')
+                        OR (invoice.id IS NULL))
+                    GROUP BY line.tax_code_id''',
+                (parent_ids,) + where_params)
         else:
-            cr.execute('SELECT line.tax_code_id, sum(line.tax_amount) \
-                    FROM account_move_line AS line, \
-                    account_move AS move \
-                    WHERE line.tax_code_id IN %s '+where+' \
-                    AND move.id = line.move_id \
-                    GROUP BY line.tax_code_id',
-                       (parent_ids,) + where_params)
+            cr.execute('''SELECT line.tax_code_id, sum(line.tax_amount)
+                    FROM account_tax_statement_line AS line,
+                        account_move AS move
+                    WHERE line.tax_code_id IN %s
+                        ''' + where + '''
+                        AND move.id = line.move_id
+                    GROUP BY line.tax_code_id''',
+                (parent_ids,) + where_params)
         res=dict(cr.fetchall())
         obj_precision = self.pool.get('decimal.precision')
         res2 = {}
@@ -1746,7 +1751,7 @@ class account_tax_code(osv.osv):
             for fy in fiscalyear_id:
                 pids += map(lambda x: str(x.id), self.pool.get('account.fiscalyear').browse(cr, uid, fy).period_ids)
             if pids:
-                where = ' AND line.period_id IN %s AND move.state IN %s '
+                where = ' AND move.period_id IN %s AND move.state IN %s '
                 where_params = (tuple(pids), move_state)
         return self._sum(cr, uid, ids, name, args, context,
                 where=where, where_params=where_params)
@@ -1765,7 +1770,7 @@ class account_tax_code(osv.osv):
                 return dict.fromkeys(ids, 0.0)
             period_id = period_id[0]
         return self._sum(cr, uid, ids, name, args, context,
-                where=' AND line.period_id=%s AND move.state IN %s', where_params=(period_id, move_state))
+                where=' AND move.period_id=%s AND move.state IN %s', where_params=(period_id, move_state))
 
     _name = 'account.tax.code'
     _description = 'Tax Code'
@@ -1779,7 +1784,7 @@ class account_tax_code(osv.osv):
         'sum_period': fields.function(_sum_period, string="Period Sum"),
         'parent_id': fields.many2one('account.tax.code', 'Parent Code', select=True),
         'child_ids': fields.one2many('account.tax.code', 'parent_id', 'Child Codes'),
-        'line_ids': fields.one2many('account.move.line', 'tax_code_id', 'Lines'),
+        'line_ids': fields.one2many('account.tax.statement.line', 'tax_code_id', 'Lines'),
         'company_id': fields.many2one('res.company', 'Company', required=True),
         'sign': fields.float('Coefficent for parent', required=True, help='You can specify here the coefficient that will be used when consolidating the amount of this case into its parent. For example, set 1/-1 if you want to add/substract it.'),
         'notprintable':fields.boolean("Not Printable in Invoice", help="Check this box if you don't want any tax related to this tax code to appear on invoices"),
@@ -1797,15 +1802,12 @@ class account_tax_code(osv.osv):
         return self.name_get(cr, user, ids, context=context)
 
     def name_get(self, cr, uid, ids, context=None):
-        if isinstance(ids, (int, long)):
-            ids = [ids]
         if not ids:
             return []
         if isinstance(ids, (int, long)):
             ids = [ids]
         reads = self.read(cr, uid, ids, ['name','code'], context=context, load='_classic_write')
-        return [(x['id'], (x['code'] and (x['code'] + ' - ') or '') + x['name']) \
-                for x in reads]
+        return [(x['id'], (x['code'] and (x['code'] + ' - ') or '') + x['name']) for x in reads]
 
     def _default_company(self, cr, uid, context=None):
         user = self.pool.get('res.users').browse(cr, uid, uid, context=context)
@@ -1825,8 +1827,6 @@ class account_tax_code(osv.osv):
     ]
     _order = 'code'
 
-TAX_TYPE = [('percent', 'Percentage'), ('fixed', 'Fixed Amount'), ('group', 'Group of Tax'), ('code', 'Python Code')]
-
 def get_precision_tax():
     def change_digit_tax(cr):
         res = openerp.registry(cr.dbname)['decimal.precision'].precision_get(cr, SUPERUSER_ID, 'Account')
@@ -1837,13 +1837,12 @@ class account_tax(osv.osv):
     """
     A tax object.
 
-    Type: percent, fixed, group, code
-        PERCENT: tax = price * amount / 100
-        FIXED: tax = price + amount
-        GROUP: tax = tax + .. + tax
-        CODE: execute python code. localcontext = {'price_unit':pu}
-            return result in the context
-            Ex: result=round(price_unit*0.21,4)
+    Type: normal, group, code
+        NORMAL: tax = tax_line + ... + tax_line (fix or %)
+        GROUP:  tax = tax + ... + tax
+        CODE:   execute python code. localcontext = {'price_unit':pu}
+                return result in the context
+                Ex: result=round(price_unit*0.21,4)
     """
     def copy_data(self, cr, uid, id, default=None, context=None):
         if default is None:
@@ -1857,24 +1856,17 @@ class account_tax(osv.osv):
     _columns = {
         'name': fields.char('Tax Name', required=True, translate=True, help="This name will be displayed on reports"),
         'sequence': fields.integer('Sequence', required=True, help="The sequence field is used to order the tax lines from the lowest sequences to the higher ones. The order is important if you have a tax with several tax children. In this case, the evaluation order is important."),
-        # TODO : remove ?
-        'amount': fields.float('Tax Rate', required=True, digits_compute=get_precision_tax(), help="For taxes of type percentage, enter % between 0-100."),
         'active': fields.boolean('Active', help="If the active field is set to False, it will allow you to hide the tax without removing it."),
-        # TODO : standard, group, python ?
-        'type': fields.selection(TAX_TYPE, 'Type of Tax', required=True,
-            help="The computation method for the tax amount."),
-        'applicable_type': fields.selection([('true', 'Always'), ('code', 'Given by Python Code')], 'Applicability', required=True,
-            help="If not applicable (computed through a Python code), the tax won't appear on the invoice."),
+        'type': fields.selection([('normal', 'Normal'), ('group', 'Group of Tax'), ('code', 'Python Code')], 'Type of Tax', required=True, help="The computation method for the tax amount."),
+        'applicable_type': fields.selection([('true', 'Always'), ('code', 'Given by Python Code')], 'Applicability', required=True, help="If not applicable (computed through a Python code), the tax won't appear on the invoice."),
         'python_compute': fields.text('Python Code (invoices)'),
         'python_compute_inv': fields.text('Python Code (refunds)'),
         'python_applicable': fields.text('Applicable Code'),
-        # TODO : ?
         'include_base_amount': fields.boolean('Included in base amount', help="When several taxes applies, this field indicates if the tax amount computed for this one must be included in the base amount for the computation of the next taxes (following the sequence order)."),
         'company_id': fields.many2one('res.company', 'Company', required=True),
         'description': fields.char('Display on Reports'),
         'price_include': fields.boolean('Tax Included in Price', help="Check this if the price you use on the product and invoices includes this tax."),
         'type_tax_use': fields.selection([('sale', 'Sale'), ('purchase', 'Purchase')], 'Tax Application', required=True),
-        # TODO : remove ?
         'parent_id': fields.many2one('account.tax', 'Parent Tax Account', select=True),
         'child_ids': fields.one2many('account.tax', 'parent_id', 'Child Tax Accounts'),
         'tax_invoice_line_ids': fields.one2many('account.tax.line', 'tax_id', 'Tax Invoice', domain=[('apply_on', '=', 'invoice')]),
@@ -1893,10 +1885,10 @@ class account_tax(osv.osv):
             base_amount = base_amount / (1 + (tax_amount / 100.0))
         tax_amount = tax_amount * base_amount / 100.0
 
-        tax_invoice_line_ids = [{'type': 'base', 'apply_on': 'invoice', 'tax_amount': base_amount},
-                                {'type': 'percent', 'apply_on': 'invoice', 'tax_amount': tax_amount}]
-        tax_refund_line_ids = [{'type': 'base', 'apply_on': 'refund', 'tax_amount': -base_amount},
-                                {'type': 'percent', 'apply_on': 'refund', 'tax_amount': -tax_amount}]
+        tax_invoice_line_ids = [{'code_type': 'base', 'description': '/', 'apply_on': 'invoice', 'tax_amount': base_amount},
+                                {'code_type': 'percent', 'apply_on': 'invoice', 'tax_amount': tax_amount}]
+        tax_refund_line_ids = [{'code_type': 'base', 'apply_on': 'refund', 'tax_amount': -base_amount},
+                                {'code_type': 'percent', 'apply_on': 'refund', 'tax_amount': -tax_amount}]
         return {'value': {'tax_invoice_line_ids': tax_invoice_line_ids, 'tax_refund_line_ids': tax_refund_line_ids}}
 
     def fields_view_get(self, cr, uid, view_id=None, view_type='form', context=None, toolbar=False):
@@ -1946,18 +1938,6 @@ class account_tax(osv.osv):
         ids = self.search(cr, user, expression.AND([domain, args]), limit=limit, context=context)
         return self.name_get(cr, user, ids, context=context)
 
-    def create(self, cr, uid, vals, context=None):
-        if vals.get('type', False) and vals['type'] == 'percentage_price_include':
-            vals.update({'price_include': True})
-        return super(account_tax, self).create(cr, uid, vals, context=context)
-
-    def write(self, cr, uid, ids, vals, context=None):
-        if vals.get('type', False) and vals['type'] in ('none', 'code'):
-            vals.update({'amount': 0.0})
-        if vals.get('type', False) and vals['type'] == 'percentage_price_include':
-            vals.update({'price_include': True})
-        return super(account_tax, self).write(cr, uid, ids, vals, context=context)
-
     def search(self, cr, uid, args, offset=0, limit=None, order=None, context=None, count=False):
         if context is None:
             context = {}
@@ -1995,8 +1975,7 @@ class account_tax(osv.osv):
         'python_compute': '''# price_unit\n# or False\n# product: product.product object or None\n# partner: res.partner object or None\n\nresult = price_unit * 0.10''',
         'applicable_type': 'true',
         'python_applicable': '''# price_unit\n# product: product.product object or None\n# partner: res.partner object or None\n\nif price_unit >= 1000:\n    result = True''',
-        'type': 'percent',
-        'amount': 0,
+        'type': 'normal',
         'price_include': 0,
         'active': 1,
         'type_tax_use': 'sale',
@@ -2024,6 +2003,18 @@ class account_tax(osv.osv):
         res = []
         cur_price_unit = price_unit
         for tax in taxes:
+            if tax.type == 'normal':
+                tax_lines = []
+                if apply_on == 'invoice':
+                    tax_lines = tax.tax_invoice_line_ids
+                elif apply_on == 'refund':
+                    tax_lines = tax.tax_refund_line_ids
+                for tax_line in tax_lines:
+                    data = tax_line.compute_tax_line(price_unit, date=date)
+                    # data[0]['todo'] = 0
+                    # if tax.price_include:
+                    #     data[0]['todo'] = 1
+                    res.extend(data)
             if tax.type == 'group':
                 for child in tax.child_ids:  # get children ordered by sequence
                     child_tax = self._unit_compute(cr, uid, [child], cur_price_unit, product=product, partner=partner, date=date, apply_on=apply_on, context=context)
@@ -2051,19 +2042,6 @@ class account_tax(osv.osv):
                     'amount': amount,
                     'tax_amount': localdict.get('tax_amount', 0.0),
                 })
-            else:
-                #tax.type in ['percent', 'fixed']:
-                tax_lines = []
-                if apply_on == 'invoice':
-                    tax_lines = tax.tax_invoice_line_ids
-                elif apply_on == 'refund':
-                    tax_lines = tax.tax_refund_line_ids
-                for tax_line in tax_lines:
-                    data = tax_line.compute_tax_line(price_unit, date=date)
-                    data[0]['todo'] = 0
-                    if tax.price_include:
-                        data[0]['todo'] = 1
-                    res.extend(data)
         total = 0.0
         for r in res:
             if r['todo'] and r['code_type'] == 'tax':
@@ -2111,15 +2089,16 @@ class account_tax(osv.osv):
                         partner=partner, precision=tax_compute_precision, date=date, apply_on=apply_on, context=context)
             all_taxes += res_tax
             for rec in res_tax:
-                if rec.get('code_type') == 'tax' and not tax.price_include:
-                    totalin += rec.get('amount', 0.0)
-                if rec.get('code_type') == 'tax' and tax.include_base_amount:
-                    cur_price_unit += rec.get('amount', 0.0)
-                if rec.get('code_type') == 'tax' and tax.price_include:
-                    cur_price_unit -= rec.get('amount', 0.0)
-                #special case of group tax which will have child tax with include price option
-                if rec.get('code_type') == 'tax' and rec.get('price_include_in_group', False):
-                    totalex -= rec.get('amount', 0.0)
+                if rec.get('code_type') != 'base':
+                    if not tax.price_include:
+                        totalin += rec.get('amount', 0.0)
+                    if tax.include_base_amount:
+                        cur_price_unit += rec.get('amount', 0.0)
+                    if tax.price_include:
+                        cur_price_unit -= rec.get('amount', 0.0)
+                    #special case of group tax which will have child tax with include price option
+                    if rec.get('price_include_in_group', False):
+                        totalex -= rec.get('amount', 0.0)
         return {
             'total': totalex,
             'total_included': totalin,
@@ -2167,7 +2146,7 @@ class account_tax_line(osv.Model):
         taxes = []
         for tax_line in self.browse(cr, uid, ids, context=context):
             tax_amount = (tax_line.tax_amount / 1000) * price_unit
-            if tax_line.code_type == 'tax' and tax_line.tax_id.type == 'fixed':
+            if tax_line.code_type == 'fixed':
                 tax_amount = tax_line.tax_amount
             taxes.append({
                 'name': tax_line.tax_id.name,
@@ -2186,9 +2165,8 @@ class account_tax_line(osv.Model):
         'tax_id': fields.many2one('account.tax','Tax', required=True, ondelete="cascade"),
         'apply_on': fields.selection([('invoice','Invoice'),('refund','Refund')], "Apply On", required=True),
         'sequence': fields.integer('Sequence', required=True, help="The sequence field is used to order the tax lines from the lowest sequences to the higher ones, in order to know which one to compute first (lower sequence first)."),
-        'code_type': fields.selection([('base','Base'),('tax','Tax')], "Type"), # TODO : just type
+        'code_type': fields.selection([('base','Base'),('fixed','Fixed'),('percent','Percent')], "Type"),
         'code_id': fields.many2one('account.tax.code', 'Section in the Tax Statement', help="Use this code for the tax declaration."),
-        # TODO : keek ? remove ?
         'account_id': fields.many2one('account.account', 'Tax Account', help="Set the account that will be set by default on invoice tax lines for invoices or refund. Leave empty to use the expense account."),
         'analytic_account_id': fields.many2one('account.analytic.account', 'Tax Analytic Account', help="Set the analytic account that will be used by default on the invoice tax lines for invoices or Refunds. Leave empty if you don't want to use an analytic account on the invoice tax lines by default."),
         'tax_amount': fields.float('Amount', required=True, digits_compute=dp.get_precision('Account')),
@@ -2197,16 +2175,25 @@ class account_tax_line(osv.Model):
     }
     _defaults = {
         'sequence': 1,
-        'code_type': 'tax',
         'apply_on': 'invoice',
         'tax_amount': 1000.0,
-        'description': '/', # TODO : maybe not required, maybe _get_desction return / if type=='base'
     }
 
     def onchange_amount(self, cr, uid, ids, amount=0.0, context=None):
         if context is None:
             context = {}
         return {'value': {'tax_amount': context and context.get('default_apply_on') == 'refund' and -amount or amount}}
+
+
+class account_tax_statement_line(osv.osv):
+    _name = "account.tax.statement.line"
+    _description = "Tax statement line"
+    _columns = {
+        'move_id': fields.many2one('account.move', 'Journal entry', required=True),
+        'date': fields.date('Creation date', readonly=True),
+        'tax_amount': fields.float('Amount to report in the Tax Statement', required=True, digits_compute=dp.get_precision('Account')),
+        'tax_code_id': fields.many2one('account.tax.code', 'Tax Code where to report the amount in the Tax Statement', required=True),
+    }
 
 
 # ---------------------------------------------------------
@@ -2746,7 +2733,7 @@ class account_tax_line_template(osv.Model):
     _order = 'sequence'
 
     _columns = {
-        'code_type': fields.selection([('base','Base'),('tax','Tax')], "Code Type"),
+        'code_type': fields.selection([('base','Base'),('fixed','Fixed'),('percent','Percent')], "Type"),
         'tax_amount': fields.float('Amount to report in the Tax Statement', help="Amount to report in the Tax Statement."),
         'apply_on': fields.selection([('invoice','Invoice'),('refund','Refund')], "Apply On", required=True),
         'code_id': fields.many2one('account.tax.code.template', 'Section in the Tax Statement', help="Use this code for the tax declaration."),
@@ -2794,7 +2781,7 @@ class account_tax_template(osv.osv):
         'sequence': fields.integer('Sequence', required=True, help="The sequence field is used to order the tax lines from the lowest sequences to the higher ones. The order is important if you have a tax with several tax children. In this case, the evaluation order is important."),
         'amount': fields.float('Tax Rate', required=True, digits_compute=get_precision_tax(), help="For taxes of type percentage, enter % between 0-100."),
         'active': fields.boolean('Active', help="If the active field is set to False, it will allow you to hide the tax without removing it."),
-        'type': fields.selection(TAX_TYPE, 'Type of Tax', required=True,
+        'type': fields.selection([('normal', 'Normal'), ('group', 'Group of Tax'), ('code', 'Python Code')], 'Type of Tax', required=True,
             help="The computation method for the tax amount."),
         'applicable_type': fields.selection( [('true','Always'), ('code','Given by Python Code')], 'Applicability', required=True,
             help="If not applicable (computed through a Python code), the tax won't appear on the invoice."),

@@ -390,24 +390,21 @@
         <record id="otaxs" model="account.tax.template">
             <field name="chart_template_id" ref="configurable_chart_template"/>
             <field name="name">OTAX S</field>
-            <field eval="15" name="amount"/>
-            <field name="type">percent</field>
+            <field name="type">normal</field>
             <field name="type_tax_use">purchase</field>
         </record>
 
         <record id="otaxs_invoice_base_line" model="account.tax.line.template">
             <field name="code_type">base</field>
-           <field name="tax_amount">1000</field>
-            <field name="debit_credit_amount">1000</field>
+            <field name="tax_amount">1000</field>
             <field name="apply_on">invoice</field>
             <field name="code_id" ref="tax_code_purch_S"/>
             <field name="tax_id" ref="otaxs"/>
         </record>
 
         <record id="otaxs_invoice_tax_line" model="account.tax.line.template">
-            <field name="code_type">tax</field>
-           <field name="tax_amount">150</field>
-            <field name="debit_credit_amount">150</field>
+            <field name="code_type">percent</field>
+            <field name="tax_amount">150</field>
             <field name="apply_on">invoice</field>
             <field name="code_id" ref="tax_code_output_S"/>
             <field name="account_id" ref="conf_ova"/>
@@ -416,17 +413,15 @@
 
         <record id="otaxs_refund_base_line" model="account.tax.line.template">
             <field name="code_type">base</field>
-           <field name="tax_amount">1000</field>
-            <field name="debit_credit_amount">1000</field>
+            <field name="tax_amount">1000</field>
             <field name="apply_on">refund</field>
             <field name="code_id" ref="tax_code_purch_S"/>
             <field name="tax_id" ref="otaxs"/>
         </record>
 
         <record id="otaxs_refund_tax_line" model="account.tax.line.template">
-            <field name="code_type">tax</field>
-           <field name="tax_amount">150</field>
-            <field name="debit_credit_amount">150</field>
+            <field name="code_type">percent</field>
+            <field name="tax_amount">150</field>
             <field name="apply_on">refund</field>
             <field name="code_id" ref="tax_code_output_S"/>
             <field name="account_id" ref="conf_ova"/>
@@ -436,24 +431,21 @@
         <record id="otaxr" model="account.tax.template">
             <field name="chart_template_id" ref="configurable_chart_template"/>
             <field name="name">OTAX R</field>
-            <field eval="5" name="amount"/>
-            <field name="type">percent</field>
+            <field name="type">normal</field>
             <field name="type_tax_use">purchase</field>
         </record>
 
         <record id="otaxr_invoice_base_line" model="account.tax.line.template">
             <field name="code_type">base</field>
-           <field name="tax_amount">1000</field>
-            <field name="debit_credit_amount">1000</field>
+            <field name="tax_amount">1000</field>
             <field name="apply_on">invoice</field>
             <field name="code_id" ref="tax_code_purch_R"/>
             <field name="tax_id" ref="otaxr"/>
         </record>
 
         <record id="otaxr_invoice_tax_line" model="account.tax.line.template">
-            <field name="code_type">tax</field>
-           <field name="tax_amount">50</field>
-            <field name="debit_credit_amount">50</field>
+            <field name="code_type">percent</field>
+            <field name="tax_amount">50</field>
             <field name="apply_on">invoice</field>
             <field name="code_id" ref="tax_code_output_R"/>
             <field name="account_id" ref="conf_ova"/>
@@ -462,17 +454,15 @@
 
         <record id="otaxr_refund_base_line" model="account.tax.line.template">
             <field name="code_type">base</field>
-           <field name="tax_amount">1000</field>
-            <field name="debit_credit_amount">1000</field>
+            <field name="tax_amount">1000</field>
             <field name="apply_on">refund</field>
             <field name="code_id" ref="tax_code_purch_R"/>
             <field name="tax_id" ref="otaxr"/>
         </record>
 
         <record id="otaxr_refund_tax_line" model="account.tax.line.template">
-            <field name="code_type">tax</field>
-           <field name="tax_amount">50</field>
-            <field name="debit_credit_amount">50</field>
+            <field name="code_type">percent</field>
+            <field name="tax_amount">50</field>
             <field name="apply_on">refund</field>
             <field name="code_id" ref="tax_code_output_R"/>
             <field name="account_id" ref="conf_ova"/>
@@ -482,24 +472,21 @@
         <record id="otaxx" model="account.tax.template">
             <field name="chart_template_id" ref="configurable_chart_template"/>
             <field name="name">OTAX X</field>
-            <field eval="0" name="amount"/>
-            <field name="type">percent</field>
+            <field name="type">normal</field>
             <field name="type_tax_use">purchase</field>
         </record>
 
         <record id="otaxx_invoice_base_line" model="account.tax.line.template">
             <field name="code_type">base</field>
-           <field name="tax_amount">1000</field>
-            <field name="debit_credit_amount">1000</field>
+            <field name="tax_amount">1000</field>
             <field name="apply_on">invoice</field>
             <field name="code_id" ref="tax_code_purch_X"/>
             <field name="tax_id" ref="otaxx"/>
         </record>
 
         <record id="otaxx_invoice_tax_line" model="account.tax.line.template">
-            <field name="code_type">tax</field>
+            <field name="code_type">percent</field>
             <field name="tax_amount">0</field>
-           <field name="debit_credit_amount">0</field>
             <field name="apply_on">invoice</field>
             <field name="code_id" ref="tax_code_output_X"/>
             <field name="account_id" ref="conf_ova"/>
@@ -508,17 +495,15 @@
 
         <record id="otaxx_refund_base_line" model="account.tax.line.template">
             <field name="code_type">base</field>
-           <field name="tax_amount">1000</field>
-            <field name="debit_credit_amount">1000</field>
+            <field name="tax_amount">1000</field>
             <field name="apply_on">refund</field>
             <field name="code_id" ref="tax_code_purch_X"/>
             <field name="tax_id" ref="otaxx"/>
         </record>
 
         <record id="otaxx_refund_tax_line" model="account.tax.line.template">
-            <field name="code_type">tax</field>
+            <field name="code_type">percent</field>
             <field name="tax_amount">0</field>
-           <field name="debit_credit_amount">0</field>
             <field name="apply_on">refund</field>
             <field name="code_id" ref="tax_code_output_X"/>
             <field name="account_id" ref="conf_ova"/>
@@ -528,24 +513,21 @@
         <record id="otaxo" model="account.tax.template">
             <field name="chart_template_id" ref="configurable_chart_template"/>
             <field name="name">OTAX O</field>
-            <field eval="0" name="amount"/>
-            <field name="type">percent</field>
+            <field name="type">normal</field>
             <field name="type_tax_use">purchase</field>
         </record>
 
         <record id="otaxo_invoice_base_line" model="account.tax.line.template">
             <field name="code_type">base</field>
-           <field name="tax_amount">1000</field>
-            <field name="debit_credit_amount">1000</field>
+            <field name="tax_amount">1000</field>
             <field name="apply_on">invoice</field>
             <field name="code_id" ref="tax_code_purch_O"/>
             <field name="tax_id" ref="otaxo"/>
         </record>
 
         <record id="otaxo_invoice_tax_line" model="account.tax.line.template">
-            <field name="code_type">tax</field>
+            <field name="code_type">percent</field>
             <field name="tax_amount">0</field>
-           <field name="debit_credit_amount">0</field>
             <field name="apply_on">invoice</field>
             <field name="code_id" ref="tax_code_output_O"/>
             <field name="account_id" ref="conf_ova"/>
@@ -554,17 +536,15 @@
 
         <record id="otaxo_refund_base_line" model="account.tax.line.template">
             <field name="code_type">base</field>
-           <field name="tax_amount">1000</field>
-            <field name="debit_credit_amount">1000</field>
+            <field name="tax_amount">1000</field>
             <field name="apply_on">refund</field>
             <field name="code_id" ref="tax_code_purch_O"/>
             <field name="tax_id" ref="otaxo"/>
         </record>
 
         <record id="otaxo_refund_tax_line" model="account.tax.line.template">
-            <field name="code_type">tax</field>
+            <field name="code_type">percent</field>
             <field name="tax_amount">0</field>
-           <field name="debit_credit_amount">0</field>
             <field name="apply_on">refund</field>
             <field name="code_id" ref="tax_code_output_O"/>
             <field name="account_id" ref="conf_ova"/>
@@ -576,24 +556,21 @@
         <record id="itaxs" model="account.tax.template">
             <field name="chart_template_id" ref="configurable_chart_template"/>
             <field name="name">ITAX S</field>
-            <field eval="15" name="amount"/>
-            <field name="type">percent</field>
+            <field name="type">normal</field>
             <field name="type_tax_use">sale</field>
         </record>
 
         <record id="itaxs_invoice_base_line" model="account.tax.line.template">
             <field name="code_type">base</field>
-           <field name="tax_amount">1000</field>
-            <field name="debit_credit_amount">1000</field>
+            <field name="tax_amount">1000</field>
             <field name="apply_on">invoice</field>
             <field name="code_id" ref="tax_code_sales_S"/>
             <field name="tax_id" ref="itaxs"/>
         </record>
 
         <record id="itaxs_invoice_tax_line" model="account.tax.line.template">
-            <field name="code_type">tax</field>
-           <field name="tax_amount">150</field>
-            <field name="debit_credit_amount">150</field>
+            <field name="code_type">percent</field>
+            <field name="tax_amount">150</field>
             <field name="apply_on">invoice</field>
             <field name="code_id" ref="tax_code_input_S"/>
             <field name="account_id" ref="conf_iva"/>
@@ -602,17 +579,15 @@
 
         <record id="itaxs_refund_base_line" model="account.tax.line.template">
             <field name="code_type">base</field>
-           <field name="tax_amount">1000</field>
-            <field name="debit_credit_amount">1000</field>
+            <field name="tax_amount">1000</field>
             <field name="apply_on">refund</field>
             <field name="code_id" ref="tax_code_sales_S"/>
             <field name="tax_id" ref="itaxs"/>
         </record>
 
         <record id="itaxs_refund_tax_line" model="account.tax.line.template">
-            <field name="code_type">tax</field>
-           <field name="tax_amount">150</field>
-            <field name="debit_credit_amount">150</field>
+            <field name="code_type">percent</field>
+            <field name="tax_amount">150</field>
             <field name="apply_on">refund</field>
             <field name="code_id" ref="tax_code_input_S"/>
             <field name="account_id" ref="conf_iva"/>
@@ -622,24 +597,21 @@
         <record id="itaxr" model="account.tax.template">
             <field name="chart_template_id" ref="configurable_chart_template"/>
             <field name="name">ITAX R</field>
-            <field eval="5" name="amount"/>
-            <field name="type">percent</field>
+            <field name="type">normal</field>
             <field name="type_tax_use">sale</field>
         </record>
 
         <record id="itaxr_invoice_base_line" model="account.tax.line.template">
             <field name="code_type">base</field>
-           <field name="tax_amount">1000</field>
-            <field name="debit_credit_amount">1000</field>
+            <field name="tax_amount">1000</field>
             <field name="apply_on">invoice</field>
             <field name="code_id" ref="tax_code_sales_R"/>
             <field name="tax_id" ref="itaxr"/>
         </record>
 
         <record id="itaxr_invoice_tax_line" model="account.tax.line.template">
-            <field name="code_type">tax</field>
-           <field name="tax_amount">50</field>
-            <field name="debit_credit_amount">50</field>
+            <field name="code_type">percent</field>
+            <field name="tax_amount">50</field>
             <field name="apply_on">invoice</field>
             <field name="code_id" ref="tax_code_input_R"/>
             <field name="account_id" ref="conf_iva"/>
@@ -648,17 +620,15 @@
 
         <record id="itaxr_refund_base_line" model="account.tax.line.template">
             <field name="code_type">base</field>
-           <field name="tax_amount">1000</field>
-            <field name="debit_credit_amount">1000</field>
+            <field name="tax_amount">1000</field>
             <field name="apply_on">refund</field>
             <field name="code_id" ref="tax_code_sales_R"/>
             <field name="tax_id" ref="itaxr"/>
         </record>
 
         <record id="itaxr_refund_tax_line" model="account.tax.line.template">
-            <field name="code_type">tax</field>
-           <field name="tax_amount">50</field>
-            <field name="debit_credit_amount">50</field>
+            <field name="code_type">percent</field>
+            <field name="tax_amount">50</field>
             <field name="apply_on">refund</field>
             <field name="code_id" ref="tax_code_input_R"/>
             <field name="account_id" ref="conf_iva"/>
@@ -669,23 +639,21 @@
             <field name="chart_template_id" ref="configurable_chart_template"/>
             <field name="name">ITAX X</field>
             <field eval="0.0" name="amount"/>
-            <field name="type">percent</field>
+            <field name="type">normal</field>
             <field name="type_tax_use">sale</field>
         </record>
 
         <record id="itaxx_invoice_base_line" model="account.tax.line.template">
             <field name="code_type">base</field>
-           <field name="tax_amount">1000</field>
-            <field name="debit_credit_amount">1000</field>
+            <field name="tax_amount">1000</field>
             <field name="apply_on">invoice</field>
             <field name="code_id" ref="tax_code_sales_X"/>
             <field name="tax_id" ref="itaxx"/>
         </record>
 
         <record id="itaxx_invoice_tax_line" model="account.tax.line.template">
-            <field name="code_type">tax</field>
+            <field name="code_type">percent</field>
             <field name="tax_amount">0</field>
-           <field name="debit_credit_amount">0</field>
             <field name="apply_on">invoice</field>
             <field name="code_id" ref="tax_code_input_X"/>
             <field name="account_id" ref="conf_iva"/>
@@ -694,17 +662,15 @@
 
         <record id="itaxx_refund_base_line" model="account.tax.line.template">
             <field name="code_type">base</field>
-           <field name="tax_amount">1000</field>
-            <field name="debit_credit_amount">1000</field>
+            <field name="tax_amount">1000</field>
             <field name="apply_on">refund</field>
             <field name="code_id" ref="tax_code_sales_X"/>
             <field name="tax_id" ref="itaxx"/>
         </record>
 
         <record id="itaxx_refund_tax_line" model="account.tax.line.template">
-            <field name="code_type">tax</field>
+            <field name="code_type">percent</field>
             <field name="tax_amount">0</field>
-           <field name="debit_credit_amount">0</field>
             <field name="apply_on">refund</field>
             <field name="code_id" ref="tax_code_input_X"/>
             <field name="account_id" ref="conf_iva"/>
@@ -715,23 +681,21 @@
             <field name="chart_template_id" ref="configurable_chart_template"/>
             <field name="name">ITAX O</field>
             <field eval="0.0" name="amount"/>
-            <field name="type">percent</field>
+            <field name="type">normal</field>
             <field name="type_tax_use">sale</field>
         </record>
 
         <record id="itaxo_invoice_base_line" model="account.tax.line.template">
             <field name="code_type">base</field>
-           <field name="tax_amount">1000</field>
-            <field name="debit_credit_amount">1000</field>
+            <field name="tax_amount">1000</field>
             <field name="apply_on">invoice</field>
             <field name="code_id" ref="tax_code_sales_O"/>
             <field name="tax_id" ref="itaxo"/>
         </record>
 
         <record id="itaxo_invoice_tax_line" model="account.tax.line.template">
-            <field name="code_type">tax</field>
+            <field name="code_type">percent</field>
             <field name="tax_amount">0</field>
-           <field name="debit_credit_amount">0</field>
             <field name="apply_on">invoice</field>
             <field name="code_id" ref="tax_code_input_O"/>
             <field name="account_id" ref="conf_iva"/>
@@ -740,17 +704,15 @@
 
         <record id="itaxo_refund_base_line" model="account.tax.line.template">
             <field name="code_type">base</field>
-           <field name="tax_amount">1000</field>
-            <field name="debit_credit_amount">1000</field>
+            <field name="tax_amount">1000</field>
             <field name="apply_on">refund</field>
             <field name="code_id" ref="tax_code_sales_O"/>
             <field name="tax_id" ref="itaxo"/>
         </record>
 
         <record id="itaxo_refund_tax_line" model="account.tax.line.template">
-            <field name="code_type">tax</field>
+            <field name="code_type">percent</field>
             <field name="tax_amount">0</field>
-           <field name="debit_credit_amount">0</field>
             <field name="apply_on">refund</field>
             <field name="code_id" ref="tax_code_input_O"/>
             <field name="account_id" ref="conf_iva"/>

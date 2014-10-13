@@ -478,9 +478,6 @@ class account_move_line(osv.osv):
         'centralisation': fields.selection([('normal','Normal'),('credit','Credit Centralisation'),('debit','Debit Centralisation'),('currency','Currency Adjustment')], 'Centralisation', size=8),
         'balance': fields.function(_balance, fnct_search=_balance_search, string='Balance'),
         'state': fields.selection([('draft','Unbalanced'), ('valid','Balanced')], 'Status', readonly=True, copy=False),
-        'tax_code_id': fields.many2one('account.tax.code', 'Tax Account', help="The Account can either be a base tax code or a tax code account."),
-        'tax_amount': fields.float('Tax/Base Amount', digits_compute=dp.get_precision('Account'), select=True, help="If the Tax account is a tax code account, this field will contain the taxed amount.If the tax account is base tax code, "\
-                    "this field will contain the basic amount(without tax)."),
         'invoice': fields.function(_invoice, string='Invoice',
             type='many2one', relation='account.invoice', fnct_search=_invoice_search),
         'account_tax_id':fields.many2one('account.tax', 'Tax', copy=False),
@@ -1327,62 +1324,33 @@ class account_move_line(osv.osv):
         result = super(account_move_line, self).create(cr, uid, vals, context=context)
         # CREATE Taxes
         if vals.get('account_tax_id', False):
+            tsl_obj = self.pool.get("account.tax.statement.line")
             tax_id = tax_obj.browse(cr, uid, vals['account_tax_id'])
             total = vals['debit'] - vals['credit']
-            tmp_cnt = 0
+            base_tax_line_created = False
             for tax in tax_obj.compute_all(cr, uid, [tax_id], total, 1.00, force_excluded=False).get('taxes'):
-                if tax['code_type'] == 'base':
+                if tax['code_type'] == 'base' or not tax['code_id']:
                     continue
                 #create the base movement
-                if tmp_cnt == 0:
-                    if tax['account_id']:
-                        tmp_cnt += 1
-                        if tax_id.price_include:
-                            total = tax['price_unit']
-                        newvals = {
-                            'tax_code_id': tax['code_id'],
-                            'tax_amount': tax['tax_amount'] >= 0 and abs(total) or -abs(total),
-                        }
-                        if tax_id.price_include:
-                            if tax['price_unit'] < 0:
-                                newvals['credit'] = abs(tax['price_unit'])
-                            else:
-                                newvals['debit'] = tax['price_unit']
-                        self.write(cr, uid, [result], newvals, context=context)
-                else:
-                    data = {
-                        'move_id': vals['move_id'],
-                        'name': tools.ustr(vals['name'] or '') + ' ' + tools.ustr(tax['name'] or ''),
-                        'date': vals['date'],
-                        'partner_id': vals.get('partner_id', False),
-                        'ref': vals.get('ref', False),
-                        'statement_id': vals.get('statement_id', False),
-                        'account_tax_id': False,
-                        'tax_code_id': tax['code_id'],
-                        'tax_amount':  tax['tax_amount'] >= 0 and abs(total) or -abs(total),
-                        'account_id': vals['account_id'],
-                        'credit': 0.0,
-                        'debit': 0.0,
-                    }
-                    if data['tax_code_id']:
-                        self.create(cr, uid, data, context)
+                vals_tax_line = {
+                    'move_id': vals['move_id'],
+                    'date': vals['date'],
+                    'tax_code_id': tax['code_id'],
+                    'tax_amount': tax['tax_amount'] >= 0 and abs(total) or -abs(total),
+                }
+                if not base_tax_line_created and tax['account_id']:
+                    base_tax_line_created = True
+                    if tax_id.price_include:
+                        total = tax['price_unit']
+                tsl_obj.create(cr, uid, vals_tax_line, context=context)
                 #create the Tax movement
                 data = {
                     'move_id': vals['move_id'],
-                    'name': tools.ustr(vals['name'] or '') + ' ' + tools.ustr(tax['name'] or ''),
                     'date': vals['date'],
-                    'partner_id': vals.get('partner_id',False),
-                    'ref': vals.get('ref',False),
-                    'statement_id': vals.get('statement_id', False),
-                    'account_tax_id': False,
                     'tax_code_id': tax['code_id'],
                     'tax_amount':  tax['tax_amount'] >= 0 and abs(total) or -abs(total),
-                    'account_id': tax['account_id'] or vals['account_id'],
-                    'credit': tax['amount']<0 and -tax['amount'] or 0.0,
-                    'debit': tax['amount']>0 and tax['amount'] or 0.0,
                 }
-                if data['tax_code_id']:
-                    self.create(cr, uid, data, context)
+                tsl_obj.create(cr, uid, data, context)
             del vals['account_tax_id']
 
         if check and not context.get('novalidate') and (context.get('recompute', True) or journal.entry_posted):

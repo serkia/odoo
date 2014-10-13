@@ -943,16 +943,16 @@
         <act_window
             id="action_tax_code_line_open"
             name="Journal Items"
-            domain="[('tax_code_id','child_of',active_id),('state','&lt;&gt;','draft')]"
-            res_model="account.move.line"
+            domain="[('tax_code_id','child_of',active_id),('move_id.state','&lt;&gt;','draft')]"
+            res_model="account.tax.statement.line"
             src_model="account.tax.code"/>
 
         <!-- Enable drill-down from Chart Of Taxes tree view -->
         <act_window
             id="action_tax_code_items"
             name="Journal Items"
-            domain="[('tax_code_id','child_of',active_id),('state','!=','draft')]"
-            res_model="account.move.line"
+            domain="[('tax_code_id','child_of',active_id),('move_id.state','!=','draft')]"
+            res_model="account.tax.statement.line"
             src_model="account.tax.code"
             key2="tree_but_open"/>
 
@@ -1011,14 +1011,14 @@
                             <separator colspan="4" string="Applicable Code" attrs="{'invisible': [('applicable_type','!=','code')]}" groups="base.group_no_one"/>
                             <field colspan="4" name="python_applicable" nolabel="1" attrs="{'invisible': [('applicable_type','!=','code')], 'required':[('applicable_type','=','code')]}" groups="base.group_no_one"/>
                         </group>
-                        <group string="Tax Computation By Python Code" attrs="{'invisible': [('type','!=','code')]}">
-                            <field name="python_compute" attrs="{'required':[('type','=','code')]}"/>
-                        </group>
                     </group>
                     <group name="child" attrs="{'invisible': [('type','!=','group')]}" string="Child Tax Account">
                           <field name="child_ids" nolabel="1" widget="many2many_tags"/>
                     </group>
-                    <div attrs="{'invisible': [('type','=','group')]}">
+                    <group string="Tax Computation By Python Code" attrs="{'invisible': [('type','!=','code')]}">
+                        <field name="python_compute" attrs="{'required':[('type','=','code')]}"/>
+                    </group>
+                    <div attrs="{'invisible': [('type','!=','normal')]}">
                         <h2><label name="sale_excluded" string="Journal Items for a 100euros sale (taxes excluded)" attrs="{'invisible':['|', ('price_include','=',True), ('type_tax_use','=','purchase')]}"/></h2>
                         <h2><label name="sale_included" string="Journal Items for a 100euros sale (taxes included)" attrs="{'invisible':['|', ('price_include','=',False), ('type_tax_use','=','purchase')]}"/></h2>
                         <h2><label name="purchase_excluded" string="Journal Items for a 100euros purchase (taxes excluded)" attrs="{'invisible':['|', ('price_include','=',True), ('type_tax_use','!=','purchase')]}"/></h2>
@@ -1113,8 +1113,6 @@
                                         <field name="date_created" readonly="True"/>
                                     </group>
                                     <group string="Taxes">
-                                        <field name="tax_code_id"/>
-                                        <field name="tax_amount"/>
                                         <field name="account_tax_id" domain="[('parent_id','=',False)]"/>
                                     </group>
                                     <group attrs="{'readonly':[('state','=','valid')]}" string="Currency" groups="base.group_multi_currency">
@@ -1413,8 +1411,6 @@
                                                 </group>
 
                                                 <group string="Taxes">
-                                                    <field name="tax_code_id"/>
-                                                    <field name="tax_amount"/>
                                                     <field name="account_tax_id" domain="[('parent_id','=',False)]"/>
                                                 </group>
 
@@ -1456,8 +1452,6 @@
                                     <field name="analytic_account_id" groups="analytic.group_analytic_accounting"/>
                                     <field name="amount_currency"/>
                                     <field name="currency_id" groups="base.group_multi_currency"/>
-                                    <field name="tax_code_id"/>
-                                    <field name="tax_amount"/>
                                     <field name="state"/>
                                     <field name="reconcile_id"/>
                                     <field name="reconcile_partial_id"/>
