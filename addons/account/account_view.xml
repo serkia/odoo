@@ -995,8 +995,10 @@
                         <group>
                             <field name="name"/>
                             <field name="description" attrs="{'invisible': [('type','in',('group'))]}"/>
-                            <field name="type" on_change="onchange_tax_id(type, price_include, context)" groups="base.group_no_one"/>
-                            <field name="price_include" attrs="{'invisible':[('type','in',('group','code'))], 'readonly':[('type','in',('percentage_price_include'))]}" on_change="onchange_tax_id(type, price_include, context)"/>
+                            <field name="type" groups="base.group_no_one"/>
+                            <field name="price_include"
+                                on_change="onchange_price_include(tax_invoice_line_ids, tax_refund_line_ids, price_include, context)"
+                                attrs="{'invisible':[('type','in',('group','code'))], 'readonly':[('type','in',('percentage_price_include'))]}"/>
                             <field name="active" groups="base.group_no_one"/>
                         </group>
                         <group>
@@ -1008,8 +1010,10 @@
                         <group string="Misc" groups="base.group_no_one" attrs="{'invisible': [('type','=','group')]}">
                             <field name="sequence"/>
                             <field name="applicable_type" groups="base.group_no_one"/>
-                            <separator colspan="4" string="Applicable Code" attrs="{'invisible': [('applicable_type','!=','code')]}" groups="base.group_no_one"/>
-                            <field colspan="4" name="python_applicable" nolabel="1" attrs="{'invisible': [('applicable_type','!=','code')], 'required':[('applicable_type','=','code')]}" groups="base.group_no_one"/>
+                            <separator colspan="4" string="Applicable Code"
+                                attrs="{'invisible': [('applicable_type','!=','code')]}" groups="base.group_no_one"/>
+                            <field colspan="4" name="python_applicable" nolabel="1"
+                                attrs="{'invisible': [('applicable_type','!=','code')], 'required':[('applicable_type','=','code')]}" groups="base.group_no_one"/>
                         </group>
                     </group>
                     <group name="child" attrs="{'invisible': [('type','!=','group')]}" string="Child Tax Account">
@@ -1019,12 +1023,12 @@
                         <field name="python_compute" attrs="{'required':[('type','=','code')]}"/>
                     </group>
                     <div attrs="{'invisible': [('type','!=','normal')]}">
-                        <h2><label name="sale_excluded" string="Journal Items for a 100euros sale (taxes excluded)" attrs="{'invisible':['|', ('price_include','=',True), ('type_tax_use','=','purchase')]}"/></h2>
-                        <h2><label name="sale_included" string="Journal Items for a 100euros sale (taxes included)" attrs="{'invisible':['|', ('price_include','=',False), ('type_tax_use','=','purchase')]}"/></h2>
-                        <h2><label name="purchase_excluded" string="Journal Items for a 100euros purchase (taxes excluded)" attrs="{'invisible':['|', ('price_include','=',True), ('type_tax_use','!=','purchase')]}"/></h2>
-                        <h2><label name="purchase_included" string="Journal Items for a 100euros purchase (taxes included)" attrs="{'invisible':['|', ('price_include','=',False), ('type_tax_use','!=','purchase')]}"/></h2>
+                        <h2><label name="sale_excluded" string="(dynamically generated)" attrs="{'invisible':['|', ('price_include','=',True), ('type_tax_use','=','purchase')]}"/></h2>
+                        <h2><label name="sale_included" string="(dynamically generated)" attrs="{'invisible':['|', ('price_include','=',False), ('type_tax_use','=','purchase')]}"/></h2>
+                        <h2><label name="purchase_excluded" string="(dynamically generated)" attrs="{'invisible':['|', ('price_include','=',True), ('type_tax_use','!=','purchase')]}"/></h2>
+                        <h2><label name="purchase_included" string="(dynamically generated)" attrs="{'invisible':['|', ('price_include','=',False), ('type_tax_use','!=','purchase')]}"/></h2>
                         <group colspan="7" name="invoice">
-                            <field name="tax_invoice_line_ids" context= "{'default_apply_on':'invoice'}" nolabel="1">
+                            <field name="tax_invoice_line_ids" on_change="onchange_tax_invoice_line_ids(tax_invoice_line_ids, price_include, context)" context= "{'default_apply_on':'invoice'}" nolabel="1">
                                 <tree string="Tax Invoice Line" editable="bottom">
                                     <field name="sequence" widget="handle"/>
                                     <field name="code_type" attrs="{'readonly': [('code_type','=','base')]}"/>
@@ -1037,10 +1041,10 @@
                                 </tree>
                             </field>
                         </group>
-                        <h2><label name="refund_excluded" string="Journal Items for a 100euros refund (taxes excluded)" attrs="{'invisible':[('price_include','=',True)]}"/></h2>
-                        <h2><label name="refund_included" string="Journal Items for a 100euros refund (taxes included)" attrs="{'invisible':[('price_include','=',False)]}"/></h2>
+                        <h2><label name="refund_excluded" string="(dynamically generated)" attrs="{'invisible':[('price_include','=',True)]}"/></h2>
+                        <h2><label name="refund_included" string="(dynamically generated)" attrs="{'invisible':[('price_include','=',False)]}"/></h2>
                         <group colspan="7" name="refund">
-                            <field name="tax_refund_line_ids" context= "{'default_apply_on':'refund'}" nolabel="1">
+                            <field name="tax_refund_line_ids" on_change="onchange_tax_refund_line_ids(tax_refund_line_ids, price_include, context)" context= "{'default_apply_on':'refund'}" nolabel="1">
                                 <tree string="Tax Refund Line" editable="bottom">
                                     <field name="sequence" widget="handle"/>
                                     <field name="code_type" attrs="{'readonly': [('code_type','=','base')]}"/>
