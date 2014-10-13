@@ -22,6 +22,12 @@ $('.oe_website_sale').each(function () {
         $(ev.currentTarget).parents(".thumbnail").toggleClass("disabled");
     });
 
+    function alertTimeout(wait){
+        setTimeout(function(){
+            $('#data_warning').remove();
+        }, wait);
+    }
+
     $(oe_website_sale).on("change", ".oe_cart input.js_quantity", function () {
         var $input = $(this);
         var value = parseInt($input.val(), 10);
@@ -43,6 +49,16 @@ $('.oe_website_sale').each(function () {
                 $input.val(data.quantity);
                 $('.js_quantity[data-line-id='+line_id+']').val(data.quantity).html(data.quantity);
                 $("#cart_total").replaceWith(data['website_sale.total']);
+                if (data.warning) {
+                    if ($('.oe_cart').parent().find('#data_warning').length == 0) {
+                        $('.oe_cart').prepend('<div class="alert alert-danger alert-dismissable" role="alert" id="data_warning">' + '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> <strong>Warning!</strong> ' + data.warning + '</div>');
+                    }
+                    else {
+                        $('.oe_cart').parent().find('#data_warning').html('<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> <strong>Warning!</strong> ' + data.warning);
+                    }
+                    alertTimeout(15000);
+                    $input.val(data.available_qty)
+                }
             });
     });
 

@@ -44,3 +44,14 @@ class sale_order(osv.Model):
             values['name'] = "%s: %s" % (ticket.event_id.name, ticket.name)
 
         return values
+
+    def _cart_update(self, cr, uid, ids, product_id=None, line_id=None, add_qty=0, set_qty=0, context=None, **kwargs):
+        values = super(sale_order, self)._cart_update(cr, uid, ids, product_id, line_id, add_qty, set_qty, context, **kwargs)
+        sol_obj = self.pool.get('sale.order.line')
+        if line_id and set_qty:
+            order_line = sol_obj.browse(cr, SUPERUSER_ID, line_id, context=context)
+            if order_line.event_ticket_id and set_qty > order_line.event_ticket_id.seats_available:
+                sol_obj.write(cr, SUPERUSER_ID, line_id, {'product_uom_qty': order_line.event_ticket_id.seats_available}, context=context)
+                values['available_qty'] = order_line.event_ticket_id.seats_available
+                values['warning'] = 'Sorry, Only ' + str(order_line.event_ticket_id.seats_available) + ' ticket(s) available for Event ' + order_line.event_id.name + '(' +  order_line.event_ticket_id.name + ').'
+        return values
