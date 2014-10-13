@@ -21,7 +21,6 @@
 
 from openerp.osv import osv, fields
 from openerp.http import request
-from openerp.addons.mail import mail_alias as ma
 
 AVAILABLE_PRIORITIES = [
     ('0', 'Normal'),
@@ -167,7 +166,7 @@ class crm_case_categ(osv.osv):
     }
 
     _sql_constraints=[('unique_name','unique(name)','Error! Tag Name Already Exist!')]
-    _constraints = [(ma._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]
+    _constraints = [(osv.osv._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]
 
 class crm_payment_mode(osv.osv):
     """ Payment Mode for Fund """

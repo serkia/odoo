@@ -22,7 +22,6 @@
 from openerp.osv import fields, osv
 from openerp.tools.translate import _
 from openerp.addons.website.models.website import slug
-from openerp.addons.mail import mail_alias as ma
 
 import pytz
 
@@ -33,7 +32,7 @@ class event_track_tag(osv.osv):
         'name': fields.char('Event Track Tag', translate=True)
     }
     _sql_constraints=[('unique_name','unique(name)','Error! Tag Name Already Exist!')]
-    _constraints = [(ma._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]
+    _constraints = [(osv.osv._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]
 
 class event_tag(osv.osv):
     _name = "event.tag"
@@ -42,7 +41,7 @@ class event_tag(osv.osv):
         'name': fields.char('Event Tag', translate=True)
     }
     _sql_constraints=[('unique_name','unique(name)','Error! Tag Name Already Exist!')]
-    _constraints = [(ma._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]
+    _constraints = [(osv.osv._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]
 
 #
 # Tracks: conferences

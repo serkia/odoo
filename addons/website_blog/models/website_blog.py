@@ -9,7 +9,6 @@ from openerp import tools
 from openerp import SUPERUSER_ID
 from openerp.osv import osv, fields
 from openerp.tools.translate import _
-from openerp.addons.mail import mail_alias as ma
 
 
 class Blog(osv.Model):
@@ -33,7 +32,7 @@ class BlogTag(osv.Model):
         'name': fields.char('Name', required=True),
     }
     _sql_constraints=[('unique_name','unique(name)','Error! Tag Name Already Exist!')]
-    _constraints = [(ma._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]
+    _constraints = [(osv.osv._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]
 
 
 class BlogPost(osv.Model):

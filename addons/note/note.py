@@ -22,7 +22,6 @@
 from openerp import SUPERUSER_ID
 from openerp.osv import osv, fields
 from openerp.tools import html2plaintext
-from openerp.addons.mail import mail_alias as ma
 
 class note_stage(osv.osv):
     """ Category of Note """
@@ -48,7 +47,7 @@ class note_tag(osv.osv):
         'name' : fields.char('Tag Name', required=True),
     }
     _sql_constraints=[('unique_name','unique(name)','Error! Tag Name Already Exist!')]
-    _constraints = [(ma._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]
+    _constraints = [(osv.osv._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]
 
 class note_note(osv.osv):
     """ Note """

@@ -18,7 +18,6 @@ from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FO
 from openerp.tools.translate import _
 from openerp.http import request
 from operator import itemgetter
-from openerp.addons.mail import mail_alias as ma
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -662,7 +661,7 @@ class calendar_event_type(osv.Model):
         'name': fields.char('Name', required=True, translate=True),
     }
     _sql_constraints=[('unique_name','unique(name)','Error! Tag Name Already Exist!')]
-    _constraints = [(ma._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]
+    _constraints = [(osv.osv._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]
 
 
 class calendar_event(osv.Model):

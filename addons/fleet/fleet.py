@@ -26,7 +26,6 @@ from openerp import tools
 from openerp.osv.orm import except_orm
 from openerp.tools.translate import _
 from dateutil.relativedelta import relativedelta
-from openerp.addons.mail import mail_alias as ma
 
 def str_to_datetime(strdate):
     return datetime.datetime.strptime(strdate, tools.DEFAULT_SERVER_DATE_FORMAT)
@@ -99,7 +98,7 @@ class fleet_vehicle_tag(osv.Model):
         'name': fields.char('Name', required=True, translate=True),
     }
     _sql_constraints=[('unique_name','unique(name)','Error! Tag Name Already Exist!')]
-    _constraints = [(ma._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]
+    _constraints = [(osv.osv._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]
 
 class fleet_vehicle_state(osv.Model):
     _name = 'fleet.vehicle.state'

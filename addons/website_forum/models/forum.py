@@ -9,7 +9,6 @@ from openerp.addons.website.models.website import slug
 from openerp.osv import osv, fields
 from openerp.tools import html2plaintext
 from openerp.tools.translate import _
-from openerp.addons.mail import mail_alias as ma
 
 
 class KarmaError(ValueError):
@@ -596,4 +595,4 @@ class Tags(osv.Model):
         'create_uid': fields.many2one('res.users', 'Created by', readonly=True),
     }
     _sql_constraints = [('unique_name','unique(name)','Error! Tag Name Already Exist.')]
-    _constraints = [(ma._check_unique_case_accent_insensitive, ' Error! Tag name must be Unique.', ['name'])]
+    _constraints = [(osv.osv._check_unique_case_accent_insensitive, ' Error! Tag name must be Unique.', ['name'])]

@@ -14,7 +14,6 @@ from openerp.addons.web.http import request
 from openerp.addons.website.controllers.main import Website as controllers
 from openerp.addons.website.models.website import slug
 from openerp.tools.translate import _
-from openerp.addons.mail import mail_alias as ma
 
 controllers = controllers()
 
@@ -174,22 +173,23 @@ class WebsiteForum(http.Controller):
     @http.route('/forum/<model("forum.forum"):forum>/question/new', type='http', auth="user", methods=['POST'], website=True)
     def question_create(self, forum, **post):
         cr, uid, context = request.cr, request.uid, request.context
+        forum_obj=request.registry['forum.forum']
         Tag = request.registry['forum.tag']
         question_tag_ids = []
         if post.get('question_tags').strip('[]'):
             tag_names = post.get('question_tags').strip('[]').replace('"', '').split(",")
             tag_ids = Tag.search(cr, uid, [])
             tags = Tag.browse(cr, uid, tag_ids, context=context)
-            temp_tag_names = map(lambda tagname : (ma.remove_accents(tagname)).lower(), tag_names)
+            temp_tag_names = map(lambda tagname : (forum_obj.remove_accents(tagname)).lower(), tag_names)
             for tag in reversed(tag_names):
-                unaccent_tag = ma.remove_accents(tag).lower()
+                unaccent_tag = forum_obj.remove_accents(tag).lower()
                 if unaccent_tag in temp_tag_names and temp_tag_names.count(unaccent_tag) > 1:
                     tag_names.remove(tag)
                     temp_tag_names.remove(unaccent_tag)
             tag_ids = Tag.search(cr, uid, [])
             tags = Tag.browse(cr, uid, tag_ids, context=context)
             for tag_name in tag_names:
-                tag = [tag for tag in tags if ma.remove_accents(tag.name).lower() == ma.remove_accents(tag_name).lower() ]
+                tag = [tag for tag in tags if forum_obj.remove_accents(tag.name).lower() == forum_obj.remove_accents(tag_name).lower() ]
                 if tag:
                     question_tag_ids.append((4, tag[0].id))
                 else:
@@ -354,22 +354,23 @@ class WebsiteForum(http.Controller):
     @http.route('/forum/<model("forum.forum"):forum>/post/<model("forum.post"):post>/save', type='http', auth="user", methods=['POST'], website=True)
     def post_save(self, forum, post, **kwargs):
         cr, uid, context = request.cr, request.uid, request.context
+        forum_obj=request.registry['forum.forum']
         question_tag_ids = []
         if kwargs.get('question_tag') and kwargs.get('question_tag').strip('[]'):
             Tag = request.registry['forum.tag']
             tag_names = kwargs.get('question_tag').strip('[]').replace('"', '').split(",")
             tag_ids = Tag.search(cr, uid, [])
             tags = Tag.browse(cr, uid, tag_ids, context=context)
-            temp_tag_names = map(lambda tagname : (ma.remove_accents(tagname)).lower(), tag_names)
+            temp_tag_names = map(lambda tagname : (forum_obj.remove_accents(tagname)).lower(), tag_names)
             for tag in reversed(tag_names):
-                unaccent_tag = ma.remove_accents(tag).lower()
+                unaccent_tag = forum_obj.remove_accents(tag).lower()
                 if unaccent_tag in temp_tag_names and temp_tag_names.count(unaccent_tag) > 1:
                     tag_names.remove(tag)
                     temp_tag_names.remove(unaccent_tag)
             tag_ids = Tag.search(cr, uid, [])
             tags = Tag.browse(cr, uid, tag_ids, context=context)
             for tag_name in tag_names:
-                tag = [tag for tag in tags if ma.remove_accents(tag.name).lower() == ma.remove_accents(tag_name).lower() ]
+                tag = [tag for tag in tags if forum_obj.remove_accents(tag.name).lower() == forum_obj.remove_accents(tag_name).lower() ]
                 if tag:
                     question_tag_ids.append((4, tag[0].id))
                 else:

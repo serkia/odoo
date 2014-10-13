@@ -31,7 +31,6 @@ from openerp import tools
 from openerp.addons.resource.faces import task as Task
 from openerp.osv import fields, osv
 from openerp.tools.translate import _
-from openerp.addons.mail import mail_alias as ma
 
 
 class project_task_type(osv.osv):
@@ -1417,5 +1416,5 @@ class project_category(osv.osv):
         'name': fields.char('Name', required=True, translate=True),
     }
     _sql_constraints=[('unique_name','unique(name)','Error! Tag Name Already Exist!')]
-    _constraints = [(ma._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]
+    _constraints = [(osv.osv._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
