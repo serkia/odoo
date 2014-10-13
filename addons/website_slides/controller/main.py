@@ -7,7 +7,6 @@ from openerp import SUPERUSER_ID
 from openerp.http import request
 from openerp.addons.web import http
 from openerp.tools.translate import _
-from openerp.addons.web.controllers.main import login_redirect
 
 
 class main(http.Controller):
@@ -311,8 +310,11 @@ class main(http.Controller):
 
     @http.route('/slides/download/<model("slide.slide"):slide>', type='http', auth="public", website=True)
     def download_slide(self, slide):
-        if not request.session.uid:
-            return login_redirect()
+        if slide.download == 'not_downloadeb':
+            return request.website.render("website.403")
+        if not request.session.uid and slide.download == 'with_login':
+            login_redirect = '/web?redirect=/slides/%s/%s/%s' % (slide.channel_id.id, slide.slide_type, slide.id)
+            return werkzeug.utils.redirect(login_redirect)
         filecontent = base64.b64decode(slide.datas)
         # TODO not sure convert filename to utf-8 and quote, check with IE if it required
         disposition = 'attachment; filename=%s.pdf' % slide.name

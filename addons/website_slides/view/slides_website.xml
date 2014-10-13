@@ -184,14 +184,6 @@
                             <h3 class="mt0">
                                 <a t-attf-href="/slides/#{slug(channel)}"><t t-esc="channel.name"/></a>
                                 <t t-if="category">/ <t t-esc="category.name"/></t>
-                                <t t-if="is_super_user">
-                                    <a title="Channel Settings" t-attf-href="/web#return_label=Website&amp;view_type=form&amp;model=slide.channel&amp;id=#{channel.id}&amp;action="  class="btn btn-primary slide-border-radius">
-                                        <i class="fa fa-cog"></i>
-                                    </a>
-                                    <a title="Add Category" t-attf-channel_id="#{channel.id}" class="btn btn-primary slide-border-radius add_new_category">
-                                        <i class="fa fa-plus-circle"></i>
-                                    </a>
-                                </t>
                                 <t t-if="is_public_user">
                                     <a t-attf-href="/web?redirect=#{request.httprequest.url}" title="Upload Slide" class="btn btn-danger slide-border-radius">
                                         <i class="fa fa-cloud-upload"></i> Upload

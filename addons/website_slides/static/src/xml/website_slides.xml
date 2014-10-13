@@ -152,7 +152,9 @@
                         <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4 text-center"></div>
                     </div>
                     <div class="col-lg-2 col-md-2 col-sm-2 col-xs-2 text-right">
-                        <a t-if="widget.download != 'not_downloadeb'" style="margin-right: 5px" t-attf-href="/slides/download/#{widget.id}"   id="download"><i class="fa fa-download slide-fa-1-5x slide-cursor slide-color"></i></a>
+                        <a t-if="widget.download != 'not_downloadeb'" style="margin-right: 5px" t-attf-href="/slides/download/#{widget.id}" id="download">
+                            <i class="fa fa-download slide-fa-1-5x slide-cursor slide-color"></i>
+                        </a>
                         <span id="fullscreen"><i class="fa fa-arrows-alt slide-fa-1-5x slide-cursor slide-color"></i></span>
                     </div>
                 </div>
