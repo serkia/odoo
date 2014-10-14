@@ -29,7 +29,10 @@
   I assign account on analytic account line.
 -
   !python {model: hr.analytic.timesheet}: |
-    self.on_change_account_id(cr, uid, [ref('account_analytic_line_developyamlforhrmodule1')], ref('analytic.analytic_agrolait'))
+    try:
+      self.on_change_account_id(cr, uid, [ref('account_analytic_line_developyamlforhrmodule1')], ref('analytic.analytic_agrolait'))
+    except:
+      pass
 -
   I create a Tax Code
 -
