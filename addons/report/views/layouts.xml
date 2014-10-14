@@ -41,6 +41,9 @@
     .zero_min_height {
         min-height: 0px !important;
     }
+    table,.panel,.jumbotron,.carousel,.o_gallery{
+         page-break-inside:avoid;
+    }
 </template>
 
 <template id="external_layout">

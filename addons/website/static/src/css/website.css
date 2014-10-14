@@ -178,7 +178,7 @@ header, main, footer {
 }
 
 footer {
-  height: 100%;
+  height: auto;
   background: #eff8f8;
   background: rgba(200, 200, 200, 0.1);
 }
