@@ -95,7 +95,7 @@
             <field name="template_id" ref="website_slides.slide_email_notification"/>
             <field name="website_published" eval="True"/>
             <field name="visibility">public</field>
-            <field name="description">Public channel is default channel for slides, all public user can access content of public channel.</field>
+            <field name="description">Default channel for slides, all public user can access content of public channel.</field>
         </record>
 
         <record model="slide.channel" id="dir_private">
@@ -104,7 +104,7 @@
             <field name="website_published" eval="True"/>
             <field name="group_ids" eval="[(4, ref('base.group_portal'))]"/>
             <field name="visibility">group</field>
-            <field name="description">Partner channel use to publish slides in partner network privately.</field>
+            <field name="description">Use to publish slides in partner network privately.</field>
         </record>
         
         <record model="slide.channel" id="dir_employee">
@@ -113,7 +113,7 @@
             <field name="website_published" eval="True"/>
             <field name="group_ids" eval="[(4, ref('base.group_user'))]"/>
             <field name="visibility">private</field>
-            <field name="description">Employee channel use to publish internal slides of company.</field>
+            <field name="description">Use to publish internal slides of company.</field>
         </record>
 
         <!-- Channel subtypes -->

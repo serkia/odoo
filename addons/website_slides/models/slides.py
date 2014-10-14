@@ -35,7 +35,7 @@ class Channel(models.Model):
 
     sequence = fields.Integer(string="Sequence")
 
-    errormessage = fields.Html('Error Message', help="Html message when channel's content is not accessible for a user")
+    errormessage = fields.Html('Error Message', help="Display message (html) when channel's content is not accessible for a user")
     template_id = fields.Many2one('email.template', 'Email Template', html="Email template use to send slide notification through email")
 
     visibility = fields.Selection([('public', 'Public'), ('private', 'Hide Channel'), ('group', 'Show channel but presentations based on groups')], string='Visiblity', default='public')
@@ -281,7 +281,7 @@ class Slide(models.Model):
         image_url = "%s/website/image/slide.slide/%s/image" % (base_url, self.id)
 
         msg_context = {
-            'message': message or '%s has shared %s with you !' % (self.env.user.name, self.slide_type),
+            'message': message or '%s has shared a %s with you !' % (self.env.user.name, self.slide_type),
             'image_url': image_url,
             'access_url': self.get_share_url(),
             'base_url': base_url
@@ -294,7 +294,7 @@ class Slide(models.Model):
     def sendemail(self, email):
         result = False
         body = self.get_mail_body()
-        subject = '%s has shared %s with you !' % (self.env.user.name, self.slide_type)
+        subject = '%s has shared a %s with you !' % (self.env.user.name, self.slide_type)
 
         if self.env.user.email:
             result = mail.email_send(email_from=self.env.user.email, email_to=[email], subject=subject, body=body, reply_to=self.env.user.email, subtype="html")
@@ -492,4 +492,4 @@ class Slide(models.Model):
 class Channel(models.Model):
     _inherit = 'slide.channel'
 
-    slide_id = fields.Many2one('slide.slide', string='Promote Slide')
+    slide_id = fields.Many2one('slide.slide', string='Promoted Slide')

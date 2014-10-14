@@ -93,7 +93,7 @@
                             <button class="btn btn-primary sendbymail" type="button" t-attf-slide-id="#{slide.id}" style="border-top-right-radius: 4px;border-bottom-right-radius: 4px;"><i class="fa fa-envelope-o"></i> Send Email</button>
                         </span>
                     </div>
-                    <span class="help-block">Send presentation through email, with beautiful email</span>
+                    <span class="help-block">Send presentation through email</span>
                 </form>
             </t>
             <t t-if="is_public_user">
@@ -130,12 +130,12 @@
                                     </a>
                                 </t>
                                 <t t-if="is_public_user">
-                                    <a t-attf-href="/web?redirect=#{request.httprequest.url}" title="Upload Slide" class="btn btn-danger slide-border-radius">
+                                    <a t-attf-href="/web?redirect=#{request.httprequest.url}" title="Upload Slide" class="btn btn-primary slide-border-radius">
                                         <i class="fa fa-cloud-upload"></i> Upload
                                     </a>
                                 </t>
                                 <t t-if="not is_public_user">
-                                    <a class="btn btn-danger upload slide-border-radius" title="Upload Slide" t-attf-channel_id="#{channel.id}">
+                                    <a class="btn btn-primary upload slide-border-radius" title="Upload Slide" t-attf-channel_id="#{channel.id}">
                                         <i class="fa fa-cloud-upload"></i> Upload
                                     </a>
                                 </t>
@@ -185,12 +185,12 @@
                                 <a t-attf-href="/slides/#{slug(channel)}"><t t-esc="channel.name"/></a>
                                 <t t-if="category">/ <t t-esc="category.name"/></t>
                                 <t t-if="is_public_user">
-                                    <a t-attf-href="/web?redirect=#{request.httprequest.url}" title="Upload Slide" class="btn btn-danger slide-border-radius">
+                                    <a t-attf-href="/web?redirect=#{request.httprequest.url}" title="Upload Slide" class="btn btn-primary slide-border-radius">
                                         <i class="fa fa-cloud-upload"></i> Upload
                                     </a>
                                 </t>
                                 <t t-if="not is_public_user">
-                                    <a class="btn btn-danger upload slide-border-radius" title="Upload Slide" t-attf-channel_id="#{channel.id}" t-attf-category_id="#{category.id}">
+                                    <a class="btn btn-primary upload slide-border-radius" title="Upload Slide" t-attf-channel_id="#{channel.id}" t-attf-category_id="#{category.id}">
                                         <i class="fa fa-cloud-upload"></i> Upload
                                     </a>
                                 </t>
@@ -615,15 +615,15 @@
                                         <ul class="list-group">
                                             <li class="list-group-item slide-statics-item">
                                                 <span class="badge"><t t-esc="slide.total_views"/></span>
-                                                <i class="fa fa-play"></i> Total views
+                                                <i class="fa fa-play"></i> Total Views
                                             </li>
                                             <li class="list-group-item slide-statics-item">
                                                 <span class="badge"><t t-esc="slide.slide_views"/></span>
-                                                <i class="fa fa-circle-o"></i> Website views
+                                                <i class="fa fa-circle-o"></i> Website Views
                                             </li>
                                             <li class="list-group-item slide-statics-item" t-if="not slide.youtube_id">
                                                 <span class="badge"><t t-esc="slide.embed_views"/></span>
-                                                <i class="fa fa-code"></i> Embeded view
+                                                <i class="fa fa-code"></i> Embeded Views
                                             </li>
                                             <li class="list-group-item slide-statics-item" t-if="slide.youtube_id">
                                                 <span class="badge"><t t-esc="slide.youtube_views"/></span>
@@ -637,7 +637,7 @@
                                         <ul class="list-group">
                                             <li class="list-group-item slide-statics-item">
                                                 <span class="badge" id="total-share">0</span>
-                                                <i class="fa fa-share-alt"></i> Social shares
+                                                <i class="fa fa-share-alt"></i> Social Shares
                                             </li>
                                             <li class="list-group-item slide-statics-item">
                                                 <span class="badge"><t t-esc="slide.likes"/></span>
@@ -645,7 +645,7 @@
                                             </li>
                                             <li class="list-group-item slide-statics-item">
                                                 <span class="badge"><t t-esc="slide.dislikes"/></span>
-                                                <i class="fa fa-thumbs-down"></i> Dislike
+                                                <i class="fa fa-thumbs-down"></i> Dislikes
                                             </li>
                                             <li class="list-group-item slide-statics-item">
                                                 <span class="badge"><t t-esc="len(slide.message_ids) - 1"/></span>
@@ -769,9 +769,6 @@
                                     </a>
                                     <p t-field="channel.description"/>
                                     <div>
-                                        <div class="text-muted pull-left mt8" t-if="not is_public_user">
-                                            <a t-attf-href="/slides/editmessage/#{slug(channel)}"><i class="fa fa-arrow-right"></i> Configure error message</a>
-                                        </div>
                                         <div class="mt4 pull-right">
                                             <t t-call="website.publish_management">
                                                 <t t-set="object" t-value="channel"/>

@@ -155,28 +155,39 @@
                             <field name="website_published" class="pull-right" widget="website_button"/>
                         </div>
 
-                        <group string="Promote Slide">
-                            <group>
-                                <field name="template_id" domain="[('model','=','slide.slide')]"/>
-                                <field name="promote" widget="radio"/>
-                            </group>
-                            <group>
-                                <field name="slide_id" attrs="{'invisible':[('promote','!=','custom')]}" domain="[('channel_id','=',id), ('website_published','=',True)]"/>
-                            </group>
-                        </group>
+                        <notebook colspan="4">
+                            <page string="General">
+                                <group>
+                                    <group>
+                                        <field name="template_id" domain="[('model','=','slide.slide')]"/>
+                                        <field name="promote" widget="radio"/>
+                                    </group>
+                                    <group>
+                                        <field name="slide_id" attrs="{'invisible':[('promote','!=','custom')]}" domain="[('channel_id','=',id), ('website_published','=',True)]"/>
+                                    </group>
+                                </group>
+                                <label for="description"/>
+                                <field name="description" colspan="4" nolabel="1"/>
+                            </page>
 
-                        <group string="Visibility">
-                            <group>
-                                <field name="visibility" widget="radio"/>
-                            </group>
-                            <group>
+                            <page string="Security">
+                                <group>
+                                    <group>
+                                        <field name="visibility" widget="radio"/>
+                                    </group>
+                                    <group>
 
-                            </group>
-                            <field name="group_ids" attrs="{'invisible':[('visibility','in',('public'))]}" colspan="4" nolabel="1"/>
-                        </group>
+                                    </group>
+                                    <field name="group_ids" attrs="{'invisible':[('visibility','in',('public'))]}" colspan="4" nolabel="1"/>
 
-                        <label for="description"/>
-                        <field name="description" colspan="4" nolabel="1"/>
+                                    <group attrs="{'invisible':[('visibility','in',('public'))]}" colspan="4">
+                                        <label string="Error Message"/>
+                                        <field name="errormessage" colspan="4" nolabel="1"/>
+                                    </group>
+                                </group>
+                            </page>
+                        </notebook>
+                        
                     </sheet>
                     <div class="oe_chatter">
                         <field name="message_follower_ids" widget="mail_followers"/>
