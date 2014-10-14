@@ -23,6 +23,7 @@ import time
 
 from openerp.osv import fields, osv
 from openerp.tools.translate import _
+import openerp.tools
 
 class hr_timesheet_invoice_factor(osv.osv):
     _name = "hr_timesheet_invoice.factor"
@@ -306,6 +307,7 @@ class hr_analytic_timesheet(osv.osv):
     _constraints = [
         (_check_account_state, '\nThe analytic account is in cancel state.\nYou should not work on this account !', ['account_id']),
     ]
+
     def on_change_account_id(self, cr, uid, ids, account_id, user_id=False):
         res = {}
         if not account_id:
@@ -314,13 +316,18 @@ class hr_analytic_timesheet(osv.osv):
         acc = self.pool.get('account.analytic.account').browse(cr, uid, account_id)
         st = acc.to_invoice.id
         res['value']['to_invoice'] = st or False
-        if acc.state=='pending':
-            res['warning'] = {
-                'title': 'Warning',
-                'message': 'The analytic account is in pending state.\nYou should not work on this account !'
-            }
-        if acc.state == 'cancelled':
-            raise osv.except_osv(_('Warning !!'),_("The analytic account is in cancel state.\nYou should not work on this account !"))
+        if acc.state in ('pending', 'cancelled', 'close'):
+            from openerp.addons.analytic.models import analytic
+            model, action_id = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'analytic', 'action_account_analytic_account_form')
+            action = self.pool.get('ir.actions.act_window').read(cr, uid, action_id, [
+                'name', 'type', 'view_type', 'view_mode', 'res_model', 'views', 'view_id', 'domain'])
+            dummy, tree_view = self.pool.get('ir.model.data').get_object_reference(cr, uid, 'analytic', 'view_account_analytic_account_tree')
+            action.update({
+                'domain': [('id', '=', acc.id)],
+                'views': [(tree_view or False, 'list'), (False, 'form')]
+            })
+            msg = _(''' The analytic account is in %s state.\nYou should not work on this account !''') % (dict(analytic.ANALYTIC_ACCOUNT_STATE)[acc.state])
+            raise openerp.exceptions.RedirectWarning(msg, action, _('Modify Contract(s)'))
         return res
 
 class account_invoice(osv.osv):
