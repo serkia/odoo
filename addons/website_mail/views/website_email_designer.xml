@@ -2,43 +2,48 @@
 <openerp>
     <data>
 
-<template id="assets_editor" inherit_id="website.assets_editor" name="Email Designer">
-    <xpath expr="." position="inside">
-        <script type="text/javascript" src="/website_mail/static/src/js/website_email_designer.js"></script>
-    </xpath>
-</template>
-
 <!-- Template Choice page -->
 <template id="email_designer" name="Email Designer">
     <t t-call="website.layout">
         <div id="wrap" class="container" t-ignore="True">
             <div id="email_template" class="mb32" t-att-style="mode != 'email_template' and 'display: none' or ''">
-                <a class="mt16 btn btn-default pull-right" 
+                <a class="btn btn-default pull-right" 
                   t-attf-href="/web#return_label=Website&amp;model=#{model}&amp;id=#{res_id}&amp;view_type=form">
                     Back
                 </a>
-                <h1 class="page-header mt16">
-                    Choose an Email Template
+                <a class="btn btn-success email_template_theme_select pull-right create_new" style="margin-right: 5px;"> 
+                <i class="fa fa-file-o"></i> 
+                    <span >Start with Blank</span>
+                </a>
+                
+                <h1 class="page-header mt16 email_head panel-primary" t-if="model!='email.template'">
+                    Choose an Email Template 
+                    <button type="button" class="btn btn-sm btn-default info_popover fa fa-info-circle" data-toggle="popover" data-trigger="focus" title="Help" data-content="Here you can use predefined email template &lt;b&gt; or  &lt;/b&gt; you can design your own email from scratch"></button>
+                </h1>
+                <h1 class="page-header mt16 email_head panel-primary" t-if="model=='email.template'">
+                    Design your Email Template 
+                    <button type="button" class="btn btn-sm btn-default info_popover fa fa-info-circle" data-toggle="popover" data-trigger="focus" title="Help" data-content="Here you can duplicate previously designed template &lt;b&gt; or  &lt;/b&gt; you can design your own template from scratch."></button>
                 </h1>
                 <div class="row">
-                    <div class="col-md-3 col-sm-4 text-center img-border">
-                        <div class="email_preview_border">
-                            <div class="email_preview js_content"/>
+                    <div t-foreach="templates" t-as="template" class="col-md-2 col-sm-3 text-center email_template">
+                        <div class="template_options">
+                            <button class="btn btn-primary js_template_set" t-att-data-snippet-xmlid="template.theme_xml_id">
+                                <span t-if="model!='email.template'">Select</span>
+                                <span t-if="model=='email.template'">Duplicate &amp; Edit</span>
+                            </button>
                         </div>
-                        <h4>New Template</h4>
-                        <button class="btn btn-primary js_template_set">Select</button>
-                    </div>
-                    <div t-foreach="templates" t-as="template" class="col-md-3 col-sm-4 text-center">
-                        <div class="email_preview_border">
-                            <div t-esc="html_sanitize(template.body_html)" class="email_preview js_content"/>
+                        <div class="email_preview_border template_thumbnail">
+                            <div t-field="template.body_html" class="email_preview js_content"/>
                         </div>
-                        <h4 t-field="template.name"/>
-                        <button class="btn btn-primary js_template_set">Select</button>
+                        <h4 class="template_name" t-field="template.name"/>
                     </div>
                 </div>
             </div>
             <div id="email_designer" class="mb32" t-att-style="mode != 'email_designer' and 'display: none' or ''">
-                <a class="mt16 btn btn-primary pull-right" id="save_and_continue"
+                <a class="btn btn-default pull-right css_editable_mode_hidden email_template_theme_select" style="margin-left:10px;">
+                    <i class="fa fa-tint"> Change Theme</i>
+                </a>
+                <a class="btn btn-primary pull-right css_editable_mode_hidden" 
                   t-attf-href="/web#return_label=Website&amp;model=#{model}&amp;id=#{res_id}&amp;view_type=form">
                     Save and Continue
                 </a>
@@ -79,8 +84,94 @@
     <t t-set="website.footer"></t>
 </template>
 
+<template id="dialog_email_template_theme" name="Theme Modal for Email Template">
+  <div id="email_template_theme" class="modal fade">
+      <div class="modal-dialog">
+          <div class="modal-content">
+              <div class="modal-header text-center">
+                  <button type="button" class="close">×</button>
+                  <h4 class="modal-title">Select Theme For Template</h4>
+              </div>
+              <div class="modal-body">
+                    <div class="row" id="email_template_list">
+                        <div class="col-md-3">
+                            <div class="template_thumbnail">
+                                <div class="col-md-12 overlay text-center">
+                                    <p>Neopolitan</p>
+                                    <a class="btn btn-primary btn-sm" data-snippet-xmlid="website_mail.neopolitan_snippets"> Select </a>
+                                </div>
+                                <img class="img img-responsive img-thumbnail" src="/website_mail/static/src/img/thumbnail/neopolitan.png"/>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="template_thumbnail">
+                                <div class="col-md-12 overlay text-center">
+                                    <p>Skyline</p>
+                                    <a class="btn btn-primary btn-sm" data-snippet-xmlid="website_mail.skyline_snippets"> Select </a>
+                                </div>
+                                <img class="img img-responsive img-thumbnail" src="/website_mail/static/src/img/thumbnail/skyline.png"/>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="template_thumbnail">
+                                <div class="col-md-12 overlay text-center">
+                                    <p>Go</p>
+                                    <a class="btn btn-primary btn-sm" data-snippet-xmlid="website_mail.go_snippets"> Select </a>
+                                </div>
+                                <img class="img img-responsive img-thumbnail" src="/website_mail/static/src/img/thumbnail/go.png"/>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="template_thumbnail">
+                                <div class="col-md-12 overlay text-center">
+                                    <p>Sunday</p>
+                                    <a class="btn btn-primary btn-sm" data-snippet-xmlid="website_mail.sunday_snippets"> Select </a>
+                                </div>
+                                <img class="img img-responsive img-thumbnail" src="/website_mail/static/src/img/thumbnail/sunday.png"/>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="template_thumbnail">
+                                <div class="col-md-12 overlay text-center">
+                                    <p>Airmail</p>
+                                    <a class="btn btn-primary btn-sm" data-snippet-xmlid="website_mail.airmail_snippets"> Select </a>
+                                </div>
+                                <img class="img img-responsive img-thumbnail" src="/website_mail/static/src/img/thumbnail/airmail.png"/>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="template_thumbnail">
+                                <div class="col-md-12 overlay text-center">
+                                    <p>Cleave</p>
+                                    <a class="btn btn-primary btn-sm" data-snippet-xmlid="website_mail.cleave_snippets"> Select </a>
+                                </div>
+                                <img class="img img-responsive img-thumbnail" src="/website_mail/static/src/img/thumbnail/cleave.png"/>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="template_thumbnail">
+                                <div class="col-md-12 overlay text-center">
+                                    <p>Narrative</p>
+                                    <a class="btn btn-primary btn-sm" data-snippet-xmlid="website_mail.narrative_snippets"> Select </a>
+                                </div>
+                                <img class="img img-responsive img-thumbnail" src="/website_mail/static/src/img/thumbnail/narrative.png"/>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="template_thumbnail">
+                                <div class="col-md-12 overlay text-center">
+                                    <p>Zen-Flat</p>
+                                    <a class="btn btn-primary btn-sm" data-snippet-xmlid="website_mail.zenflat_snippets"> Select </a>
+                                </div>
+                                <img class="img img-responsive img-thumbnail" src="/website_mail/static/src/img/thumbnail/zenflat.png"/>
+                            </div>
+                        </div>
+                    </div>
+              </div>
+          </div>
+      </div>
+  </div>
+</template>
+
     </data>
 </openerp>
-
-
-
