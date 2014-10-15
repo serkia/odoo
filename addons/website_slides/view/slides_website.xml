@@ -19,8 +19,6 @@
             <xpath expr="." position="inside">
                 <link type="text/less" href="/website_slides/static/src/less/website_slides.less" rel="stylesheet" t-ignore="true"/>
                 <script type="text/javascript" src="/website_slides/static/src/js/slides.js"/>
-                <script type="text/javascript" src="/web/static/lib/jquery.textext/jquery.textext.js"/>
-                <link rel='stylesheet' href="/web/static/lib/jquery.textext/jquery.textext.css"/>
             </xpath>
         </template>
 

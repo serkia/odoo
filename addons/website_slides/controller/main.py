@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import base64
 import werkzeug
-import simplejson
 
 from openerp import SUPERUSER_ID
 from openerp.http import request
@@ -265,25 +264,14 @@ class main(http.Controller):
 
     @http.route(['/slides/add_slide'], type='json', auth='user', methods=['POST'], website=True)
     def create_slide(self, *args, **post):
-        tag_obj = request.env['slide.tag']
         slide_obj = request.env['slide.slide']
 
         if slide_obj.search([('name', '=', post['name']), ('channel_id', '=', post['channel_id'])]):
             return {
                 'error': _('This title already exists in the channel, rename and try again.')
             }
-
-        tags = post.get('tag_ids')
-        tag_ids = []
-        for tag in tags:
-            tag_id = tag_obj.search([('name', '=', tag)])
-            if tag_id:
-                tag_ids.append((4, tag_id[0].id))
-            else:
-                tag_ids.append((0, 0, {'name': tag}))
-            post['tag_ids'] = tag_ids
-
-        if request.env.user.id != 1:
+        # Do not publish slide by any other user until verified by Channel Manager
+        if request.env.user.id != SUPERUSER_ID:
             post['website_published'] = False
 
         slide_id = slide_obj.create(post)
@@ -332,12 +320,6 @@ class main(http.Controller):
         })
         return request.website.render('website_slides.pdfembed', values)
 
-    @http.route('/slides/get_tags', type='http', auth="public", methods=['GET'], website=True)
-    def tag_read(self, **post):
-        tags = request.env['slide.tag'].search_read([], ['name'])
-        data = [tag['name'] for tag in tags]
-        return simplejson.dumps(data)
-
     @http.route('/slides/get_category/<model("slide.channel"):channel>', type='json', auth="public", website=True)
     def get_category(self, channel):
         category_obj = request.env['slide.category']
@@ -384,7 +366,7 @@ class main(http.Controller):
             'order': order
         }
         return request.website.render('website_slides.searchresult', values)
-    
+
     @http.route('/slides/promote/<model("slide.channel"):channel>/<int:slide>', type='http', auth='public', website=True)
     def slides_set_promoted(self, channel, slide):
         channel.sudo().set_promoted(slide)

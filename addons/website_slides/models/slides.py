@@ -416,6 +416,9 @@ class Slide(models.Model):
         if not values.get('index_content'):
             values['index_content'] = values.get('description')
 
+        if values.get('slide_type') == 'infographic':
+            values['image'] = values['datas']
+
         if values.get('slide_type') != 'video' and values.get('image'):
             image_medium = self.crop_image(values['image'], thumbnail_ratio=3)
             image_thumb = self.crop_image(values['image'], thumbnail_ratio=4)

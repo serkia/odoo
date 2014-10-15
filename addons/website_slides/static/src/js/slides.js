@@ -181,39 +181,60 @@
             });
         },
         set_tags: function () {
-            var self = this;
-            this.$("input.slide-tags").textext({
-                plugins: 'tags focus autocomplete ajax',
-                keys: {
-                    8: 'backspace',
-                    9: 'tab',
-                    13: 'enter!',
-                    27: 'escape!',
-                    37: 'left',
-                    38: 'up!',
-                    39: 'right',
-                    40: 'down!',
-                    46: 'delete',
-                    108: 'numpadEnter',
-                    32: 'whitespace!'
+            var self =  this;
+            $('#tags').select2({
+                width: '100%',
+                multiple: true,
+                placeholder: _t("Tags"),
+                formatSelection: function (data, container) {
+                    if (data.tag)
+                        data.text = data.tag;
+                    return data.text;
                 },
-                ajax: {
-                    url: '/slides/get_tags',
-                    dataType: 'json',
-                    cacheResults: true,
+                createSearchChoice: function(term) {
+                    return {
+                        id: _.uniqueId('tags_'),
+                        tag: term,
+                        text: _.str.sprintf(_t("Create New Tag '%s'"), term)
+                    };
+                },
+                query: function(query) {
+                    var def = self.tag_data ? $.when(self.tag_data):
+                        openerp.jsonRpc("/web/dataset/call_kw", 'call',{
+                            model: 'slide.tag',
+                            method: 'search_read',
+                            args: [],
+                            kwargs: {
+                                fields: ['name'],
+                                context: website.get_context(),
+                            }
+                        });
+                    def.then(function(data) {
+                        if (!self.tag_data) {
+                            self.tag_data = data;
+                        }
+                        var tags = {results: []};
+                        _.each(data, function(obj) {
+                            if(query.term.length === 0 || obj.name.toUpperCase().indexOf(query.term.toUpperCase()) >= 0 ){
+                                tags.results.push({id: obj.id, text: obj.name });
+                            }
+                        });
+                        query.callback(tags);
+                    });
                 },
             });
-            // Adds: create tags on space + blur
-            $("input.slide-tags").on('whitespaceKeyDown blur', function () {
-                $(this).textext()[0].tags().addTags([$(this).val()]);
-                $(this).val("");
+        },
+        get_tags: function() {
+            var res = [];
+            // value convert to m2m create fromat
+            var value = $('#tags').select2('data');
+            _.each(value, function(val) {
+                if (_.isString(val.id))
+                    res.push([0, 0, {'name': val.text}]);
+                else
+                    res.push([4, val.id]);
             });
-            $("input.slide-tags").on('isTagAllowed', function (e, data) {
-                if (_.indexOf($(this).textext()[0].tags()._formData, data.tag) != -1) {
-                    data.result = false;
-                }
-            });
-
+            return res;
         },
         get_value: function () {
             var self = this;
@@ -232,7 +253,7 @@
             }
             _.extend(values, {
                 'name': this.$('#name').val(),
-                'tag_ids': this.$('.slide-tags').textext()[0].tags()._formData,
+                'tag_ids': this.get_tags(),
                 'datas': self.file.data || '',
                 'mimetype': self.file.type,
                 'url': this.$('#url').val(),

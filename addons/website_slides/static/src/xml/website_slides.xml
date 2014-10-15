@@ -53,14 +53,12 @@
                             </div>
                             <div class="form-group">
                                 <div class="control-group">
-                                    <label for="tags" class="pr0 control-label col-sm-2">
+                                    <label for="tags" class="control-label col-sm-2">
                                         Tags:
                                     </label>
 
                                     <div class="controls col-sm-10">
-                                        <div class="tags-wrapper">
-                                            <input type="text" style="width: 200px" id="tags" placeholder="Tags" class="form-control slide-tags"/>
-                                        </div>
+                                        <input id="tags" type="hidden"/>
                                     </div>
                                 </div>
                             </div>
