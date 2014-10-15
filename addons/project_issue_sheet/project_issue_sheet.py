@@ -27,12 +27,11 @@ class project_issue(osv.osv):
     _description = 'project issue'
 
     def _hours_get(self, cr, uid, ids, field_names, args, context=None):
-        task_pool = self.pool.get('project.task')
         res = {}
         for issue in self.browse(cr, uid, ids, context=context):
             progress = 0.0
             if issue.task_id:
-                progress = task_pool._hours_get(cr, uid, [issue.task_id.id], field_names, args, context=context)[issue.task_id.id]['progress']
+                progress = issue.task_id.progress
             res[issue.id] = {'progress' : progress}
         return res
 
