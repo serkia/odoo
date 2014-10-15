@@ -11,17 +11,13 @@
     </xpath>
 </template>
 
-<template id="assets_forum" name="Forum Assets">
-    <link rel='stylesheet' href="/web/static/lib/jquery.textext/jquery.textext.css"/>
-    <link rel='stylesheet' href='/website_forum/static/src/css/website_forum.css'/>
-
-    <script type="text/javascript" src="/website_forum/static/src/js/website_forum.js"/>
-    <script type="text/javascript" src="/web/static/lib/jquery.textext/jquery.textext.js"/>
-    <script type="text/javascript" src="/web/static/lib/ckeditor/ckeditor.js"/>
-    <script type="text/javascript">
-        CKEDITOR.config.toolbar = [['Bold','Italic','Underline','Strike'],['NumberedList','BulletedList', 'Blockquote']
-        ,['Outdent','Indent','Link','Unlink','Image'],] ;
-    </script>
+<template inherit_id="website.assets_frontend" name="Forum Assets">
+    <xpath expr="." position="inside">
+        <link rel="stylesheet" href="/web/static/lib/jquery.textext/jquery.textext.css"/>
+        <link rel="stylesheet" href="/website_forum/static/src/css/website_forum.css"/>
+        <script type="text/javascript" src="/website_forum/static/src/js/website_forum.js"/>
+        <script type="text/javascript" src="/web/static/lib/jquery.textext/jquery.textext.js"/>
+    </xpath>
 </template>
 
 <!-- Layout add nav and footer -->
@@ -44,9 +40,24 @@
 <!-- Page Index -->
 <template id="header" name="Forum Index">
     <t t-call="website.layout">
-        <t t-set="head">
-            <t t-call-assets="website_forum.assets_forum"/>
+        <t t-set="footer">
+            <script type="text/javascript" src="/web/static/lib/summernote/summernote.js"></script>
+            <script type="text/javascript" src="/website/static/src/js/summernote.js"></script>
+            <link rel="stylesheet" type="text/css" href="/web/static/lib/summernote/summernote.css"/>
+            <script type="text/javascript">
+                $('textarea[name="content"]').summernote({
+                        height: 150,
+                        toolbar: [
+                            ['font', ['bold', 'italic', 'underline', 'clear']],
+                            ['para', ['ul', 'ol', 'paragraph']],
+                            ['table', ['table']],
+                            ['insert', ['link', 'picture']]
+                        ]
+                    });
+            </script>
+            <t t-raw="footer or ''"/>
         </t>
+
         <div class="container mt16 website_forum">
             <div class="navbar navbar-default">
                 <div class="navbar-header">
@@ -342,9 +353,6 @@
             <br/>
             <button class="btn btn-primary" id="btn_ask_your_question">Post Your Question</button>
         </form>
-        <script type="text/javascript">
-            CKEDITOR.replace("content");
-        </script>
     </t>
 </template>
 
@@ -370,9 +378,6 @@
             </div>
             <button class="btn btn-primary btn-lg">Save</button>
         </form>
-        <script type="text/javascript">
-            CKEDITOR.replace("content");
-        </script>
     </t>
 </template>
 
@@ -428,9 +433,6 @@
         <textarea name="content" class="form-control load_editor" required="True"/>
         <button class="btn btn-primary mt16" id="btn_ask_your_question">Post Your Answer</button>
     </form>
-    <script type="text/javascript">
-        CKEDITOR.replace("content");
-    </script>
 </template>
 
 <template id="vote">
