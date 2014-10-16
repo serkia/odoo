@@ -770,8 +770,9 @@ class website_sale(http.Controller):
                 # Orders are confirmed by payment transactions, but there is none for free orders,
                 # (e.g. free events), so confirm immediately
                 order.action_button_confirm()
-            # send by email
-            email_act = sale_order_obj.action_quotation_send(cr, SUPERUSER_ID, [order.id], context=request.context)
+            else :
+                # send by email
+                email_act = sale_order_obj.action_quotation_send(cr, SUPERUSER_ID, [order.id], context=request.context) 
         elif tx and tx.state == 'cancel':
             # cancel the quotation
             sale_order_obj.action_cancel(cr, SUPERUSER_ID, [order.id], context=request.context)
