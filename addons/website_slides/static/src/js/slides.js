@@ -54,29 +54,41 @@
             var self = this;
             var url = $(ev.target).val();
             this.$('.url-error').hide();
-            var video_id = this.url_parser(url);
-            if (!video_id && url) {
-                this.$('.url-error').show();
-            } else {
-                var constraint = this.check_constraint({
-                    'video_id': video_id
-                });
-                var api_url = "https://www.googleapis.com/youtube/v3/videos?id=" + video_id + " &key=AIzaSyBKDzf7KjjZqwPWAME6JOeHzzBlq9nrpjk&part=statistics,snippet&fields=items(snippet/title, snippet/description, statistics/viewCount, snippet/thumbnails/high/url)";
-                $.getJSON(api_url, function (data) {
-                    var title = data.items[0].snippet.title;
-                    var description = data.items[0].snippet.description;
-                    var image_src = data.items[0].snippet.thumbnails.high.url;
-
-                    constraint.then(function (url) {
-                        if (url) {
-                            $('<div class="alert alert-warning" role="alert">This video already exists in this channel <a target="_blank" href=' + url + '>click here to view it </a></div>').insertBefore(self.$('form'));
-                        } else {
-                            self.$('#name').val(title);
-                            self.$('#description').val(description);
-                        }
+            var video = this.url_parser(url);
+            switch(video[0]) {
+                case false:
+                    this.$('.url-error').show();
+                    break;
+                case 'youtube':
+                    var video_id = video[1];
+                    var constraint = this.check_constraint({
+                        'video_id': video_id
                     });
-                    self.$("#slide-image").attr("src", image_src);
-                });
+                    var api_url = "https://www.googleapis.com/youtube/v3/videos?id=" + video_id + " &key=AIzaSyBKDzf7KjjZqwPWAME6JOeHzzBlq9nrpjk&part=statistics,snippet&fields=items(snippet/title, snippet/description, statistics/viewCount, snippet/thumbnails/high/url)";
+                    $.getJSON(api_url, function (data) {
+                        var title = data.items[0].snippet.title;
+                        var description = data.items[0].snippet.description;
+                        var image_src = data.items[0].snippet.thumbnails.high.url;
+
+                        constraint.then(function (url) {
+                            if (url) {
+                                $('<div class="alert alert-warning" role="alert">This video already exists in this channel <a target="_blank" href=' + url + '>click here to view it </a></div>').insertBefore(self.$('form'));
+                            } else {
+                                self.$('#name').val(title);
+                                self.$('#description').val(description);
+                            }
+                        });
+                        self.$("#slide-image").attr("src", image_src);
+                    });
+                    break;
+                case 'googledoc':
+                    var video_id = video[1];
+                    var api_url = "https://www.googleapis.com/drive/v2/files/" + video_id + "?projection=BASIC&key=AIzaSyBKDzf7KjjZqwPWAME6JOeHzzBlq9nrpjk";
+                    $.getJSON(api_url, function (data) {
+                        self.$('#name').val(data.title);
+                        self.$("#slide-image").attr("src", data.thumbnailLink);
+                    })
+                    break;
             }
         },
         check_constraint: function (values) {
@@ -92,10 +104,21 @@
             });
         },
         url_parser: function (url) {
-            var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
-            var match = url.match(regExp);
-            return (match && match[7].length == 11) ? match[7] : false;
+            var youtubeExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
+            var match = url.match(youtubeExp);
+            var youtube_id = (match && match[7].length == 11) ? match[7] : false;
+            if (youtube_id) {
+                return ['youtube', youtube_id];
+            }
+            var googledocExp = /(^https\:\/\/docs\.google\.com)(.*\/d\/)(.*)(.*\/)/;
+            match = url.match(googledocExp);
+            var googledoc_id = (match && match.length) ? match[3] : false;
+            if (googledoc_id) {
+                return ['googledoc', googledoc_id];
+            }
+            return [false, ""];
         },
+
         slide_upload: function (ev) {
             var self = this;
             var file = ev.target.files[0];
@@ -429,6 +452,7 @@
             if (this.page_number <= 1) {
                 return;
             }
+            this.$(".slide-overlay").hide();
             this.page_number -= 1;
             if (!this.rendering) {
                 this.render_page();
@@ -439,6 +463,7 @@
             if (!this.is_loaded()){
                 return;
             }
+            this.$(".slide-overlay").hide();
             this.page_number = 1;
             if (!this.rendering) {
                 this.render_page();

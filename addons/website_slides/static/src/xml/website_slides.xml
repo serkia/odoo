@@ -31,11 +31,11 @@
                                             <li class="list-group-item">
                                                 <h5 class="list-group-item-heading">
                                                     <label for="slide-url" class="control-label">
-                                                        Youtube URL
+                                                        Youtube or Google Doc URL
                                                     </label>
                                                 </h5>
                                                 <input class="form-control h5 slide-url" placeholder="Youtube Video URL" id="url"/>
-                                                <p class="url-error" style="display:none"> Wrong input. Please enter valid youtube URL</p>
+                                                <p class="url-error" style="display:none">Wrong input. Please enter valid youtube or google doc URL</p>
                                             </li>
                                         </ul>
                                     </div>
