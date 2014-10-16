@@ -127,17 +127,15 @@ class account_fiscal_position(osv.osv):
             '|', ('vat_required', '=', False), ('vat_required', '=', partner.vat_subjected),
         ]
 
-        fiscal_position_ids = self.search(cr, uid,
-            domain + ['|', ('country_id', '=', None), ('country_id', '=', delivery.country_id.id)], context=context)
+        fiscal_position_ids = self.search(cr, uid, domain + [('country_id', '=', delivery.country_id.id)], context=context, limit=1)
         if fiscal_position_ids:
             return fiscal_position_ids[0]
 
-        fiscal_position_ids = self.search(cr, uid,
-            domain + ['|', ('country_group_id', '=', None), ('country_group_id.country_ids', '=', delivery.country_id.id)], context=context)
+        fiscal_position_ids = self.search(cr, uid, domain + [('country_group_id.country_ids', '=', delivery.country_id.id)], context=context, limit=1)
         if fiscal_position_ids:
             return fiscal_position_ids[0]
 
-        fiscal_position_ids = self.search(cr, uid, domain, context=context)
+        fiscal_position_ids = self.search(cr, uid, domain + [('country_id', '=', None), ('country_group_id', '=', None)], context=context, limit=1)
         if fiscal_position_ids:
             return fiscal_position_ids[0]
         return False
