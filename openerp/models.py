@@ -239,7 +239,7 @@ class MetaModel(api.Meta):
         # transform columns into new-style fields (enables field inheritance)
         for name, column in self._columns.iteritems():
             if name in self.__dict__:
-                _logger.warning("Field %r erasing an existing value", name)
+                _logger.warning("In class %s, field %r overriding an existing value", self, name)
             setattr(self, name, column.to_field())
 
 
@@ -461,16 +461,14 @@ class BaseModel(object):
     @classmethod
     def _add_field(cls, name, field):
         """ Add the given `field` under the given `name` in the class """
-        field.set_class_name(cls, name)
-
-        # add field in _fields (for reflection)
+        # add field as an attribute and in cls._fields (for reflection)
+        if not isinstance(getattr(cls, name, field), Field):
+            _logger.warning("In model %r, field %r overriding existing value", cls._name, name)
+        setattr(cls, name, field)
         cls._fields[name] = field
 
-        # add field as an attribute, unless another kind of value already exists
-        if isinstance(getattr(cls, name, field), Field):
-            setattr(cls, name, field)
-        else:
-            _logger.warning("In model %r, member %r is not a field", cls._name, name)
+        # basic setup of field
+        field.set_class_name(cls, name)
 
         if field.store:
             cls._columns[name] = field.to_column()
@@ -806,10 +804,11 @@ class BaseModel(object):
                 "TransientModels must have log_access turned on, " \
                 "in order to implement their access rights policy"
 
-        # retrieve new-style fields and duplicate them (to avoid clashes with
-        # inheritance between different models)
+        # retrieve new-style fields (from above registry class) and duplicate
+        # them (to avoid clashes with inheritance between different models)
         cls._fields = {}
-        for attr, field in getmembers(cls, Field.__instancecheck__):
+        above = cls.__bases__[0]
+        for attr, field in getmembers(above, Field.__instancecheck__):
             if not field.inherited:
                 cls._add_field(attr, field.new())
 
@@ -2973,13 +2972,11 @@ class BaseModel(object):
     def _setup_fields(self, partial=False):
         """ Setup the fields (dependency triggers, etc). """
         for field in self._fields.itervalues():
-            if partial and field.manual and \
-                    field.relational and \
-                    (field.comodel_name not in self.pool or \
-                     (field.type == 'one2many' and field.inverse_name not in self.pool[field.comodel_name]._fields)):
-                # do not set up manual fields that refer to unknown models
-                continue
-            field.setup(self.env)
+            try:
+                field.setup(self.env)
+            except Exception:
+                if not partial:
+                    raise
 
         # group fields by compute to determine field.computed_fields
         fields_by_compute = defaultdict(list)
