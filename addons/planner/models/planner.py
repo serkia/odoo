@@ -22,14 +22,14 @@ class Planner(models.Model):
         required=True,
         help='Technical name of the planner modules') 
 
-    @api.cr_uid_ids_context
-    def render(self, cr, uid, template_id, planner_apps, context=None):
+    @api.model
+    def render(self, template_id, planner_apps):
         values = {}
         #prepare the planner data as per the planner application 
         planner_find_method_name = '_prepare_%s_data' % planner_apps
         if hasattr(self, planner_find_method_name):
-            values = getattr(self, planner_find_method_name)(cr, uid, context=context)
-        html = self.pool['ir.ui.view'].render(cr, uid, template_id, values, context=context)
+            values = getattr(self, planner_find_method_name)()
+        html = self.env['ir.ui.view'].browse(template_id).render(values)
         return html
 
     @api.model

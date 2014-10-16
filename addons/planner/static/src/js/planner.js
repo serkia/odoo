@@ -83,7 +83,7 @@
             this.$el.hide();
         },
         set_planner_tooltip: function(tooltip) {
-            this.$el.find(".progress").tooltip({html: true, title: tooltip, placement: 'bottom', delay: {'show': 500}});
+            this.$el.find(".oe_planner_progress").tooltip({html: true, title: tooltip, placement: 'bottom', delay: {'show': 500}});
         },
         update_progress_value: function(progress_value) {
             this.$el.find(".progress-bar").css('width', progress_value+"%");
@@ -110,21 +110,24 @@
         },
 
         onclick_menu: function(ev) {
-            console.log(this.$target);
+            ev.stopPropagation();
+            var $menu = $(ev.target).is("span") ? $(ev.target): $(ev.target).children();
             this.$el.find("#PlannerModal").scrollTop(0);
             //remove class active from other menu except current menu
             this.$el.find("li a[data-parent^='#planner_page']").parent().removeClass('active');
             this.$el.find(ev.target).parent().addClass('active');
-            //hide other pages
+            //hide other pages except current page
             this.$el.find(".oe_planner div[id^='planner_page']").removeClass('in');
+            this.$el.find(".oe_planner div[id="+$menu.attr('data-check')+"]").addClass('in');
         },
         next_page: function(ev) {
+            ev.stopPropagation();
             this.$el.find("#PlannerModal").scrollTop(0);
-            //find next page
-            var next_button = $(ev.target).is("span") ? $(ev.target).parent() : $(ev.target);
-            var next_page_id = $(next_button).attr('href');
+            var $next_button = $(ev.target).is("span") ? $(ev.target).parent() : $(ev.target);
+            var next_page_id = $next_button.attr('href');
             if (next_page_id) {
-                this.$el.find(".oe_planner div[id="+$(next_button).attr('data-parent')+"]").removeClass('in');
+                this.$el.find(".oe_planner div[id="+$next_button.attr('data-parent')+"]").removeClass('in');
+                this.$el.find(".oe_planner div[id="+next_page_id.replace('#', '')+"]").addClass('in');
                 this.$el.find("li a[data-parent^='#planner_page']").parent().removeClass('active');
                 //find active menu
                 this.$el.find("li a[data-parent^='#planner_page'][href="+next_page_id+"]").parent().addClass('active');
@@ -161,7 +164,6 @@
                 self.update_input_value(input_element, false);
                 self.progress = self.progress - 1;
             }
-            
 
             var data = JSON.stringify(self.values);
             var total_progress = parseInt((self.progress / self.btn_mark_as_done.length) * 100, 10);
@@ -322,8 +324,6 @@
             /*==== Stefano ====  Call resize function on window resize*/
             $(window).on('rezize', self.winDim());
 
-
-            
         },
 
         // ==== Stefano ==== Resize function for dinamically fix columns height
@@ -335,7 +335,6 @@
             modal.height(winH/1.1);
             self.$el.find('.pages').height(modal.height() - 60);
             self.$el.find('.side').height(modal.height() - 75);
-            
         },
 
         show: function() {
