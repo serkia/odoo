@@ -1478,12 +1478,64 @@ class stock_production_lot(osv.osv):
     _name = 'stock.production.lot'
     _inherit = ['mail.thread']
     _description = 'Lot/Serial'
+
+    def _get_stock(self, cr, uid, ids, field_name, arg, context=None):
+        if context.get("location_id"):
+            query = 'SELECT sum(qty), lot_id FROM stock_quant where location_id = %s AND lot_id in %s GROUP BY lot_id, reservation_id'
+            params = (context['location_id'], tuple(ids))
+        else:
+            query = """SELECT sum(qty), lot_id, reservation_id FROM stock_quant, stock_location WHERE stock_location.id = stock_quant.location_id
+                        AND stock_location.usage = 'internal' AND lot_id in %s GROUP BY lot_id, reservation_id"""
+            params = (tuple(ids),)
+        cr.execute(query, params)
+        results = cr.fetchall()
+        res = dict.fromkeys(ids, {'stock_available': 0.0,
+                                  'stock_reserved': 0.0,
+                                  'stock_free': 0.0})
+        for qty, lot, reservation in results:
+            if reservation:
+                res[lot]['stock_reserved'] = qty
+            else:
+                res[lot]['stock_free'] = qty
+        for lot in res.keys():
+            res[lot]['stock_available'] = res[lot]['stock_reserved'] + res[lot]['stock_free']
+        return res
+
+    def _search_lots(self, cr, uid, reservation_query, args, context=None):
+        if context.get("location_id"):
+            query = """SELECT lot_id, sum(qty) FROM stock_quant where location_id = %s""" + reservation_query
+            query += """ GROUP BY lot_id HAVING %s %s"""
+            params = (context['location_id'], str(args[0][1]), str(args[0][2]))
+        else:
+            query = """SELECT lot_id FROM stock_quant, stock_location WHERE stock_location.id = stock_quant.location_id
+                        AND stock_location.usage = 'internal' """ + reservation_query + """ GROUP BY lot_id"""
+            params = tuple()
+        cr.execute(query, params)
+        res = cr.fetchall()
+        return [x[0] for x in res]
+
+    def _stock_search(self, cr, uid, obj, name, args, context=None):
+        return self._search_lots(cr, uid, '', args, context=context)
+
+    def _free_search(self, cr, uid, obj, name, args, context=None):
+        return self._search_lots(cr, uid, ' AND reservation_id IS NULL ', args, context=context)
+
+    def _reserved_search(self, cr, uid, obj, name, args, context=None):
+        return self._search_lots(cr, uid, 'AND reservation_id IS NOT NULL ', args, context=context)
+
+
     _columns = {
         'name': fields.char('Serial Number', required=True, help="Unique Serial Number"),
         'ref': fields.char('Internal Reference', help="Internal reference number in case it differs from the manufacturer's serial number"),
         'product_id': fields.many2one('product.product', 'Product', required=True, domain=[('type', '<>', 'service')]),
         'quant_ids': fields.one2many('stock.quant', 'lot_id', 'Quants', readonly=True),
         'create_date': fields.datetime('Creation Date'),
+        'stock_available': fields.function(_get_stock, fnct_search=_stock_search, string='Available Qty', type='float', multi='stock',
+                                           digits_compute=dp.get_precision('Product Unit of Measure')),
+        'stock_reserved': fields.function(_get_stock, fnct_search=_reserved_search, string='Reserved Qty', type='float', multi='stock',
+                                          digits_compute=dp.get_precision('Product Unit of Measure')),
+        'stock_free': fields.function(_get_stock, fnct_search=_free_search, string='Not Reserved Qty', type='float', multi='stock',
+                                      digits_compute=dp.get_precision('Product Unit of Measure')),
     }
     _defaults = {
         'name': lambda x, y, z, c: x.pool.get('ir.sequence').get(y, z, 'stock.lot.serial'),
