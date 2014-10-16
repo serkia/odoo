@@ -182,7 +182,10 @@ class Slide(models.Model):
     image_medium = fields.Binary('Medium')
     image_thumb = fields.Binary('Thumbnail')
 
-    youtube_id = fields.Char(string="Youtube Video ID")
+    document_id = fields.Char(string='Document Id')
+    youtube_id = fields.Char(string='Video Id')
+    source = fields.Char(string='Document Source')
+
     website_published = fields.Boolean(
         string='Publish', help="Publish on the website", copy=False, default=False
     )
@@ -226,7 +229,7 @@ class Slide(models.Model):
     def check_constraint(self, values):
         '''called from website to check if already available or not'''
         if values.get('video_id'):
-            domain = [('channel_id', '=', values['channel_id']), ('youtube_id', '=', values['video_id'])]
+            domain = [('channel_id', '=', values['channel_id']), ('document_id', '=', values['video_id'])]
             slide = self.search(domain)
             if slide:
                 return "/slides/%s/%s/%s" % (slide.channel_id.id, slide.slide_type, slide.id)
@@ -249,10 +252,10 @@ class Slide(models.Model):
     def get_embade_code(self):
         base_url = self.env['ir.config_parameter'].get_param('web.base.url')
         embedcode = False
-        if self.datas and not self.youtube_id:
+        if self.datas and not self.document_id:
             embedcode = '<iframe  src="%s/slides/embed/%s?page=1" allowFullScreen="true" height="%s" width="%s" frameborder="0"></iframe>' % (base_url, self.id, self.height + 100, self.width)
-        if self.youtube_id:
-            embedcode = '<iframe src="//www.youtube.com/embed/%s?theme=light" frameborder="0"></iframe>' % (self.youtube_id)
+        if self.document_id:
+            embedcode = '<iframe src="//www.youtube.com/embed/%s?theme=light" frameborder="0"></iframe>' % (self.document_id)
         return embedcode
 
     def set_viewed(self):
@@ -362,26 +365,6 @@ class Slide(models.Model):
             thumb_image.save(output, image_format)
         return output.getvalue().encode('base64')
 
-    def _detect_type(self, values):
-        slide_type = 'presentation'
-
-        _file_types = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif']
-
-        if values.get('url') and not values.get('datas', False):
-            slide_type = 'video'
-        elif values.get('datas') and values.get('mimetype') in _file_types:
-            slide_type = 'infographic'
-        elif values.get('datas') and values.get('mimetype') == 'application/pdf':
-            height = values.get('height', 0)
-            width = values.get('width', 0)
-
-            if height > width:
-                slide_type = 'document'
-            else:
-                slide_type = 'presentation'
-
-        return slide_type
-
     @api.multi
     def write(self, values):
         if values.get('url'):
@@ -397,15 +380,67 @@ class Slide(models.Model):
 
         return success
 
+
+    def _detect_type(self, values):
+        slide_type = 'presentation'
+
+        _file_types = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif']
+
+        if values.get('url') and not values.get('datas', False):
+            slide_type = 'video'
+        elif values.get('datas') and values.get('mimetype').startswith('image/'):
+            slide_type = 'infographic'
+        elif values.get('datas') and values.get('mimetype') == 'application/pdf':
+            data = values.get('image')
+            image = Image.open(cStringIO.StringIO(data.decode('base64')))
+            output = io.BytesIO()
+            width, height = image.size
+
+            if height > width:
+                slide_type = 'document'
+            else:
+                slide_type = 'presentation'
+
+        return slide_type
+
+    def _detect_source(self, url):
+        from urlparse import urlparse
+        sources = ['youtube', 'google']
+        urlobj = urlparse(url)
+
+        for source in sources:
+            if source in urlobj.hostname: return source
+
+        return False
+
     @api.model
     def create(self, values):
-        if not values.get('slide_type', False):
-            values['slide_type'] = self._detect_type(values)
+        source = False
 
         if values.get('url'):
-            values["youtube_id"] = self.extract_youtube_id(values['url'].strip())
-            vals = self.get_youtube_statistics(values['youtube_id'], part='snippet,statistics', fields='id,snippet,statistics')
+            source = self._detect_source(values.get('url'))
+            values['source'] = source
+
+        if values.get('url'):
+            resource_id = self.extract_document_id(source, values.get('url')).strip()
+            if source == 'youtube':
+                values['youtube_id'] = resource_id
+
+            if source == 'google':
+                values['document_id'] = resource_id
+
+        if values.get('url') and values.get('source'):
+            vals = {}
+            if source == 'youtube':
+                vals = self.get_resource_detail(source, values['youtube_id'])
+
+            if source == 'google':
+                vals = self.get_resource_detail(source, values['document_id'])
+
             values.update(vals)
+
+        if not values.get('slide_type', False):
+            values['slide_type'] = self._detect_type(values)
 
         if values.get('wesite_upload'):
             del values['wesite_upload']
@@ -419,14 +454,16 @@ class Slide(models.Model):
         if values.get('slide_type') == 'infographic':
             values['image'] = values['datas']
 
-        if values.get('slide_type') != 'video' and values.get('image'):
-            image_medium = self.crop_image(values['image'], thumbnail_ratio=3)
+        if values.get('image') and not values.get('image_thumb'):
             image_thumb = self.crop_image(values['image'], thumbnail_ratio=4)
-            image = self.crop_image(values['image'])
             values.update({
-                'image_medium': image_medium,
-                'image_thumb': image_thumb,
-                'image': image
+                'image_thumb': image_thumb
+            })
+
+        if values.get('image') and not values.get('image_medium'):
+            image_thumb = self.crop_image(values['image'], thumbnail_ratio=3)
+            values.update({
+                'image_medium': image_thumb
             })
 
         if values.get('website_published'):
@@ -442,45 +479,104 @@ class Slide(models.Model):
         slide_id.notify_published()
         return slide_id
 
-    def extract_youtube_id(self, url):
-        youtube_id = ""
-        regex_y = r'.*(?:v=|/v/|^|/youtu.be/|/embed/)(?P<id>[^&]*)'
-        regex_y = re.compile(regex_y)
-        erg = regex_y.match(url)
-        youtube_id = erg.group('id')
-        return youtube_id
+    def extract_document_id(self, source, url):
+        document_id = ''
+        if source == 'google':
+            expr = re.compile(r'[-\w]{25,}')
+            arg = expr.findall(url)
+            document_id = arg[0]
 
-    def get_youtube_statistics(self, video_id, part='statistics', fields='statistics'):
-        apiurl = 'https://www.googleapis.com/youtube/v3/videos'
-        key = 'AIzaSyBKDzf7KjjZqwPWAME6JOeHzzBlq9nrpjk'
+        if source == 'youtube':
+            expr = re.compile(r'.*(?:v=|/v/|^|/youtu.be/|/embed/)(?P<id>[^&]*)')
+            arg = expr.match(url)
+            document_id = arg.group('id')
+
+        return document_id
+
+    def get_resource_detail(self, source, document_id, part='snippet,statistics', fields='id,snippet,statistics'):
         vals = None
-        request_url = "%s?id=%s&key=%s&part=%s&fields=items(%s)" % (apiurl, video_id, key, part, fields)
-        try:
-            req = urllib2.Request(request_url)
-            content = urllib2.urlopen(req).read()
-            values = json.loads(content)
-            vals = self.parse_youtube_statistics(values)
-        except urllib2.HTTPError:
-            pass
+        key = 'AIzaSyBKDzf7KjjZqwPWAME6JOeHzzBlq9nrpjk'
+        if source == 'google':
+            request_url = "https://www.googleapis.com/drive/v2/files/%s?projection=BASIC&key=%s" % (document_id, key)
+            try:
+                req = urllib2.Request(request_url)
+                content = urllib2.urlopen(req).read()
+                values = json.loads(content)
+                vals = self.parse_google_document(values)
+            except urllib2.HTTPError:
+                pass
+
+        if source == 'youtube':
+            apiurl = 'https://www.googleapis.com/youtube/v3/videos'
+            request_url = "%s?id=%s&key=%s&part=%s&fields=items(%s)" % (apiurl, document_id, key, part, fields)
+            try:
+                req = urllib2.Request(request_url)
+                content = urllib2.urlopen(req).read()
+                values = json.loads(content)
+                vals = self.parse_youtube_statistics(values)
+            except urllib2.HTTPError:
+                pass
+
+        return vals
+
+    def parse_google_document(self, values):
+
+        def _get_external_data(resource_url, plaintext=False):
+            date = False
+            response = requests.get(resource_url)
+            if response and not plaintext:
+                date = response.content.encode('base64')
+            if response and plaintext:
+                date = response.content
+            return date
+
+        vals = {}
+        if values:
+            vals['mimetype'] = values['mimeType']
+
+            thumb = values['thumbnailLink'].replace('s220', 's400')
+            medium = values['thumbnailLink'].replace('=s220', '')
+            image = values['thumbnailLink'].replace('=s220','')
+
+            vals['image_thumb'] = _get_external_data(thumb)
+            vals['image_medium'] = _get_external_data(medium)
+            vals['image'] = _get_external_data(image)
+
+            if values['mimeType'].startswith('video/'):
+                vals['slide_type'] = 'video'
+
+            if values['mimeType'].startswith('image/'):
+                vals['datas'] = vals['image']
+                vals['slide_type'] = 'infographic'
+
+            if values['mimeType'].startswith('application/vnd.google-apps'):
+                vals['mimetype'] = 'application/pdf'
+                vals['datas'] = _get_external_data(values['exportLinks']['application/pdf'])
+
+                if values.get('exportLinks').get('text/plain'):
+                    vals['index_content'] = _get_external_data(values['exportLinks']['text/plain'], True)
+                if values.get('exportLinks').get('text/csv'):
+                    vals['index_content'] = _get_external_data(values['exportLinks']['text/csv'], True)
+
         return vals
 
     def parse_youtube_statistics(self, values):
 
-        def _get_image_data(image_url):
-            image_date = False
-            response = requests.get(image_url)
+        def _get_external_data(resource_url):
+            date = False
+            response = requests.get(resource_url)
             if response:
-                image_date = response.content.encode('base64')
-            return image_date
+                date = response.content.encode('base64')
+            return date
 
         vals = {}
         if values:
             item = values['items'][0]
 
             if item.get('snippet'):
-                vals['image_thumb'] = _get_image_data(item['snippet']['thumbnails']['medium']['url'])
-                vals['image_medium'] = _get_image_data(item['snippet']['thumbnails']['high']['url'])
-                vals['image'] = _get_image_data(item['snippet']['thumbnails']['standard']['url'])
+                vals['image_thumb'] = _get_external_data(item['snippet']['thumbnails']['medium']['url'])
+                vals['image_medium'] = _get_external_data(item['snippet']['thumbnails']['high']['url'])
+                vals['image'] = _get_external_data(item['snippet']['thumbnails']['standard']['url'])
 
                 if item['snippet'].get('description'):
                     vals['description'] = values['items'][0]['snippet'].get('description')

@@ -459,6 +459,9 @@
                     <div t-if="slide.youtube_id" class="embed-responsive embed-responsive-16by9 embed-responsive-item mb8">
                         <iframe t-attf-src="//www.youtube.com/embed/#{slide.youtube_id}?theme=light"></iframe>
                     </div>
+                    <div t-if="slide.slide_type == 'video' and slide.document_id" class="embed-responsive embed-responsive-16by9 embed-responsive-item mb8">
+                        <embed width="100%" height="100%" name="plugin" t-attf-src="https://video.google.com/get_player?ps=docs&amp;partnerid=30&amp;docid=#{slide.document_id}" type="application/x-shockwave-flash"></embed>
+                    </div>
                 </div>
 
                 <div t-if="private" style="position: inherit;" class="mb16">
