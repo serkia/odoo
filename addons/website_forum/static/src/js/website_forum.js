@@ -1,23 +1,14 @@
 function open_share_dialog(social_network, text_to_share, url) {
     'use strict';
-    var sharing_url, window_height, window_width;
-
-    if (social_network === 'twitter') {
-        sharing_url = 'https://twitter.com/intent/tweet?original_referer=' + encodeURIComponent(url) + '&amp;text=' + encodeURIComponent(text_to_share);
-        window_height = '300';
-        window_width = '600';
-    } else if (social_network === 'linkedin') {
-        sharing_url = 'https://www.linkedin.com/shareArticle?mini=true&url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(text_to_share) + '&summary=Odoo Forum&source=Odoo forum';
-        window_height = '500';
-        window_width = '600';
-    } else if (social_network === 'facebook') {
-        sharing_url = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url);
-        window_height = '600';
-        window_width = '750';
-    } else {
-        return false;
+    var sharing_url,
+    social_networks = {
+        'facebook': ['https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url), '600', '750'],
+        'twitter': ['https://twitter.com/intent/tweet?original_referer=' + encodeURIComponent(url) + '&amp;text=' + encodeURIComponent(text_to_share), '300', '600'],
+        'linkedin': ['https://www.linkedin.com/shareArticle?mini=true&url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(text_to_share) + '&summary=Odoo Forum&source=Odoo forum', '500', '600'],
+    };
+    if (_.contains(_.keys(social_networks),  social_network)) {
+        window.open(social_networks[social_network][0], '', 'menubar=no, toolbar=no, resizable=yes, scrollbar=yes, height=' + social_networks[social_network][1] + ', width=' + social_networks[social_network][2]);
     }
-    window.open(sharing_url, '', 'menubar=no, toolbar=no, resizable=yes, scrollbar=yes, height=' + window_height + ',width=' + window_width);
     return false;
 }
 
@@ -76,8 +67,7 @@ $(document).ready(function () {
         /*For Questions*/
         $('body').on('click', '.share_question_twitter', function () {
             var text_to_share, url, post_id,
-                website_name = $(this).data('website_name'),
-                hash_tags = ' #' + website_name + ' #question ';
+                hash_tags = ' #' + $(this).data('website_name') + ' #question ';
             if ($(this).data("dialog")) {
                 post_id = $("#share_dialog_box").data('post_id');
                 url = location.origin + $('#share_dialog_box').data('url');
