@@ -7,7 +7,7 @@
         <field name="res_model">email.template</field>
         <field name="view_type">form</field>
         <field name="view_mode">form,tree</field>
-        <field name="view_id" ref="email_template.email_template_tree" />
+        <field name="view_id" ref="email_template.email_template_tree"/>
         <field name="search_view_id" ref="email_template.view_email_template_search"/>
         <field name="context" eval="{'search_default_model_id': ref('account_voucher.model_account_voucher')}"/>
     </record>
@@ -22,9 +22,9 @@
             <field name="email_from">${(object.company_id.email or 'noreply@localhost')|safe}</field>
             <field name="subject">${object.company_id.name} Receipt (Ref ${object.number or 'n/a'})</field>
             <field name="partner_to">${object.partner_id.id}</field>
-            <field name="model_id" ref="account_voucher.model_account_voucher" />
-            <field name="auto_delete" eval="True" />
-            <field name="report_template" ref="report_account_voucher" />
+            <field name="model_id" ref="account_voucher.model_account_voucher"/>
+            <field name="auto_delete" eval="True"/>
+            <field name="report_template" ref="report_account_voucher"/>
             <field name="report_name">Receipt_${(object.number or '').replace('/','_')}_${object.state == 'draft' and 'draft' or ''}</field>
             <field name="lang">${object.partner_id.lang}</field>
             <field name="body_html"><![CDATA[
