@@ -1349,6 +1349,11 @@ class account_move(osv.osv):
             context = {}
         c = context.copy()
         c['novalidate'] = True
+        period_obj = self.pool['account.period']
+        if vals.get('period_id'):
+            period = period_obj.browse(cr, uid, vals['period_id'], context=c)
+            if period.state == 'done':
+                raise osv.except_osv(_('Error!'), _('You can not use a closed period %s.' % (period.name)))
         result = super(account_move, self).write(cr, uid, ids, vals, c)
         self.validate(cr, uid, ids, context=context)
         return result
@@ -1387,6 +1392,11 @@ class account_move(osv.osv):
             if journal.entry_posted and tmp:
                 self.button_validate(cr,uid, [result], context)
         else:
+            period_obj = self.pool['account.period']
+            if vals.get('period_id'):
+                period = period_obj.browse(cr, uid, vals['period_id'], context=context)
+                if period.state == 'done':
+                    raise osv.except_osv(_('Error!'), _('You can not use a closed period %s.' % (period.name)))
             result = super(account_move, self).create(cr, uid, vals, context)
         return result
 
