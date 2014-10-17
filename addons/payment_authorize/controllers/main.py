@@ -21,7 +21,7 @@ class AuthorizeController(http.Controller):
         _logger.info('Authorize: entering form_feedback with post data %s', pprint.pformat(post))
         return_url = '/shop'
         if post:
-            request.env['payment.transaction'].form_feedback(post, 'authorize')
+            request.env['payment.transaction'].sudo().form_feedback(post, 'authorize')
             return_url = post.pop('return_url', '/')
         base_url = request.env['ir.config_parameter'].get_param('web.base.url')
         #Authorize.Net is expecting a response to the POST sent by their server.
