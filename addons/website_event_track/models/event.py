@@ -31,7 +31,7 @@ class event_track_tag(osv.osv):
     _columns = {
         'name': fields.char('Event Track Tag', translate=True)
     }
-    _sql_constraints=[('unique_name','unique(name)','Error! Tag Name Already Exist!')]
+    _sql_constraints = [('unique_name', 'unique(name)', 'Error! Tag Name Already Exist!')]
     _constraints = [(osv.osv._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]
 
 class event_tag(osv.osv):
@@ -40,7 +40,7 @@ class event_tag(osv.osv):
     _columns = {
         'name': fields.char('Event Tag', translate=True)
     }
-    _sql_constraints=[('unique_name','unique(name)','Error! Tag Name Already Exist!')]
+    _sql_constraints = [('unique_name', 'unique(name)', 'Error! Tag Name Already Exist!')]
     _constraints = [(osv.osv._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]
 
 #

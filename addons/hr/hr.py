@@ -68,7 +68,7 @@ class hr_employee_category(osv.Model):
             level -= 1
         return True
 
-    _sql_constraints=[('unique_name','unique(name)','Error! Tag Name Already Exist!')]
+    _sql_constraints = [('unique_name', 'unique(name)', 'Error! Tag Name Already Exist!')]
     _constraints = [
         (_check_recursion, 'Error! You cannot create recursive Categories.', ['parent_id']),
         (osv.osv._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])

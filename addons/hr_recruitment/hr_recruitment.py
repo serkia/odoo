@@ -620,5 +620,5 @@ class applicant_category(osv.osv):
     _columns = {
         'name': fields.char('Name', required=True, translate=True),
     }
-    _sql_constraints=[('unique_name','unique(name)','Error! Tag Name Already Exist!')]
+    _sql_constraints = [('unique_name', 'unique(name)', 'Error! Tag Name Already Exist!')]
     _constraints = [(osv.osv._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]

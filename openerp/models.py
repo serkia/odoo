@@ -4787,7 +4787,7 @@ class BaseModel(object):
                     return False
         return True
     # Inspired by http://stackoverflow.com/questions/517923
-    def remove_accents(self,input_str):
+    def remove_accents(self, input_str):
         """Suboptimal-but-better-than-nothing way to replace accented
         latin letters by an ASCII equivalent. Will obviously change the
         meaning of input_str and work only for some cases"""
@@ -4797,11 +4797,10 @@ class BaseModel(object):
 
     # _constraint method making all tag a unique case and accent insensitive
     def _check_unique_case_accent_insensitive(self, cr, uid, ids, context=None):
-        print "models function"
         tag_ids = self.search(cr, uid, [('id', 'not in', ids)])
-        lst=[self.remove_accents(tag.name).lower() for tag in self.browse(cr, uid, tag_ids, context=context)]
+        old_tags = [self.remove_accents(tag.name).lower() for tag in self.browse(cr, uid, tag_ids, context=context)]
         for self_obj in self.browse(cr, uid, ids, context=context):
-            if self_obj.name and self.remove_accents(self_obj.name).lower() in  lst:
+            if self_obj.name and self.remove_accents(self_obj.name).lower() in  old_tags:
                 return False
         return True
 

@@ -173,7 +173,7 @@ class WebsiteForum(http.Controller):
     @http.route('/forum/<model("forum.forum"):forum>/question/new', type='http', auth="user", methods=['POST'], website=True)
     def question_create(self, forum, **post):
         cr, uid, context = request.cr, request.uid, request.context
-        forum_obj=request.registry['forum.forum']
+        forum_obj = request.registry['forum.forum']
         Tag = request.registry['forum.tag']
         question_tag_ids = []
         if post.get('question_tags').strip('[]'):

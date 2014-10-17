@@ -165,7 +165,7 @@ class crm_case_categ(osv.osv):
         'object_id': _find_object_id
     }
 
-    _sql_constraints=[('unique_name','unique(name)','Error! Tag Name Already Exist!')]
+    _sql_constraints = [('unique_name', 'unique(name)', 'Error! Tag Name Already Exist!')]
     _constraints = [(osv.osv._check_unique_case_accent_insensitive, 'Error: UNIQUE TAG', ['name'])]
 
 class crm_payment_mode(osv.osv):
