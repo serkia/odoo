@@ -22,7 +22,7 @@
   height: 22px;
   margin-left: 7px;
 }
-.openerp .oe_kanban_view .oe_kanban_department a:hover {
+.openerp .oe_kanban_view .oe_kanban_department .oe_kanban_content a:hover {
   text-decoration: underline !important;
 }
 .openerp .oe_kanban_view .oe_kanban_department .oe_sparkline_bar {
