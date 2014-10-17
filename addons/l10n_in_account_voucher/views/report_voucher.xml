@@ -57,7 +57,7 @@
 	                            </tr>
 	                            <tr>
 	                                <td>
-	                                    <t t-esc="m.name"/> - <t t-esc="get_ref(o.id,m)"/>
+	                                    <t t-esc="m.name"/> - <t t-esc="get_ref(o.id, m)"/>
 	                                </td>
 	                            </tr>
 	                        </t>
