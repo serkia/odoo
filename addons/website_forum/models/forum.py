@@ -58,7 +58,10 @@ class Forum(osv.Model):
             total_multiple_shared_questions[post['forum_id'][0]] += 1 if len(result) > 1 else 0
             total_shared_questions[post['forum_id'][0]] += 1
         for forum_id in ids:
-            res[forum_id] = round((float(total_multiple_shared_questions[forum_id])/float(total_shared_questions[forum_id])) * 100)
+            try:
+                res[forum_id] = round((float(total_multiple_shared_questions[forum_id])/float(total_shared_questions[forum_id])) * 100)
+            except ZeroDivisionError:
+                res[forum_id] = 0
         return res
 
     def _get_average_responce_time(self, cr, uid, ids, fields_name, arg, context=None):
@@ -654,7 +657,7 @@ class PostShare(models.Model):
     _description = "Post Shared on Social network"
     media = openerp.fields.Selection([
         ('facebook', 'Facebook'),
-        ('linked_in', 'Linked-IN'),
+        ('linkedin', 'Linked-IN'),
         ('twitter', 'Twitter')
         ], string="Media", required=False, help="This field allows to destinguish the Post shared on which social media.")
     post_id = openerp.fields.Many2one('forum.post', string="Post",

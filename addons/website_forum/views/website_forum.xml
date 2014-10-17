@@ -492,6 +492,17 @@
     </t>
 </template>
 
+<!-- Share Buttons -->
+<template id="share_buttons">
+    <t t-set="medias" t-value="['twitter', 'facebook', 'linkedin']"/>
+    <t t-foreach="medias" t-as="media">
+      <a style="cursor: pointer"  t-att-data-shared="request.registry['forum.post'].is_shared(request.cr, request.uid, id, media, context=request.context)" t-attf-class="fa-stack fa-lg #{share_class}_#{media}" t-attf-data-forum="#{forum.id}" t-attf-data-dialog="#{is_dialog}" t-attf-data-id="#{id}" t-attf-data-author="#{is_author}" t-attf-data-website_name="#{website.name}">
+            <span class="fa fa-square fa-stack-2x"></span>
+            <span t-attf-class="#{media} fa fa-#{media} fa-stack-1x fa-inverse"></span>
+        </a>
+    </t>
+</template>
+
 <!-- Share Dialog -->
 <template id="share_dialog">
     <div class="modal fade" id="share_dialog_box" tabindex="-1" role="dialog" aria-labelledby="shareDialog" aria-hidden="true">
@@ -506,18 +517,11 @@
                     <br />
                     <p><strong class="text-center"> Share on: </strong></p>
                     <div id="share_buttons row span12" style="text-align: center">
-                      <a style="cursor: pointer" t-attf-class="fa-stack fa-lg #{share_class}_twitter" data-shared="false" t-attf-data-forum="#{forum.id}" data-dialog="true" data-author="true" t-attf-data-website_name="#{website.name}">
-                            <span class="fa fa-square fa-stack-2x"></span>
-                            <span class="twitter fa fa-twitter fa-stack-1x fa-inverse"></span>
-                        </a>
-                        <a style="cursor: pointer" t-attf-class="fa-stack fa-lg #{share_class}_facebook" data-shared="false" t-attf-data-forum="#{forum.id}" data-dialog="true" data-author="true" t-attf-data-website_name="#{website.name}">
-                            <span class="fa fa-square fa-stack-2x"></span>
-                            <span class="facebook fa fa-facebook fa-stack-1x fa-inverse"></span>
-                        </a>
-                        <a style="cursor: pointer" t-attf-class="fa-stack fa-lg #{share_class}_linked_in" data-shared="false" t-attf-data-forum="#{forum.id}" data-dialog="true" data-author="true" t-attf-data-website_name="#{website.name}">
-                            <span class="fa fa-square fa-stack-2x"></span>
-                            <span class="linkedin fa fa-linkedin fa-stack-1x fa-inverse"></span>
-                        </a>
+                        <t t-call="website_forum.share_buttons">
+                            <t t-set="is_dialog" t-value="'true'"/>
+                            <t t-set="is_author" t-value="true"/>
+                            <t t-set="id" t-value="false"/>
+                        </t>
                     </div>
                 </div>
             </div>
@@ -526,7 +530,7 @@
 </template>
 
 
-<!-- Share Button -->
+<!-- Share Popover -->
 <template id="share">
     <div class="row clearfix">
         <div class="col-xs-4 col-xs-offset-8">
@@ -538,18 +542,10 @@
                     <t t-if="request.uid != object.create_uid.id">
                         <t t-set="is_author" t-value="'false'"/>
                     </t>
-                    <a style="cursor: pointer" t-attf-class="fa-stack fa-lg #{share_class}_twitter" t-att-data-shared="request.registry['forum.post'].is_shared(request.cr, request.uid, object.id,'twitter', context=request.context)" t-attf-data-forum="#{object.forum_id.id}" t-attf-data-author="#{is_author}" t-attf-data-id="#{object.id}" data-dialog="false" t-attf-data-website_name="#{website.name}">
-                        <span class="fa fa-circle fa-stack-2x"></span>
-                        <span class="fa fa-twitter fa-stack-1x fa-inverse"></span>
-                    </a>
-                    <a style="cursor: pointer" t-attf-class="fa-stack fa-lg #{share_class}_facebook"  t-att-data-shared="request.registry['forum.post'].is_shared(request.cr, request.uid, object.id,'facebook', context=request.context)" t-attf-data-forum="#{object.forum_id.id}" t-attf-data-author="#{is_author}" t-attf-data-id="#{object.id}" data-dialog="false" t-attf-data-website_name="#{website.name}">
-                        <span class="fa fa-circle fa-stack-2x"></span>
-                        <span class="fa fa-facebook fa-stack-1x fa-inverse"></span>
-                    </a>
-                    <a style="cursor: pointer" t-attf-class="fa-stack fa-lg #{share_class}_linked_in" t-att-data-shared="request.registry['forum.post'].is_shared(request.cr, request.uid, object.id,'linked_in', context=request.context)" t-attf-data-forum="#{object.forum_id.id}" t-attf-data-author="#{is_author}" t-attf-data-id="#{object.id}" data-dialog="false" t-attf-data-website_name="#{website.name}">
-                        <span class="fa fa-circle fa-stack-2x"></span>
-                        <span class="fa fa-linkedin fa-stack-1x fa-inverse"></span>
-                    </a>
+                    <t t-call="website_forum.share_buttons">
+                        <t t-set="is_dialog" t-value="false"/>
+                        <t t-set="id" t-value="object.id"/>
+                    </t>
                 </div>
             </div>
         </div>

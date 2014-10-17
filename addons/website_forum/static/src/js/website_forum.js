@@ -6,7 +6,7 @@ function open_share_dialog(social_network, text_to_share, url) {
         sharing_url = 'https://twitter.com/intent/tweet?original_referer=' + encodeURIComponent(url) + '&amp;text=' + encodeURIComponent(text_to_share);
         window_height = '300';
         window_width = '600';
-    } else if (social_network === 'linked-in') {
+    } else if (social_network === 'linkedin') {
         sharing_url = 'https://www.linkedin.com/shareArticle?mini=true&url=' + encodeURIComponent(url) + '&title=' + encodeURIComponent(text_to_share) + '&summary=Odoo Forum&source=Odoo forum';
         window_height = '500';
         window_width = '600';
@@ -21,13 +21,24 @@ function open_share_dialog(social_network, text_to_share, url) {
     return false;
 }
 
+function updateDatabase( button, post_id, media) {
+    "use strict";
+    if (button.data('shared') === false) {
+        openerp.jsonRpc('/forum/' + button.data('forum') + '/' + post_id + '/share', 'call', {'media' : media})
+            .then(function () {
+                button.data('shared', true);
+                return;
+            });
+    }
+    return;
+}
+
 function redirect_user(form, isQuestion) {
     "use strict";
     var path = form.data("target"),
         title, body, redirect_url, vals, forum_id, post_id,
         _t = openerp._t;
     $.post(path, form.serializeArray(), function (result) {
-        result = JSON.parse(result);
         forum_id = result.forum_id;
         if (isQuestion) {
             title = _t("Thanks for posting your Question !");
@@ -50,7 +61,7 @@ function redirect_user(form, isQuestion) {
         }).on('hidden.bs.modal', function () {
             window.location = redirect_url;
         }).modal("show");
-    });
+    }, 'json');
 }
 
 $(document).ready(function () {
@@ -77,13 +88,7 @@ $(document).ready(function () {
                 text_to_share = $('#question_name').text() + hash_tags + url;
             }
             open_share_dialog('twitter', text_to_share, url);
-            if ($('.share_question_twitter').data('shared') === false) {
-                openerp.jsonRpc('/forum/' + $(this).data('forum') + '/' + post_id + '/share', 'call', {'media' : 'twitter'})
-                    .then(function () {
-                        $('.share_question_twitter').data('shared', true);
-                        return;
-                    });
-            }
+            updateDatabase($('.share_question_twitter'), post_id, 'twitter');
             return;
         });
 
@@ -100,17 +105,11 @@ $(document).ready(function () {
                 }
             }
             open_share_dialog('facebook', '', url);
-            if ($('.share_question_facebook').data('shared') === false) {
-                openerp.jsonRpc('/forum/' + $(this).data('forum') + '/' + post_id + '/share', 'call', {'media' : 'facebook'})
-                    .then(function () {
-                        $('.share_question_facebook').data('shared', true);
-                        return;
-                    });
-            }
+            updateDatabase($('.share_question_facebook'), post_id, 'facebook');
             return;
         });
 
-        $('body').on('click', ".share_question_linked_in", function () {
+        $('body').on('click', ".share_question_linkedin", function () {
             var text_to_share, url, post_id;
             if ($(this).data("dialog")) {
                 post_id = $("#share_dialog_box").data('post_id');
@@ -121,14 +120,8 @@ $(document).ready(function () {
                 url = location.origin + location.pathname;
                 text_to_share = $('#question_name').text() + ' : ' + url;
             }
-            open_share_dialog('linked-in', text_to_share, url);
-            if ($('.share_question_linked_in').data('shared') === false) {
-                openerp.jsonRpc('/forum/' + $(this).data('forum') + '/' +  post_id + '/share', 'call', {'media' : 'linked_in'})
-                    .then(function () {
-                        $('.share_question_linked_in').data('shared', true);
-                        return;
-                    });
-            }
+            open_share_dialog('linkedin', text_to_share, url);
+            updateDatabase($('.share_question_linkedin'), post_id, 'linkedin');
             return;
         });
 
@@ -151,13 +144,7 @@ $(document).ready(function () {
             }
             text_to_share = question_name + '? ' + hash_tag + ' #' + website_name + url;
             open_share_dialog('twitter', text_to_share, url);
-            if ($('.share_answer_twitter').data('shared') === false) {
-                openerp.jsonRpc('/forum/' + $(this).data('forum') + '/' + post_id + '/share', 'call', {'media' : 'twitter'})
-                    .then(function () {
-                        $('.share_answer_twitter').data('shared', true);
-                        return;
-                    });
-            }
+            updateDatabase($('.share_answer_twitter'), post_id, 'twitter');
             return;
         });
 
@@ -177,17 +164,11 @@ $(document).ready(function () {
                 }
             }
             open_share_dialog('facebook', '', url);
-            if ($('.share_answer_facebook').data('shared') === false) {
-                openerp.jsonRpc('/forum/' + $(this).data('forum') + '/' + post_id + '/share', 'call', {'media' : 'facebook'})
-                    .then(function () {
-                        $('.share_answer_facebook').data('shared', true);
-                        return;
-                    });
-            }
+            updateDatabase($('.share_answer_facebook'), post_id, 'facebook');
             return;
         });
 
-        $('body').on('click', ".share_answer_linked_in", function () {
+        $('body').on('click', ".share_answer_linkedin", function () {
             var text, post_id, text_to_share,
                 url = location.origin + location.pathname;
             if ($(this).data("dialog")) {
@@ -202,14 +183,8 @@ $(document).ready(function () {
                 post_id = $(this).data("id");
             }
             text_to_share = text + $('#question_name').text() + ' on ' + url;
-            open_share_dialog('linked-in', text_to_share, url);
-            if ($('.share_answer_linkeg_in').data('shared') === false) {
-                openerp.jsonRpc('/forum/' + $(this).data('forum') + '/' + post_id + '/share', 'call', {'media' : 'linked_in'})
-                    .then(function () {
-                        $('.share_answer_linked_in').data('shared', true);
-                        return;
-                    });
-            }
+            open_share_dialog('linkedin', text_to_share, url);
+            updateDatabase($('.share_answer_linkedin'), post_id, 'linkedin');
             return;
         });
 
