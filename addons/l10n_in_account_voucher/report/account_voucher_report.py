@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import time
-from openerp import fields, models,api
+from openerp import fields, models, api
 from openerp.tools import amount_to_text_en
 
 class ReportVoucher(models.AbstractModel):
