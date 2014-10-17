@@ -71,7 +71,7 @@
 	                            <td>
 	                                <h4><strong>Amount (in words) :</strong></h4>
 	                                <t t-if="o.state != 'draft' and o.state != 'cancel'">
-	                                    <h5><t t-esc="convert(o.amount,o.currency_id.name)"/></h5>
+	                                    <h5><t t-esc="convert(o.amount, o.currency_id.name)"/></h5>
 	                                </t>
 	                            </td>
 	                        </tr>
