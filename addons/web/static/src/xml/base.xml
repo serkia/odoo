@@ -1478,10 +1478,6 @@
                 <td style="width:100%">
                     <div class="oe-search-options btn-group"/>
                     <div class="oe_popup_search"></div>
-                </td>
-            </tr>
-            <tr style="width:100%">
-                <td style="width:100%">
                     <div class="oe_popup_list_pager"></div>
                 </td>
             </tr>
