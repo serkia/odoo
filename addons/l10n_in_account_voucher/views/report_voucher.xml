@@ -8,7 +8,7 @@
 	            <div class="page">
 	                <div class="row mb32">
 	                    <div class="col-xs-6 col-xs-offset-3 text-center">
-	                        <h2><t t-esc="o.title"/></h2>
+	                        <h2><t t-esc="get_title(o.type)"/></h2>
 	                        <h5><address t-field="o.company_id.partner_id"
 	                            t-field-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": true}' /></h5>
 	                            <h5><t t-esc="o.company_id.rml_footer"/></h5>
@@ -78,8 +78,8 @@
 	                        </tbody>
 	                        <tfoot>
 	                           <tr class="table-bordered">
-	                               <td class="text-right" colspan="2"><h4><strong><span t-esc="o.debit"/></strong></h4></td>
-	                               <td class="text-right"><h4><strong><span t-esc="o.credit"/></strong></h4></td>
+	                               <td class="text-right" colspan="2"><h4><strong><span t-esc="debit(o.move_ids)"/></strong></h4></td>
+	                               <td class="text-right"><h4><strong><span t-esc="credit(o.move_ids)"/></strong></h4></td>
 	                           </tr>
 	                        </tfoot>
 	                </table>

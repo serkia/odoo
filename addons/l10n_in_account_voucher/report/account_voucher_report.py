@@ -7,10 +7,6 @@ from openerp.tools import amount_to_text_en
 class ReportVoucher(models.AbstractModel):
     _name = 'report.l10n_in_account_voucher.report_voucher'
 
-    title = fields.Char("Title", compute='_compute_get_title')
-    debit = fields.Float("Debit", compute='_compute_debit')
-    credit = fields.Float("Credit", compute='_compute_credit')
-
     @api.model
     def render_html(self, ids, data=None):
         report_obj = self.env['report']
@@ -28,20 +24,21 @@ class ReportVoucher(models.AbstractModel):
         }
         return report_obj.render('l10n_in_account_voucher.report_voucher', docargs)
 
-    def convert(self, amount, cur):
-        return amount_to_text_en.amount_to_text(amount, 'en', cur)
-
-    def _compute_get_title(self):
+    def get_title(self, type):
         title = ''
-        if self.type:
-            title = self.type[0].swapcase() + self.type[1:] + " Voucher"
+        if type:
+            title = type[0].swapcase() + type[1:] + " Voucher"
         return title
 
-    def _compute_debit(self):
-        return sum(self.move_ids.debit) or 0.0
+    def debit(self, move_ids):
+        for move in move_ids:
+            debit += move.debit
+        return debit or 0.0
 
-    def _compute_credit(self):
-        return sum(self.move_ids.credit) or 0.0
+    def credit(self, move_ids):
+        for move in move_ids:
+            credit += move.credit
+        return credit or 0.0
 
     @api.model
     def _get_ref(self, voucher_id, move_ids):

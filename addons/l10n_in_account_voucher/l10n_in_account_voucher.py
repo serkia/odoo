@@ -16,12 +16,7 @@ class account_voucher(models.Model):
     def get_invoice_followers(self, move_ids):
         message_follower_ids = []
         move_line = self.env['account.move.line'].search([('id', 'in', move_ids)])
-        for line in move_line:
-            invoice = line and line.invoice
-            if invoice:
-                for follower in invoice.message_follower_ids:
-                    if follower.id not in message_follower_ids:
-                        message_follower_ids.append(follower.id)
+        message_follower_ids = [follower.id for follower in move_line.invoice.message_follower_ids if follower.id not in message_follower_ids]
         return message_follower_ids
 
     @api.multi
